@@ -1,5 +1,5 @@
-import Navbar from "../components/Navbar";
-import BorrowStatus from "../components/BorrowStatus";
+import Navbar from "../../components/Navbar";
+import BorrowStatus from "../../components/BorrowStatus";
 
 export default function Profile() {
   return (

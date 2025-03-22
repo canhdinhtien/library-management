@@ -1,5 +1,5 @@
-import Navbar from "../components/Navbar";
-import BookCard from "../components/BookCard";
+import Navbar from "../../components/Navbar";
+import BookCard from "../../components/BookCard";
 
 const books = [
   {
