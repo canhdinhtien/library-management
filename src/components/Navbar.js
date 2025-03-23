@@ -57,29 +57,29 @@ const Navbar = () => {
       <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
         <Link
           href="/profile"
-          className="flex items-center px-6 lg:px-14 py-2 lg:py-3 border rounded-lg lg:rounded-2xl text-orange-400 space-x-2 lg:space-x-3 group hover:scale-105 transition-transform duration-200 text-base md:text-lg lg:text-xl"
+          className="flex items-center px-8 lg:px-16 py-3 lg:py-4 border rounded-lg lg:rounded-2xl text-orange-400 space-x-2 lg:space-x-3 group hover:scale-105 transition-transform duration-200 text-base md:text-lg lg:text-xl"
         >
           <Image
             src="/images/User.png"
             alt="User"
-            width={24}
-            height={24}
-            className="w-6 h-6 lg:w-8 lg:h-8"
+            width={16}
+            height={16}
+            className="h-[1em] w-auto"
           />
           <span className="leading-none">Profile</span>
         </Link>
         <Link
           href="/login"
-          className="flex items-center px-6 lg:px-14 py-2 lg:py-3 bg-orange-400 text-white rounded-lg lg:rounded-2xl border group hover:scale-105 transition-transform duration-200 text-base md:text-lg lg:text-xl"
+          className="flex items-center px-8 lg:px-16 py-3 lg:py-4 bg-orange-400 text-white rounded-lg lg:rounded-2xl border group hover:scale-105 transition-transform duration-200 text-base md:text-lg lg:text-xl"
         >
           <Image
             src="/images/Login.png"
             alt="Login"
-            width={24}
-            height={24}
-            className="w-6 h-6 lg:w-8 lg:h-8"
+            width={16}
+            height={16}
+            className="h-[1em] w-auto"
           />
-          <span className="leading-none">Login</span>
+          <span className="ml-2 leading-none">Login</span>
         </Link>
       </div>
 
