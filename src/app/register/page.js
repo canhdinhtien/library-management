@@ -1,17 +1,21 @@
 import Navbar from "../../components/Navbar";
 
-export default function Login() {
+export default function Register() {
   return (
     <div>
       <Navbar />
       <section className="flex flex-col items-center justify-center h-screen ">
-        <h2 className="text-4xl text-black mb-10">Login to Your Account</h2>
-        <div>
-          <h3 className="text-lg font-bold text-black text-left">Username</h3>
+        <h2 className="text-4xl text-black mb-10">Create Your Account</h2>
+        <div className="w-100">
+        <input
+            type="text"
+            placeholder="First name"
+            className="border text-gray-400 p-2 pl-4 mt-4 mb-10 mr-2 rounded-lg"
+          />
           <input
             type="text"
-            placeholder="Enter your username"
-            className="border text-gray-400 p-2 pl-4 mt-4 mb-10 w-100 rounded-lg"
+            placeholder="Surname"
+            className="border text-gray-400 p-2 pl-4 mt-4 mb-10 rounded-lg"
           />
         </div>
         <div>
@@ -30,6 +34,12 @@ export default function Login() {
           <button className="bg-yellow-500 text-white px-4 py-2 mt-4 mb-6 w-100 rounded-xl">
             Create an Account
           </button>
+          <Link
+            href="/login"
+            className="bg-yellow-500 text-white px-4 py-2 mt-4 mb-6 w-100 rounded-xl"
+            >
+            <span className="leading-none">Login</span>
+            </Link>
         </div>
 
       </section>
