@@ -32,24 +32,24 @@ export default function CatalogPage() {
   return (
     <div>
       <Navbar />
-      <section className="p-6 mt-12">
-        <h2 className="text-5xl font-serif text-center mb-6 text-black">
+      <section className="p-4 sm:p-6 mt-8 sm:mt-12">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-center mb-4 sm:mb-6 text-black">
           Explore Our Book Catalog
         </h2>
-        <div className="flex justify-center mb-6">
-          <span className="text-center text-gray-700 text-xl">
+
+        <div className="flex justify-center px-4">
+          <span className="text-center text-gray-700 text-lg sm:text-xl max-w-3xl">
             Easily filter and find the perfect read by genre and author. Browse
             through our diverse categories and discover your next favorite book
             today!
           </span>
         </div>
-
-        <div className="mt-12">
-          <h2 className="text-center text-gray-800 text-3xl mb-6">
+        <div className="mt-8 sm:mt-12">
+          <h2 className="text-center text-gray-800 text-2xl sm:text-3xl mb-4 sm:mb-6">
             Book Filtering Options
           </h2>
 
-          <div className="flex justify-center gap-8">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
             <Dropdown
               label="Genre"
               options={["Fiction", "Non-Fiction", "Fantasy", "Science Fiction"]}
@@ -68,7 +68,7 @@ export default function CatalogPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center px- mt-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 justify-items-center px-4 mt-8 sm:mt-12 text-gray-800">
           {books.map((book, index) => (
             <BookCard
               key={index}

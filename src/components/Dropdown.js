@@ -32,19 +32,17 @@ export default function Dropdown({ label, options, onSelect, onSearch }) {
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      {/* Thanh chứa dropdown button, search bar và nút Search */}
-      <div className="flex items-center border rounded-lg px-2 py-1 bg-white shadow-sm">
-        {/* Dropdown Button */}
+    <div className="relative w-full max-w-xs sm:max-w-sm" ref={dropdownRef}>
+      <div className="flex items-center border rounded-lg px-2 py-2 bg-white shadow-sm w-full">
         <button
-          className="flex items-center px-4 py-2 border-r text-gray-800 bg-white hover:bg-gray-100 rounded-l-lg"
+          className="flex items-center px-3 sm:px-4 py-2 border-r text-gray-800 bg-white hover:bg-gray-100 rounded-l-lg"
           onClick={() => setIsOpen(!isOpen)}
         >
           {label}
           <span className="ml-2">
             <Image
               src="/images/corner-down-round.png"
-              alt="Logo"
+              alt="Dropdown Arrow"
               width={16}
               height={16}
               className="w-4 h-4 max-w-full"
@@ -52,42 +50,39 @@ export default function Dropdown({ label, options, onSelect, onSearch }) {
           </span>
         </button>
 
-        {/* Search Bar */}
         <input
           type="text"
           placeholder={`Search ${label.toLowerCase()}...`}
-          className="flex-grow px-2 py-1 focus:outline-none text-gray-800"
+          className="flex-grow px-2 py-1 focus:outline-none text-gray-800 w-full"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              handleSearch(); // Gọi hàm tìm kiếm khi nhấn Enter
+              handleSearch();
             }
           }}
         />
 
-        {/* Nút Search */}
         <button
-          className="px-4 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-500"
+          className="px-3 sm:px-4 py-2 bg-orange-400 text-white rounded-lg hover:scale-105 transition-transform duration-200"
           onClick={handleSearch}
         >
           Search
         </button>
       </div>
 
-      {/* Dropdown Options */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-full bg-white border rounded-lg shadow-lg z-10 text-gray-800">
-          <ul className="max-h-48 overflow-y-auto">
+        <div className="absolute top-full left-0 mt-2 w-full bg-white border rounded-lg shadow-lg z-10 text-gray-800 max-h-48 overflow-y-auto">
+          <ul>
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option, index) => (
                 <li
                   key={index}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm sm:text-base"
                   onClick={() => {
                     onSelect(option);
-                    setIsOpen(false); // Đóng dropdown sau khi chọn
-                    setSearchTerm(""); // Xóa từ khóa tìm kiếm
+                    setIsOpen(false);
+                    setSearchTerm("");
                   }}
                 >
                   {option}
