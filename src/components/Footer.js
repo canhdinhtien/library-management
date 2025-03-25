@@ -22,7 +22,7 @@ const Footer = () => {
         </div>
 
         <div className="flex justify-center space-x-6 mb-4 text-xl font-medium">
-          <Link href="/home" className="hover:text-orange-400">
+          <Link href="/" className="hover:text-orange-400">
             Home
           </Link>
           <Link href="/catalog" className="hover:text-orange-400">
