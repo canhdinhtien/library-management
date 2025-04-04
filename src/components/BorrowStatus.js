@@ -8,7 +8,7 @@ const BorrowStatus = ({ borrowedBooks, overdueBooks, stats }) => {
       </h2>
 
       {/* Danh sách sách đang mượn */}
-      <div className="border p-4 rounded-lg shadow-md">
+      <div className="border md:p-4 pb-2 rounded-lg shadow-md">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b">
@@ -37,7 +37,7 @@ const BorrowStatus = ({ borrowedBooks, overdueBooks, stats }) => {
 
       {/* Sách quá hạn */}
       <h2 className="text-xl font-bold mt-6 mb-3 text-center">Overdue Books</h2>
-      <div className="border p-4 rounded-lg shadow-md">
+      <div className="border md:p-4 pb-2 rounded-lg shadow-md">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b">
@@ -56,12 +56,14 @@ const BorrowStatus = ({ borrowedBooks, overdueBooks, stats }) => {
                   {book.daysOverdue}
                 </td>
                 <td className="p-2 text-center w-1/4">
-                  <button className="px-3 py-1 bg-orange-400 text-white rounded-md group hover:bg-orange-500 hover:scale-110 transition-transform duration-200">
-                    Renew
-                  </button>
-                  <button className="ml-2 px-3 py-1 bg-red-500 text-white rounded-md group hover:bg-red-600 hover:scale-110 transition-transform duration-200">
-                    Return
-                  </button>
+                  <div className="flex justify-center items-center flex-col md:flex-row ">
+                    <button className="m-1 px-3 py-1 bg-orange-400 text-white rounded-md group hover:bg-orange-500 hover:scale-110 transition-transform duration-200 w-full md:w-auto">
+                      Renew
+                    </button>
+                    <button className="m-1 px-3 py-1 bg-red-500 text-white rounded-md group hover:bg-red-600 hover:scale-110 transition-transform duration-200 w-full md:w-auto">
+                      Return
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

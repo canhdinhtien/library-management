@@ -4,12 +4,12 @@ const Review = ({ reviews }) => {
   const averageRating =
     reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
   return (
-    <div className="flex flex-row mt-4 p-4 border rounded-lg shadow-md ">
-      <div className="w-1/2">
+    <div className="flex flex-col md:flex-row mt-4 p-4 border rounded-lg shadow-md ">
+      <div className="w-full items-center md:w-1/2 flex flex-col">
         <h3 className="font-semibold text-center">Average Rating</h3>
         <p className="text-center">{averageRating.toFixed(1)} out of 5 stars</p>
       </div>
-      <div className="w-1/2">
+      <div className="w-full md:w-1/2">
         {reviews.map((review) => (
           <div key={review.id} className="mt-4">
             <hr className="my-4 border-gray-300" />

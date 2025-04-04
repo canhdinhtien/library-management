@@ -57,7 +57,9 @@ const Navbar = () => {
       <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
         <Link
           href="/profile"
-          className="flex items-center px-6 lg:px-14 py-2 lg:py-3 border rounded-lg lg:rounded-2xl text-orange-400 space-x-2 lg:space-x-3 group hover:scale-105 transition-transform duration-200 text-base md:text-lg lg:text-xl"
+          className={`${
+            pathname === "/profile"
+          } flex items-center px-6 lg:px-14 py-2 lg:py-3 border rounded-lg lg:rounded-2xl text-orange-400 space-x-2 lg:space-x-3 group hover:scale-105 transition-transform duration-200 text-base md:text-lg lg:text-xl`}
         >
           <Image
             src="/images/User.png"
