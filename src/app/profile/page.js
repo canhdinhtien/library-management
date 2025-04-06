@@ -79,7 +79,7 @@ const stats = {
 
 export default function Profile() {
   return (
-    <div>
+    <div className="text-gray-800">
       <Navbar />
       <BorrowStatus
         borrowedBooks={borrowedBooks}

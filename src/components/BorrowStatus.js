@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 const BorrowStatus = ({ borrowedBooks, overdueBooks, stats }) => {
   return (
@@ -8,21 +8,25 @@ const BorrowStatus = ({ borrowedBooks, overdueBooks, stats }) => {
       </h2>
 
       {/* Danh sách sách đang mượn */}
-      <div className="border md:p-4 pb-2 rounded-lg shadow-md">
+      <div className="border md:p-4 pb-2 rounded-lg shadow-md min-w-[300px]">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b">
               <th className="p-2 text-center w-1/4">Book Title</th>
-              <th className="p-2 text-center w-1/4">Author</th>
+              <th className="p-2 text-center w-1/4 sm:table-cell hidden">
+                Author
+              </th>
               <th className="p-2 text-center w-1/4">Due Date</th>
               <th className="p-2 text-center w-1/4">Action</th>
             </tr>
           </thead>
           <tbody>
             {borrowedBooks.map((book) => (
-              <tr key={book.id} className="border-b">
+              <tr key={book.id} className="border-b ">
                 <td className="p-2 text-center w-1/4">{book.title}</td>
-                <td className="p-2 text-center w-1/4">{book.author}</td>
+                <td className="p-2 text-center w-1/4 sm:table-cell hidden">
+                  {book.author}
+                </td>
                 <td className="p-2 text-center w-1/4">{book.dueDate}</td>
                 <td className="p-2 text-center w-1/4">
                   <button className="px-3 py-1 bg-red-500 text-white rounded-md group hover:bg-red-600 hover:scale-110 transition-transform duration-200">
@@ -37,12 +41,14 @@ const BorrowStatus = ({ borrowedBooks, overdueBooks, stats }) => {
 
       {/* Sách quá hạn */}
       <h2 className="text-xl font-bold mt-6 mb-3 text-center">Overdue Books</h2>
-      <div className="border md:p-4 pb-2 rounded-lg shadow-md">
+      <div className="border md:p-4 pb-2 rounded-lg shadow-md min-w-[300px]">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b">
               <th className="p-2 text-center w-1/4">Book Title</th>
-              <th className="p-2 text-center w-1/4">Author</th>
+              <th className="p-2 text-center w-1/4 sm:table-cell hidden">
+                Author
+              </th>
               <th className="p-2 text-center w-1/4">Days Overdue</th>
               <th className="p-2 text-center w-1/4">Action</th>
             </tr>
@@ -51,7 +57,9 @@ const BorrowStatus = ({ borrowedBooks, overdueBooks, stats }) => {
             {overdueBooks.map((book) => (
               <tr key={book.id} className="border-b">
                 <td className="p-2 text-center w-1/4">{book.title}</td>
-                <td className="p-2 text-center w-1/4">{book.author}</td>
+                <td className="p-2 text-center w-1/4 sm:table-cell hidden">
+                  {book.author}
+                </td>
                 <td className="p-2 text-red-500 text-center w-1/4">
                   {book.daysOverdue}
                 </td>

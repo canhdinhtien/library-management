@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function Info() {
   return (
-    <div className="m-2">
+    <div>
       <Navbar />
 
       <section className="text-center p-6 sm:p-12">
