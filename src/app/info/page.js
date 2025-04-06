@@ -2,7 +2,6 @@ import Navbar from "../../components/Navbar";
 import Image from "next/image";
 // import Link from "next/link";
 // import Head from "next/head";
-
 export const metadata = {
   title: "Info",
   description: "Trang thông tin của trang web",

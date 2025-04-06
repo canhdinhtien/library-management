@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function Login() {
   return (
-    <div>
+    <div className="m-2">
       <Navbar />
       <section className="flex flex-col items-center justify-center h-screen px-4 sm:px-8 md:px-16">
         <h2 className="text-4xl text-black mb-10 text-center">
