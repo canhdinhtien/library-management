@@ -73,7 +73,7 @@ export default function BookDetail({ params }) {
     return (
       <div>
         <Navbar />
-        <section className="p-6">
+        <section className="p-5">
           <h2 className="text-2xl font-bold text-center">Book Not Found</h2>
         </section>
       </div>
