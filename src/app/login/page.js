@@ -12,7 +12,9 @@ export default function Login() {
     <div>
       <Navbar />
       <section className="flex flex-col items-center justify-center h-screen px-4 sm:px-8 md:px-16">
-        <h2 className="text-4xl text-black mb-10 text-center">Login to Your Account</h2>
+        <h2 className="text-4xl text-black mb-10 text-center">
+          Login to Your Account
+        </h2>
         <div className="w-full max-w-md">
           <div className="mb-5">
             <input
@@ -42,12 +44,12 @@ export default function Login() {
                 Forgotten account?
               </Link>
               <br />
-              Haven&apos;t got an account yet? 
+              Haven&apos;t got an account yet?
               <Link href="/register" className="text-blue-500 hover:underline">
                 Create an Account
               </Link>
               <br />
-              Don&apos;t want to log in? 
+              Don&apos;t want to log in?
               <Link href="/" className="text-blue-500 hover:underline">
                 Back to main menu
               </Link>
