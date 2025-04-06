@@ -50,20 +50,16 @@ const BorrowStatus = ({ borrowedBooks, overdueBooks, stats }) => {
           <tbody>
             {overdueBooks.map((book) => (
               <tr key={book.id} className="border-b">
-                <td className="p-2 text-center w-1/4">{book.title}</td>
-                <td className="p-2 text-center w-1/4">{book.author}</td>
-                <td className="p-2 text-red-500 text-center w-1/4">
-                  {book.daysOverdue}
-                </td>
-                <td className="p-2 text-center w-1/4">
-                  <div className="flex justify-center items-center flex-col md:flex-row ">
-                    <button className="m-1 px-3 py-1 bg-orange-400 text-white rounded-md group hover:bg-orange-500 hover:scale-110 transition-transform duration-200 w-full md:w-auto">
-                      Renew
-                    </button>
-                    <button className="m-1 px-3 py-1 bg-red-500 text-white rounded-md group hover:bg-red-600 hover:scale-110 transition-transform duration-200 w-full md:w-auto">
-                      Return
-                    </button>
-                  </div>
+                <td className="p-2">{book.title}</td>
+                <td className="p-2">{book.author}</td>
+                <td className="p-2 text-red-500">{book.daysOverdue}</td>
+                <td className="p-2">
+                  <button className="px-3 py-1 bg-yellow-500 text-white rounded-md">
+                    Renew
+                  </button>
+                  <button className="ml-2 px-3 py-1 bg-red-500 text-white rounded-md">
+                    Return
+                  </button>
                 </td>
               </tr>
             ))}

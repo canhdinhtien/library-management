@@ -1,11 +1,4 @@
 import Navbar from "../../components/Navbar";
-import Link from "next/link";
-import Head from "next/head";
-
-export const metadata = {
-  title: "Login",
-  description: "Trang đăng nhập",
-};
 
 export default function Login() {
   return (

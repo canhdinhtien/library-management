@@ -4,10 +4,30 @@ import BookCard from "../components/BookCard";
 import Image from "next/image";
 
 const books = [
-  { title: "The Silent Patient", author: "Alex Michaelides" },
-  { title: "Where the Crawdads Sing", author: "Delia Owens" },
-  { title: "Educated", author: "Tara Westover" },
-  { title: "Becoming", author: "Michelle Obama" },
+  {
+    id: 1,
+    title: "To Kill a Mockingbird",
+    author: "Harper Lee",
+    image: "/books/mockingbird.jpg",
+  },
+  {
+    id: 2,
+    title: "1984",
+    author: "George Orwell",
+    image: "/books/1984.jpg",
+  },
+  {
+    id: 3,
+    title: "Pride and Prejudice",
+    author: "Jane Austen",
+    image: "/books/pride.jpg",
+  },
+  {
+    id: 4,
+    title: "Moby-Dick",
+    author: "Herman Melville",
+    image: "/books/mobydick.jpg",
+  },
 ];
 
 export default function Home() {
