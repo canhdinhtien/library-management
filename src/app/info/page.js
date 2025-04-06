@@ -1,7 +1,7 @@
 import Navbar from "../../components/Navbar";
 import Image from "next/image";
-import Link from "next/link";
-import Head from "next/head";
+// import Link from "next/link";
+// import Head from "next/head";
 
 export const metadata = {
   title: "Info",
@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function Info() {
   return (
-    <div className="m-2">
+    <div>
       <Navbar />
 
       <section className="text-center p-6 sm:p-12">
