@@ -83,7 +83,7 @@ const BorrowStatus = ({ borrowedBooks, overdueBooks, stats }) => {
       <h2 className="text-xl font-bold mt-6 mb-3 text-center">
         Borrowing History Statistics
       </h2>
-      <div className="border p-4 rounded-lg shadow-md">
+      <div className="border p-4 rounded-lg shadow-md min-w-[300px]">
         <p>
           <strong>Total books borrowed:</strong> {stats.totalBorrowed}
         </p>
