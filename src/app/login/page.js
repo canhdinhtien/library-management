@@ -40,7 +40,10 @@ export default function Login() {
               Log in
             </button>
             <p className="text-md text-gray-500 text-left mt-4">
-              <Link href="/forgotpass" className="text-blue-500 hover:underline">
+              <Link
+                href="/forgotpass"
+                className="text-blue-500 hover:underline"
+              >
                 Forgotten account?
               </Link>
               <br />
