@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "dotenv": "^16.4.7",
+    "mongoose": "^8.13.2",
     "next": "15.2.2",
     "next-seo": "^6.6.0",
     "react": "^19.0.0",
@@ -20,5 +22,11 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.2",
     "tailwindcss": "^4"
+  },
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["./*"]
+    }
   }
 }
