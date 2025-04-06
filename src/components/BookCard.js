@@ -2,8 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const BookCard = ({ book }) => {
-  const { id, title, author, image } = book;
+const BookCard = ({ title, author, image, id }) => {
   return (
     <div
       className="bg-white shadow-md rounded-lg overflow-hidden 

@@ -1,7 +1,6 @@
-import Navbar from "../components/Navbar";
-import BookCard from "../components/BookCard";
-import Dropdown from "../components/Dropdown";
-
+import Navbar from "../../components/Navbar";
+import BookCard from "../../components/BookCard";
+import Dropdown from "../../components/Dropdown";
 const books = [
   {
     id: 1,
