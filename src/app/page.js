@@ -45,7 +45,7 @@ export default function Home() {
               title={book.title}
               author={book.author}
               image="/images/book-placeholder.jpg"
-              id={index}
+              id={book.id}
             />
           ))}
         </div>
