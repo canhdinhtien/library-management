@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Menu, X, User, LogIn } from "lucide-react";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -64,13 +65,7 @@ const Navbar = () => {
            group hover:scale-105 transition-transform duration-200 
            text-lg md:text-lg lg:text-2xl justify-center"
         >
-          <Image
-            src="/images/User.png"
-            alt="User"
-            width={16}
-            height={16}
-            className="h-[1.0em] w-auto "
-          />
+          <User className="h-4 w-4 lg:h-6 lg:w-6" />
           <span className="leading-none ml-3">Profile</span>
         </Link>
 
@@ -81,13 +76,7 @@ const Navbar = () => {
              group hover:scale-105 transition-transform duration-200 
            text-lg md:text-lg lg:text-2xl justify-center"
         >
-          <Image
-            src="/images/Login.png"
-            alt="Login"
-            width={20}
-            height={20}
-            className="h-[1.0em] w-auto"
-          />
+          <LogIn className="h-4 w-4 lg:h-6 lg:w-6" />
           <span className="ml-3 leading-none">Login</span>
         </Link>
       </div>
