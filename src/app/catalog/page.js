@@ -1,83 +1,284 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar";
 import BookCard from "../../components/BookCard";
-import Dropdown from "../../components/Dropdown";
-const books = [
-  {
-    id: 1,
-    title: "To Kill a Mockingbird",
-    author: "Harper Lee",
-    image: "/books/mockingbird.jpg",
-  },
-  {
-    id: 2,
-    title: "1984",
-    author: "George Orwell",
-    image: "/books/1984.jpg",
-  },
-  {
-    id: 3,
-    title: "Pride and Prejudice",
-    author: "Jane Austen",
-    image: "/books/pride.jpg",
-  },
-  {
-    id: 4,
-    title: "Moby-Dick",
-    author: "Herman Melville",
-    image: "/books/mobydick.jpg",
-  },
-];
+import { Search, X, BookOpen, RefreshCw } from "lucide-react";
 
 export default function CatalogPage() {
+  const [searchGenre, setSearchGenre] = useState("");
+  const [searchAuthor, setSearchAuthor] = useState("");
+  const [searchTitle, setSearchTitle] = useState("");
+  const [searchQuery, setSearchQuery] = useState({
+    genre: "",
+    author: "",
+    title: "",
+  });
+
+  const [books, setBooks] = useState([]);
+
+  const [genreOptions, setGenreOptions] = useState([]);
+  const [authorOptions, setAuthorOptions] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [optionsLoadingError, setOptionsLoadingError] = useState(null);
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      setOptionsLoadingError(null);
+      try {
+        const [genreRes, authorRes] = await Promise.all([
+          fetch("/api/genres"),
+          fetch("/api/authors"),
+        ]);
+
+        if (!genreRes.ok) throw new Error("Failed to fetch genres");
+        if (!authorRes.ok) throw new Error("Failed to fetch authors");
+
+        const genres = await genreRes.json();
+        const authors = await authorRes.json();
+
+        setGenreOptions(genres);
+        setAuthorOptions(authors);
+      } catch (err) {
+        setOptionsLoadingError(
+          err.message || "Could not load filtering options."
+        );
+        setGenreOptions([]);
+        setAuthorOptions([]);
+      }
+    };
+
+    fetchOptions();
+  }, []);
+
+  const fetchBooks = async (queryParams = null) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+
+      if (queryParams) {
+        if (queryParams.genre) params.append("genre", queryParams.genre);
+        if (queryParams.author) params.append("author", queryParams.author);
+        if (queryParams.title) params.append("title", queryParams.title);
+      } else {
+        if (searchQuery.genre) params.append("genre", searchQuery.genre);
+        if (searchQuery.author) params.append("author", searchQuery.author);
+        if (searchQuery.title) params.append("title", searchQuery.title);
+      }
+
+      const response = await fetch(`/api/books?${params.toString()}`);
+      if (!response.ok) {
+        let errorData = { message: `HTTP error! status: ${response.status}` };
+        try {
+          errorData = await response.json();
+        } catch (e) {}
+        throw new Error(errorData.error || errorData.message);
+      }
+
+      const data = await response.json();
+      setBooks(data);
+    } catch (err) {
+      setError(err.message || "Failed to fetch books. Please try again.");
+      setBooks([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+
+    const newQuery = {
+      genre: searchGenre,
+      author: searchAuthor,
+      title: searchTitle,
+    };
+
+    setSearchQuery(newQuery);
+
+    fetchBooks(newQuery);
+  };
+
+  const handleClearFilters = () => {
+    setSearchGenre("");
+    setSearchAuthor("");
+    setSearchTitle("");
+
+    const emptyQuery = { genre: "", author: "", title: "" };
+
+    setSearchQuery(emptyQuery);
+
+    fetchBooks(emptyQuery);
+  };
+
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-200">
       <Navbar />
-      <section className="p-4 sm:p-6 mt-8 sm:mt-12">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-center mb-4 sm:mb-6 text-black">
+      <section className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-center mb-6 sm:mb-8 text-gray-900">
           Explore Our Book Catalog
         </h2>
-
-        <div className="flex justify-center px-4">
-          <span className="text-center text-gray-700 text-lg sm:text-xl max-w-3xl">
-            Easily filter and find the perfect read by genre and author. Browse
-            through our diverse categories and discover your next favorite book
-            today!
-          </span>
-        </div>
-        <div className="mt-8 sm:mt-12">
-          <h2 className="text-center text-gray-800 text-2xl sm:text-3xl mb-4 sm:mb-6">
-            Book Filtering Options
-          </h2>
-
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
-            <Dropdown
-              label="Genre"
-              options={["Fiction", "Non-Fiction", "Fantasy", "Science Fiction"]}
-              placeholder="Search Genre"
-            />
-            <Dropdown
-              label="Author"
-              options={[
-                "Harper Lee",
-                "George Orwell",
-                "Jane Austen",
-                "Herman Melville",
-              ]}
-              placeholder="Search Author"
-            />
-          </div>
+        <div className="flex justify-center px-4 mb-10">
+          <p className="text-center text-gray-700 text-lg sm:text-xl max-w-3xl">
+            Easily filter and find the perfect read by genre, author, or title.
+            Browse through our diverse categories and discover your next
+            favorite book today!
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 justify-items-center px-4 mt-8 sm:mt-12 text-gray-800">
-          {books.map((book, index) => (
-            <BookCard
-              key={index}
-              title={book.title}
-              author={book.author}
-              image="/images/book-placeholder.jpg"
-              id={book.id}
-            />
-          ))}
+        <div className="mb-12">
+          <h3 className="text-center text-gray-800 text-2xl sm:text-3xl mb-6">
+            Book Search
+          </h3>
+
+          {optionsLoadingError && (
+            <div className="text-center p-4 mb-6 bg-red-50 text-red-600 rounded-lg max-w-3xl mx-auto">
+              <p>Error loading filter options: {optionsLoadingError}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-2 inline-flex items-center text-red-700 hover:text-red-800"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" /> Refresh page
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={handleSearch} className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="w-full">
+                <label
+                  htmlFor="genre-input"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Genre
+                </label>
+                <select
+                  id="genre-input"
+                  className="w-full p-2 border border-gray-600 rounded-md focus:ring-2 focus:ring-gray-400 focus:border-transparent text-gray-800"
+                  value={searchGenre}
+                  onChange={(e) => setSearchGenre(e.target.value)}
+                >
+                  <option value="">All Genres</option>
+                  {genreOptions.map((genre, index) => (
+                    <option key={index} value={genre}>
+                      {genre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="w-full">
+                <label
+                  htmlFor="author-input"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Author
+                </label>
+                <select
+                  id="author-input"
+                  className="w-full p-2 border border-gray-600 rounded-md focus:ring-2 focus:ring-gray-400 focus:border-transparent text-gray-800"
+                  value={searchAuthor}
+                  onChange={(e) => setSearchAuthor(e.target.value)}
+                >
+                  <option value="">All Authors</option>
+                  {authorOptions.map((author, index) => (
+                    <option key={index} value={author}>
+                      {author}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="w-full">
+                <label
+                  htmlFor="title-input"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Title
+                </label>
+                <div className="relative">
+                  <input
+                    id="title-input"
+                    type="text"
+                    className="w-full p-2 pl-10 border border-gray-600 rounded-md focus:ring-2 focus:ring-gray-400 focus:border-transparent text-gray-800"
+                    placeholder="Search by title..."
+                    value={searchTitle}
+                    onChange={(e) => setSearchTitle(e.target.value)}
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-center gap-4">
+              <button
+                type="submit"
+                className="px-6 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+              >
+                <Search className="h-5 w-5 inline mr-2" />
+                Search Books
+              </button>
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="px-6 py-2 border border-gray-600 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+              >
+                <X className="h-5 w-5 inline mr-2" />
+                Clear Filters
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="px-4">
+          {isLoading && (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center p-6 bg-red-50 text-red-600 rounded-lg max-w-3xl mx-auto">
+              <p className="text-lg">Error: {error}</p>
+              <button
+                onClick={() => fetchBooks()}
+                className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {!isLoading && !error && books.length === 0 && (
+            <div className="text-center py-12">
+              <BookOpen className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600 text-2xl mb-2">No books found</p>
+              <p className="text-gray-500">Try adjusting your search filters</p>
+            </div>
+          )}
+
+          {!isLoading && !error && books.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
+              {books.map((book) => (
+                <BookCard
+                  key={book._id || book.id}
+                  id={book._id || book.id}
+                  title={book.title}
+                  author={book.author?.name || book.authorName || "Unknown"}
+                  image={book.image || "/images/book-placeholder.jpg"}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

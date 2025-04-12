@@ -1,10 +1,10 @@
-import Navbar from "../../components/Navbar"
-import Link from "next/link"
+import Navbar from "../../components/Navbar";
+import Link from "next/link";
 
 export const metadata = {
   title: "Forgotten Password",
   description: "Trang lấy lại mật khẩu",
-}
+};
 
 export default function ForgotPass() {
   return (
@@ -24,7 +24,10 @@ export default function ForgotPass() {
           <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6 sm:p-8 md:p-10 border border-orange-100 transition-all duration-300">
             <form className="space-y-6 sm:space-y-8">
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 sm:text-base">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 sm:text-base"
+                >
                   Recovery email address
                 </label>
                 <div className="relative">
@@ -118,6 +121,5 @@ export default function ForgotPass() {
         </div>
       </section>
     </div>
-  )
+  );
 }
-
