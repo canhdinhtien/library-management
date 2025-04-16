@@ -6,8 +6,8 @@ const BorrowSchema = new mongoose.Schema({
   member: { type: mongoose.Schema.Types.ObjectId, ref: "Member", required: true }, // liên kết tới thành viên
   employee: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },             // nếu cần ghi nhận nhân viên xử lý
 
-  borrowDate: { type: Date, required: true },             // Ngay_muon
-  expectedReturnDate: { type: Date, required: true },     // Ngay_tra_du_kien
+  borrowDate: { type: Date, default: Date.now },             // Ngay_muon
+  expectedReturnDate: { type: Date, default: () => new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)},     // Ngay_tra_du_kien
   returnDate: { type: Date },                             // Ngay_tra
 
   status: { type: String, enum: ["Borrowed", "Returned", "Overdue"], default: "Borrowed" }, // Trang_thai
