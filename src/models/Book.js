@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const BookSchema = new mongoose.Schema({
+  coverImage: { type: String, required: true },                     // Bia_sach
   bookCode: { type: String, required: true, unique: true },         // Ma_sach
   title: { type: String, required: true },                          // Ten_sach
   category: { type: String, required: true },                       // The_loai
