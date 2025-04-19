@@ -1,6 +1,6 @@
 import express from "express";
-import { getUserBorrowedBooks } from "../controllers/borrowController.js";
-import { renewBook } from "../controllers/borrowController.js";
+import { getUserBorrowedBooks } from "../../services/borrowService.js";
+import { renewBook } from "../../services/borrowService.js";
 
 const router = express.Router();
 
