@@ -1,8 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import employeeRoutes from "./routes/employeeRoutes.js";
-import borrowRoutes from "./routes/borrowRoutes.js"; // Import borrowRoutes
+import employeeRoutes from "./app/api/employeeRoutes.js";
+import borrowRoutes from "./app/api/borrowRoutes.js"; // Import borrowRoutes
 import cors from "cors";
 
 dotenv.config();
