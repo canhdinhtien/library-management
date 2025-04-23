@@ -16,7 +16,7 @@ export default function Profile() {
     try {
       const memberId = "67f7a353d1e1d39a9c57f09e"; // Thay thế bằng ID người dùng thực tế
       const response = await fetch(
-        `http://localhost:5000/api/borrows/${memberId}`
+        `http://localhost:3000/api/borrow/${memberId}`
       );
       const data = await response.json();
 

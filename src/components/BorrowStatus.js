@@ -53,7 +53,7 @@ const BorrowStatus = ({
     }
     try {
       const response = await fetch(
-        `http://localhost:5000/api/borrows/${borrowId}/renew/${bookId}`,
+        `http://localhost:3000/api/borrow/renew/${borrowId}/${bookId}`,
         {
           method: "POST",
           headers: {
