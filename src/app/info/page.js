@@ -1,172 +1,214 @@
-import Navbar from "../../components/Navbar";
-import Image from "next/image";
-// import Link from "next/link";
-// import Head from "next/head";
+"use client";
 
-export const metadata = {
-  title: "Info",
-  description: "Trang thông tin của trang web",
-};
+import { useRouter } from "next/navigation";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
+import Image from "next/image";
+import {
+  BookOpen,
+  Wifi,
+  Users,
+  Calendar,
+  Briefcase,
+  Laptop,
+  Smartphone,
+  Coffee,
+} from "lucide-react";
 
 export default function Info() {
+  const router = useRouter();
+
   return (
-    <div>
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
 
-      <section className="text-center p-6 sm:p-12">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
-          Our Mission Is Simple: To Provide Access to the Written Word for
-          Everyone Who Walks Through Our Doors
-        </h2>
-        <p className="text-gray-600 max-w-3xl mx-auto text-sm sm:text-base">
-          We offer a diverse collection of materials, from books and e-books to
-          audiobooks and magazines; we strive to meet the varied interests and
-          needs of our patrons. Beyond lending books, we host a range of
-          programs and events to engage our community, including author talks,
-          workshops, and storytimes for children. Our dedicated staff are
-          available to assist with research, provide recommendations, and help
-          you discover the joy of reading.
-        </p>
-      </section>
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <section className="bg-gradient-to-b from-amber-50 to-white py-16 px-4">
+          <div className="container mx-auto max-w-4xl text-center">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              About Digital Library Hub
+            </h1>
+            <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+              Our mission is simple: To provide access to the written word for
+              everyone who walks through our doors.
+            </p>
+          </div>
+        </section>
 
-      <section className="text-center py-12">
-        <h3 className="text-lg sm:text-xl font-bold mb-6 text-gray-800">
-          Services Offered
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-          <div className="text-center">
-            <p className="font-semibold text-gray-800">Free Wi-Fi</p>
-            <p className="text-gray-500">
-              Access high-speed internet for research and more.
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="font-semibold text-gray-800">Meeting Rooms</p>
-            <p className="text-gray-500">
-              Reserve rooms for your community meetings.
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="font-semibold text-gray-800">Study Rooms</p>
-            <p className="text-gray-500">
-              Quiet rooms for focused study and research.
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="font-semibold text-gray-800">Community Events</p>
-            <p className="text-gray-500">
-              Join us for book fairs, family fun days, and more.
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="font-semibold text-gray-800">Workshops & Training</p>
-            <p className="text-gray-500">
-              Learn new skills at our hands-on workshops.
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="font-semibold text-gray-800">Career Development</p>
-            <p className="text-gray-500">
-              Access resources for resume writing and job search.
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="font-semibold text-gray-800">Online Resources</p>
-            <p className="text-gray-500">
-              Enjoy e-books, audiobooks, and more from the comfort of home.
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="font-semibold text-gray-800">Mobile App</p>
-            <p className="text-gray-500">
-              Use the library app for quick access to your library account and
-              more.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-12 max-w-4xl mx-auto">
-        <h3 className="text-lg sm:text-xl text-gray-800 font-bold text-center mb-6">
-          Community Initiatives
-        </h3>
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-center space-x-4">
-            <Image
-              src="/info/chair-of-reading.png"
-              width={100}
-              height={100}
-              className="rounded-md"
-              alt="Chair of Reading"
-            />
-            <div>
-              <p className="font-semibold text-gray-800">Chair of Reading</p>
-              <p className="text-gray-500">
-                Dolore magna sit veniam aute laboris aliquip ex excepteur et
-                fugiat laborum officia reprehenderit cupidatat. Lorem ipsum
-                dolor sit amet, consectetur adipisicing elit.
+        {/* Mission Section */}
+        <section className="py-16 px-6 sm:px-12">
+          <div className="container mx-auto max-w-4xl">
+            <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800 text-center">
+                Our Mission
+              </h2>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                We offer a diverse collection of materials, from books and
+                e-books to audiobooks and magazines; we strive to meet the
+                varied interests and needs of our patrons. Beyond lending books,
+                we host a range of programs and events to engage our community,
+                including author talks, workshops, and storytimes for children.
+                Our dedicated staff are available to assist with research,
+                provide recommendations, and help you discover the joy of
+                reading.
               </p>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-center space-x-4">
-            <Image
-              src="/info/book-fair.png"
-              width={100}
-              height={100}
-              className="rounded-md"
-              alt="Book Fair"
-            />
-            <div>
-              <p className="font-semibold text-gray-800">Book Fair Festival</p>
-              <p className="text-gray-500">
-                Dolore magna sit veniam aute laboris aliquip ex excepteur et
-                fugiat laborum officia reprehenderit cupidatat. Lorem ipsum
-                dolor sit amet, consectetur adipisicing elit.
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center space-x-4">
-            <Image
-              src="/info/create-a-thon.png"
-              width={100}
-              height={100}
-              className="rounded-md"
-              alt="Create A Thon"
-            />
-            <div>
-              <p className="font-semibold text-gray-800">Create-a-thon</p>
-              <p className="text-gray-500">
-                Dolore magna sit veniam aute laboris aliquip ex excepteur et
-                fugiat laborum officia reprehenderit cupidatat. Lorem ipsum
-                dolor sit amet, consectetur adipisicing elit.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="bg-yellow-500 text-white text-center p-8 mt-12 grid grid-cols-1 sm:grid-cols-2 items-center max-w-4xl mx-auto rounded-lg">
-        <div>
-          <h3 className="text-lg sm:text-xl font-bold">
-            Join Our Library Community
-          </h3>
-          <p className="text-sm sm:text-base">
-            Become a part of our vibrant library programs and volunteer
-            opportunities. Sign up to make a difference and connect with fellow
-            book lovers today!
-          </p>
-          <button className="bg-white text-yellow-500 px-4 py-2 rounded-lg mt-4">
-            Join for Free
-          </button>
+        {/* Services Section */}
+        <section className="py-16 px-6 bg-gray-50">
+          <div className="container mx-auto max-w-6xl">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-10 text-gray-800 text-center">
+              Services Offered
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              <ServiceCard
+                icon={<Wifi className="h-10 w-10 text-orange-500" />}
+                title="Free Wi-Fi"
+                description="Access high-speed internet for research and more."
+              />
+              <ServiceCard
+                icon={<Users className="h-10 w-10 text-orange-500" />}
+                title="Meeting Rooms"
+                description="Reserve rooms for your community meetings."
+              />
+              <ServiceCard
+                icon={<BookOpen className="h-10 w-10 text-orange-500" />}
+                title="Study Rooms"
+                description="Quiet rooms for focused study and research."
+              />
+              <ServiceCard
+                icon={<Calendar className="h-10 w-10 text-orange-500" />}
+                title="Community Events"
+                description="Join us for book fairs, family fun days, and more."
+              />
+              <ServiceCard
+                icon={<Coffee className="h-10 w-10 text-orange-500" />}
+                title="Workshops & Training"
+                description="Learn new skills at our hands-on workshops."
+              />
+              <ServiceCard
+                icon={<Briefcase className="h-10 w-10 text-orange-500" />}
+                title="Career Development"
+                description="Access resources for resume writing and job search."
+              />
+              <ServiceCard
+                icon={<Laptop className="h-10 w-10 text-orange-500" />}
+                title="Online Resources"
+                description="Enjoy e-books, audiobooks, and more from the comfort of home."
+              />
+              <ServiceCard
+                icon={<Smartphone className="h-10 w-10 text-orange-500" />}
+                title="Mobile App"
+                description="Use the library app for quick access to your library account and more."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Community Initiatives Section */}
+        <section className="py-16 px-6">
+          <div className="container mx-auto max-w-4xl">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-10 text-gray-800 text-center">
+              Community Initiatives
+            </h2>
+            <div className="space-y-8">
+              <InitiativeCard
+                imageSrc="/info/chair-of-reading.png"
+                title="Chair of Reading"
+                description="Our Chair of Reading program encourages children and adults alike to find a comfortable spot and immerse themselves in literature. We provide cozy reading nooks throughout the library and host regular reading sessions for all ages."
+              />
+              <InitiativeCard
+                imageSrc="/info/book-fair.png"
+                title="Book Fair Festival"
+                description="Our annual Book Fair Festival brings together authors, publishers, and readers for a celebration of literature. Featuring book signings, panel discussions, workshops, and activities for children, it's a highlight of our community calendar."
+              />
+              <InitiativeCard
+                imageSrc="/info/create-a-thon.png"
+                title="Create-a-thon"
+                description="The Create-a-thon is an innovative event where participants collaborate to write, illustrate, and publish their own stories in just 24 hours. This initiative fosters creativity, teamwork, and a deeper appreciation for the art of storytelling."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-16 px-6">
+          <div className="container mx-auto max-w-5xl">
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-2xl overflow-hidden shadow-lg">
+              <div className="grid grid-cols-1 md:grid-cols-2 items-center">
+                <div className="p-8 md:p-10">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+                    Join Our Library Community
+                  </h2>
+                  <p className="text-white/90 mb-6 text-lg">
+                    Become a part of our vibrant library programs and volunteer
+                    opportunities. Sign up to make a difference and connect with
+                    fellow book lovers today!
+                  </p>
+                  <button
+                    onClick={() => router.push("/register")}
+                    className="bg-white text-orange-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors shadow-md"
+                  >
+                    Join for Free
+                  </button>
+                </div>
+                <div className="relative h-64 md:h-full">
+                  <Image
+                    src="/info/community.png"
+                    fill
+                    className="object-cover"
+                    alt="People enjoying community activities at the library"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
+
+// Service Card Component
+function ServiceCard({ icon, title, description }) {
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+      <div className="flex flex-col items-center text-center">
+        <div className="mb-4">{icon}</div>
+        <h3 className="font-semibold text-lg text-gray-800 mb-2">{title}</h3>
+        <p className="text-gray-600">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+// Initiative Card Component
+function InitiativeCard({ imageSrc, title, description }) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow">
+      <div className="flex flex-col sm:flex-row">
+        <div className="sm:w-1/4 p-6 flex items-center justify-center">
+          <div className="relative w-24 h-24 sm:w-full sm:h-32">
+            <Image
+              src={imageSrc || "/placeholder.svg"}
+              fill
+              className="object-cover rounded-lg"
+              alt={title}
+              sizes="(max-width: 640px) 100px, 200px"
+            />
+          </div>
         </div>
-        <Image
-          src="/info/community.png"
-          width={1000}
-          height={1000}
-          className="rounded-md mt-4 sm:mt-0"
-          alt="Community"
-        />
-      </section>
+        <div className="sm:w-3/4 p-6">
+          <h3 className="font-semibold text-xl text-gray-800 mb-2">{title}</h3>
+          <p className="text-gray-600">{description}</p>
+        </div>
+      </div>
     </div>
   );
 }

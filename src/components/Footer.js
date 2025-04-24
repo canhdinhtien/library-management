@@ -4,7 +4,7 @@ import Image from "next/image";
 
 const Footer = () => {
   return (
-    <footer className="text-gray-700 py-6 mt-10">
+    <footer className="text-gray-700 py-6 mt-10 bg-gray-50 border-t border-gray-200">
       <div className="container mx-auto text-center">
         <div className="flex flex-col items-center justify-center w-full h-[6vh]">
           <div className="flex items-center space-x-1">
@@ -22,13 +22,19 @@ const Footer = () => {
         </div>
 
         <div className="flex justify-center space-x-6 mb-4 text-xl font-medium">
-          <Link href="/" className="hover:text-orange-400">
+          <Link href="/" className="hover:text-orange-400 transition-colors">
             Home
           </Link>
-          <Link href="/catalog" className="hover:text-orange-400">
+          <Link
+            href="/catalog"
+            className="hover:text-orange-400 transition-colors"
+          >
             Catalog
           </Link>
-          <Link href="/info" className="hover:text-orange-400">
+          <Link
+            href="/info"
+            className="hover:text-orange-400 transition-colors"
+          >
             Info
           </Link>
         </div>
