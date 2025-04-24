@@ -17,16 +17,29 @@ const AccountSchema = new mongoose.Schema(
       refPath: "role",
     },
     isVerified: { type: Boolean, default: false },
-    verificationToken: { type: String, unique: true },
+
+    verificationToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     verificationTokenExpires: { type: Date },
+
+    passwordResetToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+    passwordResetTokenExpires: {
+      type: Date,
+    },
   },
   {
     collection: "accounts",
     timestamps: true,
   }
 );
-
-// AccountSchema.index({ verificationToken: 1 });
 
 export default mongoose.models.Account ||
   mongoose.model("Account", AccountSchema);

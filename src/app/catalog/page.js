@@ -1,122 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useBookCatalog } from "../../hooks/useBookCatalog";
 import Navbar from "../../components/Navbar";
 import BookCard from "../../components/BookCard";
 import { Search, X, BookOpen, RefreshCw } from "lucide-react";
 
 export default function CatalogPage() {
-  const [searchGenre, setSearchGenre] = useState("");
-  const [searchAuthor, setSearchAuthor] = useState("");
-  const [searchTitle, setSearchTitle] = useState("");
-  const [searchQuery, setSearchQuery] = useState({
-    genre: "",
-    author: "",
-    title: "",
-  });
-
-  const [books, setBooks] = useState([]);
-
-  const [genreOptions, setGenreOptions] = useState([]);
-  const [authorOptions, setAuthorOptions] = useState([]);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [optionsLoadingError, setOptionsLoadingError] = useState(null);
-
-  useEffect(() => {
-    const fetchOptions = async () => {
-      setOptionsLoadingError(null);
-      try {
-        const [genreRes, authorRes] = await Promise.all([
-          fetch("/api/genres"),
-          fetch("/api/authors"),
-        ]);
-
-        if (!genreRes.ok) throw new Error("Failed to fetch genres");
-        if (!authorRes.ok) throw new Error("Failed to fetch authors");
-
-        const genres = await genreRes.json();
-        const authors = await authorRes.json();
-
-        setGenreOptions(genres);
-        setAuthorOptions(authors);
-      } catch (err) {
-        setOptionsLoadingError(
-          err.message || "Could not load filtering options."
-        );
-        setGenreOptions([]);
-        setAuthorOptions([]);
-      }
-    };
-
-    fetchOptions();
-  }, []);
-
-  const fetchBooks = async (queryParams = null) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-
-      if (queryParams) {
-        if (queryParams.genre) params.append("genre", queryParams.genre);
-        if (queryParams.author) params.append("author", queryParams.author);
-        if (queryParams.title) params.append("title", queryParams.title);
-      } else {
-        if (searchQuery.genre) params.append("genre", searchQuery.genre);
-        if (searchQuery.author) params.append("author", searchQuery.author);
-        if (searchQuery.title) params.append("title", searchQuery.title);
-      }
-
-      const response = await fetch(`/api/books?${params.toString()}`);
-      if (!response.ok) {
-        let errorData = { message: `HTTP error! status: ${response.status}` };
-        try {
-          errorData = await response.json();
-        } catch (e) {}
-        throw new Error(errorData.error || errorData.message);
-      }
-
-      const data = await response.json();
-      setBooks(data);
-    } catch (err) {
-      setError(err.message || "Failed to fetch books. Please try again.");
-      setBooks([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBooks();
-  }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-
-    const newQuery = {
-      genre: searchGenre,
-      author: searchAuthor,
-      title: searchTitle,
-    };
-
-    setSearchQuery(newQuery);
-
-    fetchBooks(newQuery);
-  };
-
-  const handleClearFilters = () => {
-    setSearchGenre("");
-    setSearchAuthor("");
-    setSearchTitle("");
-
-    const emptyQuery = { genre: "", author: "", title: "" };
-
-    setSearchQuery(emptyQuery);
-
-    fetchBooks(emptyQuery);
-  };
+  const {
+    searchGenre,
+    searchAuthor,
+    searchTitle,
+    setSearchGenre,
+    setSearchAuthor,
+    setSearchTitle,
+    genreOptions,
+    authorOptions,
+    books,
+    isLoading,
+    error,
+    optionsLoadingError,
+    handleSearch,
+    handleClearFilters,
+    retryFetchBooks,
+  } = useBookCatalog();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-200">
