@@ -16,7 +16,8 @@ const BorrowSchema = new mongoose.Schema({
   books: [
     {
       book: { type: mongoose.Schema.Types.ObjectId, ref: "Book", required: true },
-      quantity: { type: Number, required: true }
+      quantity: { type: Number, required: true },
+      renewCount: { type: Number, default: 0 }, // Số lần gia hạn
     }
   ]
 }, {
