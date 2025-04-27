@@ -33,7 +33,7 @@ export const sendOtpEmail = async (to, otp) => {
   console.log(`[Mailer] Preparing OTP email for ${to} with OTP: ${otp}`);
 
   const mailOptions = {
-    from: `"Your App Name" <${process.env.EMAIL_USER}>`,
+    from: `"Digital Library Hub" <${process.env.EMAIL_USER}>`,
     to: to,
     subject: "Your One-Time Password (OTP) for Your App Name",
     text: `Your OTP for registering an account is: ${otp}\n\nThis code is valid for 1 minutes. If you didn't request this, please ignore this email.`,

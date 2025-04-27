@@ -13,8 +13,6 @@ const BorrowSchema = new mongoose.Schema(
     employee: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // nếu cần ghi nhận nhân viên xử lý
 
     borrowDate: { type: Date, required: true }, // Ngay_muon
-    expectedReturnDate: { type: Date, required: true }, // Ngay_tra_du_kien
-    returnDate: { type: Date }, // Ngay_tra
 
     status: {
       type: String,
@@ -32,6 +30,9 @@ const BorrowSchema = new mongoose.Schema(
         },
         quantity: { type: Number, required: true },
         renewCount: { type: Number, default: 0 }, // Số lần gia hạn
+        expectedReturnDate: { type: Date, required: true }, // Ngay_tra_du_kien
+        is_fine_paid: { type: Boolean, default: false }, // Đã thanh toán phí phạt
+        returnDate: { type: Date }, // Ngày trả thực tế
       },
     ],
   },

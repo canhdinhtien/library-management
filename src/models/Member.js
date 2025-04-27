@@ -30,13 +30,14 @@ import mongoose from "mongoose";
 
 const MemberSchema = new mongoose.Schema(
   {
-
     memberCode: { type: String, required: true, unique: true }, // Will be generated
     username: { type: String, required: true }, // Corresponds to Account username
 
     firstName: { type: String, required: true }, // From form
     // middleName: { type: String },                            // Not in form currently
     lastName: { type: String, required: true }, // From form's 'surname'
+
+    avatar: { type: String }, // From form - optional for now
 
     birthDate: { type: Date, required: false }, // From form's 'dob' - making optional based on form validation
     // gender: { type: String, enum: ["Male", "Female", "Other"] },// Not in form

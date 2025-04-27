@@ -10,7 +10,7 @@ function calculateFine(dueDate) {
   const due = new Date(dueDate);
   if (now <= due) return 0;
   const daysOverdue = Math.floor((now - due) / (1000 * 60 * 60 * 24));
-  return Math.max(0, daysOverdue * 1000);
+  return Math.max(0, daysOverdue * 10000);
 }
 
 async function getUserProfileDataNative(db, userId) {
@@ -103,9 +103,9 @@ async function getUserProfileDataNative(db, userId) {
           authorName: "$authorDetails.name",
           coverImage: "$bookDetails.coverImage",
           borrowDate: "$borrowDate",
-          dueDate: "$expectedReturnDate",
-          renewalsLeft: "$renewalsLeft",
-          finePaid: "$finePaid",
+          dueDate: "$books.expectedReturnDate",
+          renewalsLeft: { $subtract: [2, "$books.renewCount"] },
+          isFinePaid: "$books.is_fine_paid",
         },
       },
     ];
@@ -113,6 +113,7 @@ async function getUserProfileDataNative(db, userId) {
     const borrowDetails = await borrowsCollection
       .aggregate(aggregationPipeline)
       .toArray();
+
     console.log(
       `Native Driver: Found ${borrowDetails.length} active borrow details.`
     );
@@ -129,8 +130,10 @@ async function getUserProfileDataNative(db, userId) {
         return;
       }
 
-      const isOverdue = record.dueDate < now;
-      const fine = isOverdue ? calculateFine(record.dueDate) : 0;
+      const dayOverdue = Math.floor(
+        (new Date() - new Date(record.dueDate)) / (1000 * 60 * 60 * 24)
+      );
+      const fineAmount = dayOverdue > 0 ? calculateFine(record.dueDate) : 0;
 
       const bookData = {
         _id: record.bookId.toString(),
@@ -140,23 +143,21 @@ async function getUserProfileDataNative(db, userId) {
         coverImage: record.coverImage || null,
         borrowDate: record.borrowDate,
         dueDate: record.dueDate,
-        renewalsLeft: record.renewalsLeft || 0,
+        renewalsLeft: record.renewalsLeft,
+        isFinePaid: record.isFinePaid || false,
+        fineAmount,
       };
 
-      if (isOverdue) {
+      if (dayOverdue > 0) {
         const overdueData = {
           ...bookData,
           daysOverdue: Math.max(
             0,
             Math.floor((now - new Date(record.dueDate)) / (1000 * 60 * 60 * 24))
           ),
-          fineAmount: record.fine || fine,
-          finePaid: record.finePaid || false,
         };
         overdueBooks.push(overdueData);
-        if (!overdueData.finePaid) {
-          currentFineTotal += overdueData.fineAmount;
-        }
+        console.log("overdueBooks: ", overdueBooks);
       } else {
         borrowedBooks.push(bookData);
       }
@@ -171,9 +172,8 @@ async function getUserProfileDataNative(db, userId) {
     };
 
     const profile = {
-      name:
-        `${member.lastName || ""} ${member.firstName || ""}`.trim() ||
-        account.username,
+      firstName: member.firstName,
+      lastName: member.lastName,
       email: account.email,
       memberSince: member.registeredAt || account.createdAt,
       membershipType: member.membershipType || "Standard",
@@ -262,6 +262,91 @@ export async function GET(request) {
       );
     }
     console.error("Profile API GET Error:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal Server Error." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request) {
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.log("API Error: Authorization header missing or invalid.");
+    return NextResponse.json(
+      { success: false, message: "Authorization header missing or invalid." },
+      { status: 401 }
+    );
+  }
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+
+    if (!userId) {
+      console.log("API Error: Invalid token payload (missing userId).");
+      return NextResponse.json(
+        { success: false, message: "Invalid token payload." },
+        { status: 401 }
+      );
+    }
+
+    const { db } = await connectToDatabase();
+
+    const updatedData = await request.json();
+
+    console.log("updatedData: ", updatedData);
+
+    if (!updatedData) {
+      console.log("API Error: No data provided for update.");
+      return NextResponse.json(
+        { success: false, message: "No data provided for update." },
+        { status: 400 }
+      );
+    }
+
+    const membersCollection = db.collection("members");
+
+    const memberUpdateResult = await membersCollection.updateOne(
+      { accountId: new ObjectId(userId.toString()) },
+      {
+        $set: {
+          firstName: updatedData.firstName,
+          lastName: updatedData.lastName,
+          phone: updatedData.phone,
+          address: updatedData.address,
+          birthDate: updatedData.birthDate,
+        },
+      },
+      { upsert: true }
+    );
+
+    if (memberUpdateResult.modifiedCount === 0) {
+      console.log(`API Error: Member not found or no changes made.`);
+      return NextResponse.json(
+        { success: false, message: "Member not found or no changes made." },
+        { status: 404 }
+      );
+    }
+
+    console.log("API Info: User profile updated successfully.");
+    return NextResponse.json(
+      { success: true, message: "Profile updated successfully." },
+      { status: 200 }
+    );
+  } catch (error) {
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
+      console.log("API Error: Invalid or expired token.");
+      return NextResponse.json(
+        { success: false, message: "Invalid or expired token." },
+        { status: 401 }
+      );
+    }
+    console.error("Profile API PUT Error:", error);
     return NextResponse.json(
       { success: false, message: "Internal Server Error." },
       { status: 500 }
