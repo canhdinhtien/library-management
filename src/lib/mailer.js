@@ -61,3 +61,48 @@ export const sendOtpEmail = async (to, otp) => {
     throw new Error("Could not send OTP email.");
   }
 };
+
+export const sendPasswordResetEmail = async (to, token) => {
+  const resetLink = `${
+    process.env.NEXTAUTH_URL || "http://localhost:3000"
+  }/reset-password/${token}`;
+
+  console.log(`[Mailer] Preparing password reset email for ${to}`);
+
+  const mailOptions = {
+    from: `"Your App Name" <${process.env.EMAIL_USER}>`,
+    to: to,
+    subject: "Password Reset Request for Your App Name",
+    text:
+      `You are receiving this email because you (or someone else) requested a password reset for your account.\n\n` +
+      `Please click the following link, or paste it into your browser, to complete the process:\n\n` +
+      `${resetLink}\n\n` +
+      `This link will expire in 1 hour.\n\n` +
+      `If you did not request this, please ignore this email and your password will remain unchanged.\n`,
+    html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+            <h2>Password Reset Request - Your App Name</h2>
+            <p>You received this email because you (or someone else) requested a password reset for your account.</p>
+            <p>Please click the button below to reset your password:</p>
+            <a href="${resetLink}" style="background-color: #FFA500; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 15px 0;">Reset Password</a>
+            <p>This link will expire in <strong>1 hour</strong>.</p>
+            <p>If you didn't request a password reset, you can safely ignore this email.</p>
+            <p style="font-size: 0.9em; color: #777;">If the button doesn't work, copy and paste the following link into your web browser:</p>
+            <p style="font-size: 0.9em; color: #777; word-break: break-all;">${resetLink}</p>
+          </div>`,
+  };
+
+  try {
+    console.log(`Attempting to send password reset email to ${to}`);
+    let info = await transporter.sendMail(mailOptions);
+    console.log("Password reset email sent successfully: %s", info.messageId);
+    return info;
+  } catch (error) {
+    console.error(">>> Original Nodemailer Error (Password Reset):", error);
+    console.error(
+      `Error sending password reset email to ${to}:`,
+      error.message
+    );
+
+    throw new Error("Could not send password reset email.");
+  }
+};

@@ -15,26 +15,42 @@ if (!MONGODB_DB) {
   );
 }
 
-// Global variable to cache the MongoClient instance
-let cachedClient = null;
-let cachedDb = null;
+let cached = global.mongo;
+
+if (!cached) {
+  cached = global.mongo = { conn: null, promise: null };
+}
 
 export async function connectToDatabase() {
-  if (cachedClient && cachedDb) {
-    return { client: cachedClient, db: cachedDb };
+  if (cached.conn) {
+    return cached.conn;
   }
 
-  const client = new MongoClient(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  if (!cached.promise) {
+    const opts = {};
 
-  await client.connect();
-  const db = client.db(MONGODB_DB);
+    console.log("DB: Creating new connection promise...");
+    cached.promise = MongoClient.connect(MONGODB_URI, opts)
+      .then((client) => {
+        console.log("DB: Connection established, returning client and db");
+        return {
+          client: client,
+          db: client.db(MONGODB_DB),
+        };
+      })
+      .catch((error) => {
+        console.error("DB: Connection promise failed:", error);
+        cached.promise = null;
+        throw error;
+      });
+  }
 
-  cachedClient = client;
-  cachedDb = db;
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw new Error(`Unable to connect to MongoDB: ${e.message}`);
+  }
 
-  console.log("Connected to MongoDB");
-  return { client, db };
+  return cached.conn;
 }

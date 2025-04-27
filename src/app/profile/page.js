@@ -3,13 +3,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "../../components/Navbar";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import {
   Book,
   Clock,
   Calendar,
   RefreshCw,
-  ArrowLeft,
   AlertCircle,
   User,
   Loader2,
@@ -20,8 +19,8 @@ function BorrowedBookItem({ book, onRenew }) {
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
       <div className="flex flex-col sm:flex-row">
-        <div className="sm:w-1/4 md:w-1/5 p-4 flex items-center justify-center bg-gray-50">
-          <div className="relative w-32 h-48 sm:w-full sm:h-56">
+        <div className="w-full sm:w-1/4 md:w-1/5 p-4 flex items-center justify-center bg-gray-50">
+          <div className="relative w-32 h-48 sm:w-full sm:h-56 max-w-[128px] sm:max-w-full">
             <Image
               src={book.coverImage || "/placeholder.svg?height=300&width=200"}
               alt={book.title}
@@ -31,10 +30,10 @@ function BorrowedBookItem({ book, onRenew }) {
             />
           </div>
         </div>
-        <div className="sm:w-3/4 md:w-4/5 p-6">
+        <div className="w-full sm:w-3/4 md:w-4/5 p-4 sm:p-6">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start">
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">
+            <div className="w-full md:w-auto">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1 break-words">
                 {book.title}
               </h3>
               <p className="text-gray-600 mb-4">
@@ -43,13 +42,13 @@ function BorrowedBookItem({ book, onRenew }) {
             </div>
             <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-start md:items-end flex-shrink-0">
               <div className="flex items-center text-gray-600 mb-2">
-                <Calendar className="h-4 w-4 mr-1" />
+                <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
                 <span className="text-sm">
                   Borrowed: {new Date(book.borrowDate).toLocaleDateString()}
                 </span>
               </div>
               <div className="flex items-center text-gray-600 mb-4">
-                <Calendar className="h-4 w-4 mr-1" />
+                <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
                 <span className="text-sm font-medium">
                   Due: {new Date(book.dueDate).toLocaleDateString()}
                 </span>
@@ -84,8 +83,8 @@ function OverdueBookItem({ book, onPayFine }) {
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-red-200">
       <div className="flex flex-col sm:flex-row">
-        <div className="sm:w-1/4 md:w-1/5 p-4 flex items-center justify-center bg-red-50">
-          <div className="relative w-32 h-48 sm:w-full sm:h-56">
+        <div className="w-full sm:w-1/4 md:w-1/5 p-4 flex items-center justify-center bg-red-50">
+          <div className="relative w-32 h-48 sm:w-full sm:h-56 max-w-[128px] sm:max-w-full">
             <Image
               src={book.coverImage || "/placeholder.svg?height=300&width=200"}
               alt={book.title}
@@ -95,14 +94,14 @@ function OverdueBookItem({ book, onPayFine }) {
             />
           </div>
         </div>
-        <div className="sm:w-3/4 md:w-4/5 p-6">
+        <div className="w-full sm:w-3/4 md:w-4/5 p-4 sm:p-6">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start">
-            <div>
-              <div className="flex items-center mb-1">
-                <h3 className="text-xl font-semibold text-gray-900">
+            <div className="w-full md:w-auto">
+              <div className="flex items-center mb-1 flex-wrap">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words mr-2">
                   {book.title}
                 </h3>
-                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                <span className="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                   Overdue
                 </span>
               </div>
@@ -112,13 +111,13 @@ function OverdueBookItem({ book, onPayFine }) {
             </div>
             <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-start md:items-end flex-shrink-0">
               <div className="flex items-center text-red-600 mb-2">
-                <Calendar className="h-4 w-4 mr-1" />
+                <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
                 <span className="text-sm">
                   Due: {new Date(book.dueDate).toLocaleDateString()}
                 </span>
               </div>
               <div className="flex items-center text-red-600 mb-2">
-                <AlertCircle className="h-4 w-4 mr-1" />
+                <AlertCircle className="h-4 w-4 mr-1 flex-shrink-0" />
                 <span className="text-sm font-medium">
                   {Math.max(
                     0,
@@ -140,7 +139,7 @@ function OverdueBookItem({ book, onPayFine }) {
                   )}
                 </div>
               )}
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                 {canPayFine && (
                   <button
                     onClick={() =>
@@ -567,13 +566,12 @@ export default function Profile() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow container mx-auto px-3 sm:px-4 py-6 sm:py-8 overflow-hidden">
         <>
-          {" "}
           <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 mb-8">
             <div className="bg-gradient-to-r from-orange-500 to-amber-500 h-32 relative">
-              <div className="absolute -bottom-16 left-6 sm:left-8">
-                <div className="relative w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-white">
+              <div className="absolute -bottom-16 left-4 sm:left-6 md:left-8">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white overflow-hidden bg-white">
                   <Image
                     src={profile.avatar || "/images/avatar.png"}
                     alt={
@@ -582,12 +580,12 @@ export default function Profile() {
                     }
                     fill
                     className="object-cover"
-                    sizes="128px"
+                    sizes="(max-width: 640px) 96px, 128px"
                   />
                 </div>
               </div>
             </div>
-            <div className="pt-20 pb-6 px-6 sm:px-8">
+            <div className="pt-16 sm:pt-20 pb-4 sm:pb-6 px-4 sm:px-6 md:px-8">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
@@ -633,8 +631,8 @@ export default function Profile() {
               </div>
             </div>
           </div>
-          <div className="mb-6">
-            <div className="flex border-b border-gray-200">
+          <div className="mb-6 overflow-x-auto">
+            <div className="flex border-b border-gray-200 min-w-max">
               <button
                 onClick={() => setActiveTab("borrowed")}
                 className={`flex items-center gap-2 px-4 py-2 font-medium text-sm ${
@@ -680,13 +678,11 @@ export default function Profile() {
               </button>
             </div>
           </div>
-          {/* Nội dung các Tabs */}
           {activeTab === "borrowed" && (
             <div className="space-y-6">
               {borrowedBooks?.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  {" "}
-                  {/* Message khi không có sách */}{" "}
+                  <p className="text-gray-600">You have no borrowed books.</p>
                 </div>
               ) : (
                 borrowedBooks?.map((book) => (
@@ -703,8 +699,7 @@ export default function Profile() {
             <div className="space-y-6">
               {overdueBooks?.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  {" "}
-                  {/* Message khi không có sách */}{" "}
+                  <p className="text-gray-600">You have no overdue books.</p>
                 </div>
               ) : (
                 <>
@@ -750,7 +745,9 @@ export default function Profile() {
                   <h3 className="text-sm font-medium text-gray-500 mb-1">
                     Email Address
                   </h3>
-                  <p className="text-gray-900">{profile.email || user.email}</p>
+                  <p className="text-gray-900 break-words">
+                    {profile.email || user.email}
+                  </p>
                 </div>
                 {profile.birthDate && (
                   <div>
@@ -797,14 +794,14 @@ export default function Profile() {
                   <h3 className="text-lg font-semibold mb-3 text-gray-900">
                     Reading Statistics
                   </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="bg-orange-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="bg-orange-50 p-3 sm:p-4 rounded-lg">
                       <p className="text-sm text-gray-600">Total Borrowed</p>
                       <p className="text-xl font-semibold text-orange-700">
                         {stats.totalBorrowed || 0}
                       </p>
                     </div>
-                    <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
                       <p className="text-sm text-gray-600">
                         Currently Borrowed
                       </p>
@@ -812,20 +809,27 @@ export default function Profile() {
                         {stats.currentlyBorrowed || 0}
                       </p>
                     </div>
-                    <div className="bg-red-50 p-4 rounded-lg">
+                    <div className="bg-red-50 p-3 sm:p-4 rounded-lg">
                       <p className="text-sm text-gray-600">Overdue</p>
                       <p className="text-xl font-semibold text-red-700">
                         {stats.overdue || 0}
                       </p>
                     </div>
+                    {stats.favoriteGenres?.length > 0 && (
+                      <div className="bg-green-50 p-3 sm:p-4 rounded-lg">
+                        <p className="text-sm text-gray-600">Favorite Genres</p>
+                        <p className="text-sm font-medium text-green-700 break-words">
+                          {stats.favoriteGenres.slice(0, 2).join(", ")}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
-              <div className="mt-8 flex justify-end space-x-4">
-                <button
-                  onClick={handleEditProfile}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                >
+              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
+                <button 
+                  onClick={handleEditProfile} 
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
                   Edit Profile
                 </button>
                 <button className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors">
