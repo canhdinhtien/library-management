@@ -4,13 +4,36 @@ const AccountSchema = new mongoose.Schema(
   {
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    fullName: { type: String, required: true },
-    email: { type: String, /*required: true*/ unique: true },
-    role: { type: String, enum: ["member", "employee"], required: true },
+    email: { type: String, required: true, unique: true },
+    role: {
+      type: String,
+      enum: ["member", "employee"],
+      default: "member",
+      required: true,
+    },
     ref: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       refPath: "role",
+    },
+
+    isVerified: { type: Boolean, default: false },
+
+    verificationToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    verificationTokenExpires: { type: Date },
+
+    passwordResetToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+    passwordResetTokenExpires: {
+      type: Date,
     },
   },
   {
@@ -18,6 +41,8 @@ const AccountSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// AccountSchema.index({ verificationToken: 1 });
 
 export default mongoose.models.Account ||
   mongoose.model("Account", AccountSchema);

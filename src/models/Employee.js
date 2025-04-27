@@ -8,7 +8,8 @@ const EmployeeSchema = new mongoose.Schema(
     middleName: { type: String }, // Ten_dem
     lastName: { type: String, required: true }, // Ho
 
-    birthDate: { type: Date /*required: true*/ }, // Ngay_sinh
+
+    birthDate: { type: Date, required: true }, // Ngay_sinh
     gender: { type: String, enum: ["Male", "Female", "Other"] }, // Gioi_tinh
     salary: { type: Number }, // Luong
     position: { type: String }, // Chuc_vu
@@ -23,7 +24,9 @@ const EmployeeSchema = new mongoose.Schema(
     // Liên kết đến tài khoản
     accountId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Account" /*required: true*/,
+
+      ref: "Account",
+      required: true,
     },
   },
   { collection: "employees", timestamps: true }
