@@ -11,8 +11,8 @@
     "start-cron": "node src/lib/cron.js"
   },
   "dependencies": {
-    "@heroicons/react": "^1.0.6",
     "@firebase/app": "^0.11.4",
+    "@heroicons/react": "^1.0.6",
     "@radix-ui/react-tabs": "^1.1.4",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
@@ -55,5 +55,6 @@
         "./*"
       ]
     }
-  }
+  },
+  "type": "module"
 }
