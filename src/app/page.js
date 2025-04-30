@@ -1,69 +1,72 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import Navbar from "../components/Navbar"
-import Footer from "../components/Footer"
-import BookCard from "../components/BookCard"
-import { BookOpen, Mail, RefreshCw, ArrowRight } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import BookCard from "../components/BookCard";
+import { BookOpen, Mail, RefreshCw, ArrowRight } from "lucide-react";
 
 export default function Home() {
-  const router = useRouter()
-  const [topBooks, setTopBooks] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [email, setEmail] = useState("")
-  const [subscribeStatus, setSubscribeStatus] = useState({ message: "", type: "" })
+  const router = useRouter();
+  const [topBooks, setTopBooks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [email, setEmail] = useState("");
+  const [subscribeStatus, setSubscribeStatus] = useState({
+    message: "",
+    type: "",
+  });
 
   const fetchTopBooks = async () => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
     try {
-      const response = await fetch('/api/books?featured=true')
+      const response = await fetch("/api/books?featured=true");
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json()
-      setTopBooks(data)
+      const data = await response.json();
+      setTopBooks(data);
     } catch (e) {
-      console.error("Failed to fetch top books:", e)
-      setError(e.message || "Failed to load books.")
+      console.error("Failed to fetch top books:", e);
+      setError(e.message || "Failed to load books.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchTopBooks()
-  }, [])
+    fetchTopBooks();
+  }, []);
 
   const handleSubscribe = async (e) => {
-    e.preventDefault()
-    if (!email || !email.includes('@')) {
+    e.preventDefault();
+    if (!email || !email.includes("@")) {
       setSubscribeStatus({
         message: "Please enter a valid email address",
-        type: "error"
-      })
-      return
+        type: "error",
+      });
+      return;
     }
 
-    setSubscribeStatus({ message: "Subscribing...", type: "loading" })
-    
+    setSubscribeStatus({ message: "Subscribing...", type: "loading" });
+
     setTimeout(() => {
       setSubscribeStatus({
         message: "Thank you for subscribing!",
-        type: "success"
-      })
-      setEmail("")
-      setTimeout(() => setSubscribeStatus({ message: "", type: "" }), 3000)
-    }, 1000)
-  }
+        type: "success",
+      });
+      setEmail("");
+      setTimeout(() => setSubscribeStatus({ message: "", type: "" }), 3000);
+    }, 1000);
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="bg-gradient-to-b from-amber-50 to-white py-16 px-4">
@@ -74,10 +77,11 @@ export default function Home() {
                   Discover Your Next Favorite Book
                 </h1>
                 <p className="text-lg text-gray-700 mb-8">
-                  Explore our curated collection of top-rated books and find your perfect read today.
+                  Explore our curated collection of top-rated books and find
+                  your perfect read today.
                 </p>
-                <button 
-                  onClick={() => router.push('/catalog')}
+                <button
+                  onClick={() => router.push("/catalog")}
                   className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
                 >
                   Browse Catalog <ArrowRight className="h-5 w-5" />
@@ -109,8 +113,8 @@ export default function Home() {
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
                 Highest Rated Books
               </h2>
-              <button 
-                onClick={() => router.push('/catalog')}
+              <button
+                onClick={() => router.push("/catalog")}
                 className="text-gray-700 hover:text-gray-900 flex items-center gap-1"
               >
                 View all <ArrowRight className="h-4 w-4" />
@@ -120,7 +124,10 @@ export default function Home() {
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm animate-pulse">
+                  <div
+                    key={index}
+                    className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm animate-pulse"
+                  >
                     <div className="bg-gray-300 h-64 w-full"></div>
                     <div className="p-4">
                       <div className="h-5 bg-gray-300 rounded w-3/4 mb-3"></div>
@@ -147,7 +154,7 @@ export default function Home() {
                     key={book._id}
                     id={book._id}
                     title={book.title}
-                    author={book.authorName || 'Unknown Author'}
+                    author={book.authorName || "Unknown Author"}
                     image={book.coverImage || "/images/book-placeholder.jpg"}
                   />
                 ))}
@@ -155,14 +162,17 @@ export default function Home() {
             ) : (
               <div className="text-center py-16">
                 <BookOpen className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 text-xl mb-2">No top-rated books found</p>
-                <p className="text-gray-500">Check back later for our featured selections</p>
+                <p className="text-gray-600 text-xl mb-2">
+                  No top-rated books found
+                </p>
+                <p className="text-gray-500">
+                  Check back later for our featured selections
+                </p>
               </div>
             )}
           </div>
         </section>
 
-        {/* Newsletter Section */}
         <section className="py-16 px-4 bg-amber-50">
           <div className="container mx-auto max-w-3xl text-center">
             <div className="mb-8">
@@ -173,7 +183,8 @@ export default function Home() {
                 Subscribe to Our Newsletter
               </h2>
               <p className="text-gray-700 max-w-lg mx-auto">
-                Stay updated with our latest book recommendations, author interviews, and special offers.
+                Stay updated with our latest book recommendations, author
+                interviews, and special offers.
               </p>
             </div>
 
@@ -199,12 +210,17 @@ export default function Home() {
                   Subscribe
                 </button>
               </div>
-              
+
               {subscribeStatus.message && (
-                <div className={`mt-3 text-sm ${
-                  subscribeStatus.type === 'error' ? 'text-red-600' : 
-                  subscribeStatus.type === 'success' ? 'text-green-600' : 'text-gray-600'
-                }`}>
+                <div
+                  className={`mt-3 text-sm ${
+                    subscribeStatus.type === "error"
+                      ? "text-red-600"
+                      : subscribeStatus.type === "success"
+                      ? "text-green-600"
+                      : "text-gray-600"
+                  }`}
+                >
                   {subscribeStatus.message}
                 </div>
               )}
@@ -215,5 +231,5 @@ export default function Home() {
 
       <Footer />
     </div>
-  )
+  );
 }

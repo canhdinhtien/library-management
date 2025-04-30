@@ -24,17 +24,27 @@ export const useLogin = () => {
         login(data.user, data.token);
         console.log("Login page: Context updated, redirecting...");
 
-        if (data.user?.role === "employee") {
-          router.push("/admin/dashboard");
+        const userRole = data.user?.role;
+
+        if (userRole === "admin") {
+          router.push("/staff/admin-dashboard");
+        } else if (userRole === "employee") {
+          router.push("/staff/staff-dashboard");
+        } else if (userRole === "member") {
+          router.push("/dashboard");
         } else {
+          console.warn(
+            `Unknown role '${userRole}', redirecting to default dashboard.`
+          );
           router.push("/dashboard");
         }
       } else {
         setError(data.message || "Username or password is incorrect.");
-        setIsLoading(false);
       }
     } catch (err) {
+      console.error("Login failed:", err);
       setError("An error occurred. Please try again later.");
+    } finally {
       setIsLoading(false);
     }
   };

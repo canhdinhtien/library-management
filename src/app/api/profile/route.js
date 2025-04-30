@@ -165,7 +165,7 @@ async function getUserProfileDataNative(db, userId) {
 
     const stats = {
       totalBorrowed: member.totalBorrowedCount || borrowDetails.length,
-      currentlyBorrowed: borrowedBooks.length,
+      currentlyBorrowed: borrowedBooks.length + overdueBooks.length,
       overdue: overdueBooks.length,
       totalFines: currentFineTotal,
       favoriteGenres: member.favoriteGenres || [],

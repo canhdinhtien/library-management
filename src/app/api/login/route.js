@@ -19,8 +19,6 @@ export async function POST(request) {
   let db;
 
   try {
-    // Kết nối Database - Lấy đối tượng db
-    // Sử dụng hàm connectToDatabase và lấy ra đối tượng db
     const connection = await connectToDatabase();
     db = connection.db;
 
