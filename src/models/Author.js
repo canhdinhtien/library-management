@@ -5,6 +5,8 @@ const AuthorSchema = new mongoose.Schema(
     authorCode: { type: String, required: true, unique: true }, // Ma_TG
     name: { type: String, required: true }, // Ten
     gender: { type: String, enum: ["Male", "Female", "Other"] }, // Gioi_tinh
+    image: { type: String }, // Hinh_anh
+    bio: { type: String }, // Tieu_su
     birthYear: { type: Number, required: true }, // Nam_sinh
     deathYear: { type: Number }, // Nam_mat
     booksPublished: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book" }], // Các sách đã xuất bản

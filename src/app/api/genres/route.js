@@ -15,7 +15,7 @@ export async function GET(request) {
 
     const genres = await db
       .collection("books")
-      .distinct("category")
+      .distinct("genres")
       .then((results) => results.filter(Boolean).sort());
 
     console.log(`Found ${genres.length} distinct genres:`, genres);
