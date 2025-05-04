@@ -17,28 +17,17 @@ export async function POST(request) {
       .aggregate([
         {
           $match: {
-            returnDate: null,
-            "books.expectedReturnDate": {
+            returnDate: null, // Chỉ lấy các bản ghi chưa trả sách
+            expectedReturnDate: {
               $gte: now,
-              $lt: tomorrow,
-            },
-          },
-        },
-        {
-          $unwind: "$books",
-        },
-        {
-          $match: {
-            "books.expectedReturnDate": {
-              $gte: now,
-              $lt: tomorrow,
+              $lt: tomorrow, // Sách sắp đến hạn trả trong vòng 1 ngày
             },
           },
         },
         {
           $lookup: {
             from: "books",
-            localField: "books.book",
+            localField: "bookId", // Liên kết với bảng books qua bookId
             foreignField: "_id",
             as: "bookDetails",
           },
@@ -46,15 +35,7 @@ export async function POST(request) {
         {
           $lookup: {
             from: "members",
-            localField: "member",
-            foreignField: "_id",
-            as: "memberDetails",
-          },
-        },
-        {
-          $lookup: {
-            from: "members",
-            localField: "member",
+            localField: "member", // Liên kết với bảng members qua member
             foreignField: "_id",
             as: "memberDetails",
           },
@@ -62,19 +43,26 @@ export async function POST(request) {
         {
           $lookup: {
             from: "accounts",
-            localField: "memberDetails.accountId",
+            localField: "memberDetails.accountId", // Liên kết với bảng accounts qua accountId
             foreignField: "_id",
             as: "accountDetails",
           },
         },
         {
-          $unwind: "$memberDetails",
+          $unwind: "$bookDetails", // Giải nén thông tin sách
+        },
+        {
+          $unwind: "$memberDetails", // Giải nén thông tin thành viên
+        },
+        {
+          $unwind: "$accountDetails", // Giải nén thông tin tài khoản
         },
         {
           $project: {
-            memberEmail: "$accountDetails.email",
-            bookTitle: "$bookDetails.title",
-            dueDate: "$books.expectedReturnDate",
+            _id: 0,
+            memberEmail: "$accountDetails.email", // Email của thành viên
+            bookTitle: "$bookDetails.title", // Tên sách
+            dueDate: "$expectedReturnDate", // Ngày trả dự kiến
           },
         },
       ])
