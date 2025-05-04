@@ -53,13 +53,13 @@ export default function Dashboard() {
 
               <div className="md:w-1/2 flex justify-center">
                 <div className="relative w-64 h-80 md:w-80 md:h-96">
-                  <div className="absolute top-0 right-0 w-48 h-64 md:w-56 md:h-72 bg-amber-100 rounded-lg transform rotate-6"></div>
-                  <div className="absolute top-0 right-0 w-48 h-64 md:w-56 md:h-72 bg-gray-200 rounded-lg transform -rotate-6"></div>
+                  <div className="absolute top-0 right-0 w-48 h-64 md:w-56 md:h-72 bg-amber-200 rounded-lg transform rotate-6"></div>
+                  <div className="absolute top-0 right-0 w-48 h-64 md:w-56 md:h-72 bg-gray-300 rounded-lg transform -rotate-6"></div>
 
-                  <div className="absolute top-0 right-0 w-48 h-64 md:w-56 md:h-72 bg-white rounded-lg shadow-lg z-10">
+                  <div className="absolute top-0 right-0 w-48 h-64 md:w-56 md:h-72 bg-white rounded-lg shadow-lg z-10 ">
                     <div className="w-full h-full relative overflow-hidden rounded-lg">
                       <Image
-                        src="/placeholder.svg?height=400&width=300"
+                        src="/images/books.jpg"
                         alt="Featured Book"
                         fill
                         className="object-cover"
