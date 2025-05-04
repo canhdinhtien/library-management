@@ -398,7 +398,7 @@ export default function AdminDashboard() {
         <div className="w-full">
           {activeTab === "books" && (
             <BooksManagementSection
-              books={books}
+              books={books || []}
               onEditBook={handleEditBook}
               onDeleteBook={handleDeleteBook}
             />
@@ -406,7 +406,7 @@ export default function AdminDashboard() {
 
           {activeTab === "users" && (
             <UsersManagementSection
-              users={users}
+              users={users || []}
               onEditUser={handleEditUser}
               onDeleteUser={handleDeleteUser}
             />
@@ -414,7 +414,7 @@ export default function AdminDashboard() {
 
           {activeTab === "staffs" && (
             <StaffManagementSection
-              staffs={staffs}
+              staffs={staffs || []}
               onEditStaff={handleEditStaff}
               onDeleteStaff={handleDeleteStaff}
             />

@@ -16,10 +16,8 @@ export async function GET() {
     const borrows = await db.collection("borrows").find().toArray();
     var borrowedBooks = 0;
     for (const borrow of borrows) {
-      for (const book of borrow.books) {
-        if (borrow.status === "Borrowed" || borrow.status === "Overdue") {
-          borrowedBooks += book.quantity;
-        }
+      if (borrow.status === "Borrowed" || borrow.status === "Overdue") {
+        borrowedBooks += borrow.quantity;
       }
     }
 

@@ -29,16 +29,17 @@ export async function GET() {
 
       // Lấy danh sách sách từ borrows
       const memberBorrows = borrows.filter(
-        (borrow) => borrow.member.toString() === member._id.toString()
+        (borrow) =>
+          borrow.member.toString() === member._id.toString() &&
+          !borrow.returnDate
       );
-      const books = memberBorrows.flatMap((borrow) =>
-        borrow.books.map((book) => {
-          const bookDetails = booksCollection.find(
-            (b) => b._id.toString() === book.book.toString()
-          );
-          return bookDetails ? bookDetails.title : "Unknown Title";
-        })
-      );
+      console.log("memberBorrows", memberBorrows);
+      const books = memberBorrows.flatMap((borrow) => {
+        const bookDetails = booksCollection.find(
+          (b) => b._id.toString() === borrow.bookId.toString()
+        );
+        return bookDetails ? bookDetails.title : "Unknown Title";
+      });
 
       return {
         id: member._id,
@@ -53,7 +54,6 @@ export async function GET() {
         birthDate: member.birthDate || "",
       };
     });
-
     // Trả về dữ liệu
     return new Response(JSON.stringify(membersData), {
       status: 200,
