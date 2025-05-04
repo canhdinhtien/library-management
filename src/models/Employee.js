@@ -8,7 +8,6 @@ const EmployeeSchema = new mongoose.Schema(
     middleName: { type: String }, // Ten_dem
     lastName: { type: String, required: true }, // Ho
 
-
     birthDate: { type: Date, required: true }, // Ngay_sinh
     gender: { type: String, enum: ["Male", "Female", "Other"] }, // Gioi_tinh
     salary: { type: Number }, // Luong
@@ -28,6 +27,7 @@ const EmployeeSchema = new mongoose.Schema(
       ref: "Account",
       required: true,
     },
+    createdAt: { type: Date },
   },
   { collection: "employees", timestamps: true }
 );

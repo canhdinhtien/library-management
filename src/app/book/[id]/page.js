@@ -408,6 +408,10 @@ export default function BookDetail({ params }) {
   const [isLoading, setIsLoading] = useState(true); // Thêm trạng thái loading
   const [hoveredRating, setHoveredRating] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
+  const [showBorrowModal, setShowBorrowModal] = useState(false); // Trạng thái cho modal mượn sách
+  const [borrowQuantity, setBorrowQuantity] = useState(1); // Số lượng sách muốn mượn
+  const [returnDate, setReturnDate] = useState(""); // Ngày trả sách
+  const [userId, setUserId] = useState(null); // Trạng thái cho userId
 
   const fetchBookData = async (id) => {
     try {
@@ -442,6 +446,19 @@ export default function BookDetail({ params }) {
     fetchBookData(id);
   }, [id]); // Gọi hàm fetchBookData khi component được mount hoặc id thay đổi
 
+  const handleBorrowClick = (bookId) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("You need to log in to borrow this book.");
+      window.location.href = "/login"; // Chuyển hướng đến trang đăng nhập
+      return;
+    }
+    const decodedToken = jwtDecode(token); // Giải mã token
+    const userId = decodedToken.userId; // Lấy userId từ token
+    setUserId(userId); // Lưu userId vào state (nếu cần dùng sau này)
+    setShowBorrowModal(true);
+  };
+
   if (isLoading) {
     return (
       <div className="bg-gradient-to-b from-amber-50 to-white min-h-screen">
@@ -475,7 +492,10 @@ export default function BookDetail({ params }) {
               alt={book.title}
               className="w-64 h-96 object-cover rounded-lg shadow-md"
             />
-            <button className="ml-auto mr-auto mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition items-center justify-center flex">
+            <button
+              className="ml-auto mr-auto mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition items-center justify-center flex"
+              onClick={() => handleBorrowClick(book._id)} // Gọi hàm khi nhấn nút mượn sách
+            >
               Borrow Now
             </button>
             <div className="mt-4 text-center">
@@ -629,6 +649,99 @@ export default function BookDetail({ params }) {
           </div>
         </div>
         {/* Reviews Section */}
+        {showBorrowModal && (
+          <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4 text-gray-900">
+                Borrow Book
+              </h2>
+              <div className="mb-4">
+                <p className="text-gray-700">
+                  <strong>Book Title:</strong> {book.title}
+                </p>
+                <p className="text-gray-700">
+                  <strong>Available Quantity:</strong>{" "}
+                  {book.quantity - book.borrowedCount}
+                </p>
+                <p className="text-gray-700">
+                  <strong>Your Borrow Quantity:</strong> {1}
+                </p>
+              </div>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    const response = await fetch("/api/borrow", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        bookId: book._id,
+                        userId,
+                        quantity: borrowQuantity,
+                        returnDate,
+                      }),
+                    });
+
+                    if (response.ok) {
+                      alert("Book borrowed successfully!");
+                      setShowBorrowModal(false);
+                      fetchBookData(book._id); // Tải lại dữ liệu sách
+                    } else {
+                      alert(data.message || "Failed to borrow book.");
+                    }
+                  } catch (error) {
+                    console.error("Error borrowing book:", error);
+                    alert("An error occurred while borrowing the book.");
+                  }
+                }}
+              >
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-500">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={book.availableQuantity}
+                    value={borrowQuantity}
+                    onChange={(e) => setBorrowQuantity(e.target.value)}
+                    required
+                    className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-500">
+                    Return Date
+                  </label>
+                  <input
+                    type="date"
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    required
+                    className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                  />
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowBorrowModal(false)}
+                    className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 cursor-pointer"
+                  >
+                    Confirm Borrow
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );

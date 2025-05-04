@@ -180,7 +180,7 @@ export default function CatalogPage() {
                   id={book._id || book.id}
                   title={book.title}
                   author={book.author?.name || book.authorName || "Unknown"}
-                  image={book.image || "/images/book-placeholder.jpg"}
+                  image={book.coverImage || "/images/book-placeholder.jpg"}
                 />
               ))}
             </div>

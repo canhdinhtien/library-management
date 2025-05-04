@@ -37,19 +37,19 @@ export default function PaymentSuccess() {
       }
     };
 
-    const fetchUpdatedBookStatus = async (bookId, userId) => {
+    const fetchUpdatedBookStatus = async (borrowId) => {
       try {
         const response = await fetch(`/api/fines/update-status`, {
-          method: "POST",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ bookId, userId }),
+          body: JSON.stringify({ borrowId }),
         });
         const result = await response.json();
 
         if (result.success) {
-          setUpdatedBookStatus(result.updatedBookStatusStatus);
+          setUpdatedBookStatus(result.updatedBookStatus);
         } else {
           setUpdatedBookStatus("error");
         }
@@ -59,12 +59,8 @@ export default function PaymentSuccess() {
       }
     };
 
-    const bookId = localStorage.getItem("bookId");
-    const token = localStorage.getItem("authToken");
-    const decodedToken = jwt.decode(token);
-    const userId = decodedToken.userId;
-
-    fetchUpdatedBookStatus(bookId, userId);
+    const borrowId = localStorage.getItem("borrowId");
+    fetchUpdatedBookStatus(borrowId);
     // Fetch payment status after updating book status
     fetchPaymentStatus();
   }, [searchParams]);

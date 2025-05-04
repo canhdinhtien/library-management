@@ -13,7 +13,6 @@ const AccountSchema = new mongoose.Schema(
     },
     ref: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
       refPath: "role",
     },
 
