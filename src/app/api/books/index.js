@@ -1,4 +1,5 @@
 import Book from "../../../models/Book.js";
+import generateBorrowCode from "@/lib/generateBorrowCode.js";
 export default function handler(req, res) {
   if (req.method === 'GET') {
     // Trả về danh sách tất cả các sách
@@ -12,7 +13,7 @@ export default function handler(req, res) {
     }
 
     const newBook = {
-      id: books.length + 1, // Tạo ID cho sách mới (có thể thay thế bằng một cách tạo ID khác)
+      id: generateBorrowCode(), // Tạo ID cho sách mới (có thể thay thế bằng một cách tạo ID khác)
       title,
       author,
     };
