@@ -20,21 +20,16 @@ const BorrowSchema = new mongoose.Schema(
       default: "Borrowed",
     }, // Trang_thai
     fine: { type: Number, default: 0 }, // Phi_phat
-
-    books: [
-      {
-        book: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Book",
-          required: true,
-        },
-        quantity: { type: Number, required: true },
-        renewCount: { type: Number, default: 0 }, // Số lần gia hạn
-        expectedReturnDate: { type: Date, required: true }, // Ngay_tra_du_kien
-        is_fine_paid: { type: Boolean, default: false }, // Đã thanh toán phí phạt
-        returnDate: { type: Date }, // Ngày trả thực tế
-      },
-    ],
+    bookId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Book",
+      required: true,
+    }, // Ma_sach
+    quantity: { type: Number, required: true },
+    renewCount: { type: Number, default: 0 }, // Số lần gia hạn
+    expectedReturnDate: { type: Date, required: true }, // Ngay_tra_du_kien
+    is_fine_paid: { type: Boolean, default: false }, // Đã thanh toán phí phạt
+    returnDate: { type: Date }, // Ngày trả thực tế
   },
   {
     collection: "borrows",

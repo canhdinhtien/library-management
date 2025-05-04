@@ -4,7 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
-import { RefreshCw, BookOpen, Users, UserCog } from "lucide-react";
+import {
+  RefreshCw,
+  BookOpen,
+  Users,
+  UserCog,
+  UserPlus,
+  BookPlus,
+} from "lucide-react";
 
 import DashboardHeader from "../../../components/Dashboard/DashboardHeader";
 import DashboardStats from "../../../components/Dashboard/DashboardStats";
@@ -25,6 +32,12 @@ export default function AdminDashboard() {
   const [books, setBooks] = useState([]);
   const [users, setUsers] = useState([]);
   const [staffs, setStaffs] = useState([]);
+  const [showAddStaffModal, setShowAddStaffModal] = useState(false);
+  const [showEditStaffModal, setShowEditStaffModal] = useState(false);
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -44,9 +57,33 @@ export default function AdminDashboard() {
   const loadAdminDashboardData = async () => {
     setIsLoading(true);
     try {
-      console.log(
-        "Placeholder: Load ADMIN dashboard data (stats, books, users, staffs)"
-      );
+      console.log("Loading ADMIN dashboard data...");
+
+      // Gọi API để lấy thống kê
+      const statsResponse = await fetch("/api/stats");
+      const statsData = await statsResponse.json();
+      console.log("AdminDashboard: statsData", statsData);
+
+      // // Gọi API để lấy danh sách sách
+      // const booksResponse = await fetch("/api/admin/books");
+      // const booksData = await booksResponse.json();
+
+      // Gọi API để lấy danh sách người dùng
+      const usersResponse = await fetch("/api/admin/members");
+      const usersData = await usersResponse.json();
+
+      // Gọi API để lấy danh sách nhân viên
+      const staffsResponse = await fetch("/api/employees");
+      const staffsData = await staffsResponse.json();
+
+      // Cập nhật state với dữ liệu từ API
+      setStats(statsData);
+      console.log("AdminDashboard:", stats);
+      // setBooks(booksData);
+      setUsers(usersData);
+      setStaffs(staffsData);
+
+      console.log("ADMIN dashboard data loaded successfully.");
 
       await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (error) {
@@ -71,28 +108,188 @@ export default function AdminDashboard() {
   };
 
   const handleAddBook = () => console.log("Admin: Add Book");
-  const handleAddUser = () => console.log("Admin: Add User");
-  const handleAddStaff = () => console.log("Admin: Add Staff");
-  const handleBookSearch = (event) =>
-    console.log("Admin: Search books:", event.target.value);
-  const handleBookFilter = () => console.log("Admin: Filter books");
+  const handleAddUser = () => {
+    console.log("Admin: Add User");
+    setShowAddUserModal(true);
+  };
+  const handleAddStaff = () => {
+    console.log("Admin: Add Staff");
+    setShowAddStaffModal(true);
+  };
+
+  const handleSaveStaff = async (newStaff) => {
+    try {
+      const response = await fetch("/api/employees", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newStaff),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add staff member.");
+      }
+
+      const savedStaff = await response.json();
+      setStaffs((prevStaffs) => [...prevStaffs, savedStaff]);
+      alert("Staff added successfully!");
+      setShowAddStaffModal(false);
+      loadAdminDashboardData(); // Refresh the data after adding a new staff member
+      console.log("Staff added successfully:", savedStaff);
+    } catch (error) {
+      console.error("Failed to add staff:", error);
+    }
+  };
+  const handleSaveUser = async (newUser) => {
+    try {
+      const response = await fetch("/api/admin/members", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newUser),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to add user.");
+      }
+      const savedUser = await response.json();
+      setUsers((prevUsers) => [...prevUsers, savedUser]);
+      alert("User added successfully!");
+      setShowAddUserModal(false);
+      loadAdminDashboardData(); // Refresh the data after adding a new user
+      console.log("User added successfully:", savedUser);
+    } catch (error) {
+      console.error("Failed to add user:", error);
+    }
+  };
+
   const handleEditBook = (bookId) => console.log("Admin: Edit book:", bookId);
   const handleDeleteBook = (bookId) =>
     console.log("Admin: Delete book:", bookId);
 
-  const handleUserSearch = (event) =>
-    console.log("Admin: Search users:", event.target.value);
-  const handleUserFilter = () => console.log("Admin: Filter users");
-  const handleEditUser = (userId) => console.log("Admin: Edit user:", userId);
-  const handleDeleteUser = (userId) =>
-    console.log("Admin: Delete user:", userId);
-  const handleStaffSearch = (event) =>
-    console.log("Admin: Search staff:", event.target.value);
-  const handleStaffFilter = () => console.log("Admin: Filter staff");
-  const handleEditStaff = (staffId) =>
-    console.log("Admin: Edit staff:", staffId);
-  const handleDeleteStaff = (staffId) =>
-    console.log("Admin: Delete staff:", staffId);
+  const handleEditUser = (userId) => {
+    const userToEdit = users.find((user) => user.id === userId);
+    console.log("Admin: Edit user:", userToEdit);
+
+    if (userToEdit) {
+      setEditingUser(userToEdit);
+      setShowEditUserModal(true);
+    }
+  };
+  const handleSaveEditedUser = async (editedUser) => {
+    try {
+      const response = await fetch(`/api/admin/members/${editedUser.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editedUser),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update user.");
+      }
+
+      const updatedUser = await response.json();
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === updatedUser.id ? updatedUser : user
+        )
+      );
+      alert("User updated successfully!");
+      setShowEditUserModal(false);
+      loadAdminDashboardData(); // Refresh the data after updating a user
+      console.log("User updated successfully:", updatedUser);
+    } catch (error) {
+      console.error("Failed to update user:", error);
+    }
+  };
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/members/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete user.");
+      }
+
+      // Cập nhật danh sách người dùng sau khi xóa thành công
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+      alert("User deleted successfully!");
+      loadAdminDashboardData(); // Refresh the data after deleting a user
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      alert("Failed to delete user. Please try again.");
+    }
+  };
+
+  const handleEditStaff = (staffId) => {
+    const staffToEdit = staffs.find((staff) => staff.id === staffId);
+    console.log("Admin: Edit staff:", staffToEdit);
+
+    if (staffToEdit) {
+      setEditingStaff(staffToEdit);
+      setShowEditStaffModal(true);
+    }
+  };
+  const handleSaveEditedStaff = async (editedStaff) => {
+    try {
+      const response = await fetch(`/api/employees/${editedStaff.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editedStaff),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update staff member.");
+      }
+
+      const updatedStaff = await response.json();
+      setStaffs((prevStaffs) =>
+        prevStaffs.map((staff) =>
+          staff.id === updatedStaff.id ? updatedStaff : staff
+        )
+      );
+      alert("Staff updated successfully!");
+      setShowEditStaffModal(false);
+      loadAdminDashboardData(); // Refresh the data after updating a staff member
+    } catch (error) {
+      console.error("Failed to update staff:", error);
+    }
+  };
+  const handleDeleteStaff = async (staffId) => {
+    if (!window.confirm("Are you sure you want to delete this staff member?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/employees/${staffId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete staff member.");
+      }
+
+      // Cập nhật danh sách nhân viên sau khi xóa thành công
+      setStaffs((prevStaffs) =>
+        prevStaffs.filter((staff) => staff.id !== staffId)
+      );
+      alert("Staff deleted successfully!");
+      loadAdminDashboardData(); // Refresh the data after deleting a staff member
+    } catch (error) {
+      console.error("Failed to delete staff:", error);
+      alert("Failed to delete staff. Please try again.");
+    }
+  };
 
   if (authLoading || (!user && !authLoading)) {
     return (
@@ -158,20 +355,50 @@ export default function AdminDashboard() {
             <button
               onClick={handleRefresh}
               disabled={isLoading}
-              className="..."
+              className="flex items-center px-4 py-2.5 border border-gray-300 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
+              aria-label="Refresh data"
             >
-              <RefreshCw className={`... ${isLoading ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline ...">Refresh</span>
+              <RefreshCw
+                className={`text-gray-500 h-5 w-5 mr-2 ${
+                  isLoading ? "animate-spin" : ""
+                }`}
+              />
+              <span className="hidden sm:inline text-gray-700">Refresh</span>
             </button>
+            {activeTab === "books" && (
+              <button
+                onClick={handleAddBook}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
+              >
+                <BookPlus className="h-5 w-5" />
+                <span className="hidden sm:inline">Add Book</span>
+              </button>
+            )}
+            {activeTab === "users" && (
+              <button
+                onClick={handleAddUser}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
+              >
+                <UserPlus className="h-5 w-5" />
+                <span className="hidden sm:inline">Add User</span>
+              </button>
+            )}
+            {activeTab === "staffs" && (
+              <button
+                onClick={handleAddStaff}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
+              >
+                <UserPlus className="h-5 w-5" />
+                <span className="hidden sm:inline">Add Staff</span>
+              </button>
+            )}
           </div>
         </div>
 
         <div className="w-full">
           {activeTab === "books" && (
             <BooksManagementSection
-              books={books}
-              onSearchChange={handleBookSearch}
-              onFilterClick={handleBookFilter}
+              books={books || []}
               onEditBook={handleEditBook}
               onDeleteBook={handleDeleteBook}
             />
@@ -179,9 +406,7 @@ export default function AdminDashboard() {
 
           {activeTab === "users" && (
             <UsersManagementSection
-              users={users}
-              onSearchChange={handleUserSearch}
-              onFilterClick={handleUserFilter}
+              users={users || []}
               onEditUser={handleEditUser}
               onDeleteUser={handleDeleteUser}
             />
@@ -189,15 +414,507 @@ export default function AdminDashboard() {
 
           {activeTab === "staffs" && (
             <StaffManagementSection
-              staffs={staffs}
-              onSearchChange={handleStaffSearch}
-              onFilterClick={handleStaffFilter}
+              staffs={staffs || []}
               onEditStaff={handleEditStaff}
               onDeleteStaff={handleDeleteStaff}
             />
           )}
         </div>
       </main>
+      {showAddStaffModal && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">
+              Add New Staff
+            </h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const newStaff = {
+                  staffCode: formData.get("staffCode"),
+                  username: formData.get("username"),
+                  password: formData.get("password"),
+                  firstName: formData.get("firstName"),
+                  lastName: formData.get("lastName"),
+                  email: formData.get("email"),
+                  phone: formData.get("phone"),
+                  birthDate: formData.get("birthDate"),
+                };
+                handleSaveStaff(newStaff);
+              }}
+            >
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Staff Code
+                </label>
+                <input
+                  type="text"
+                  name="staffCode"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Password
+                </label>
+                <input
+                  type="text"
+                  name="password"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Birth Date
+                </label>
+                <input
+                  type="date"
+                  name="birthDate"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  name="phone"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddStaffModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#FF9800] text-white rounded-md hover:bg-[#F57C00] cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showEditStaffModal && editingStaff && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">Edit Staff</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const updatedStaff = {
+                  ...editingStaff,
+                  firstName: formData.get("firstName"),
+                  lastName: formData.get("lastName"),
+                  email: formData.get("email"),
+                  phone: formData.get("phone"),
+                  birthDate: formData.get("birthDate"),
+                  address: formData.get("address"),
+                };
+                handleSaveEditedStaff(updatedStaff);
+              }}
+            >
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  defaultValue={editingStaff.firstName}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  defaultValue={editingStaff.lastName}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  defaultValue={editingStaff.email}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  name="phone"
+                  defaultValue={editingStaff.phone}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Birth Date
+                </label>
+                <input
+                  type="date"
+                  name="birthDate"
+                  defaultValue={
+                    new Date(editingStaff.birthDate).toISOString().split("T")[0]
+                  }
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  defaultValue={editingStaff.address || ""}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowEditStaffModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#FF9800] text-white rounded-md hover:bg-[#F57C00] cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showAddUserModal && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">
+              Add New User
+            </h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const newUser = {
+                  userCode: formData.get("userCode"),
+                  username: formData.get("username"),
+                  password: formData.get("password"),
+                  firstName: formData.get("firstName"),
+                  lastName: formData.get("lastName"),
+                  email: formData.get("email"),
+                  phone: formData.get("phone"),
+                  birthDate: formData.get("birthDate"),
+                };
+                handleSaveUser(newUser);
+              }}
+            >
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  User Code
+                </label>
+                <input
+                  type="text"
+                  name="userCode"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Password
+                </label>
+                <input
+                  type="text"
+                  name="password"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Birth Date
+                </label>
+                <input
+                  type="date"
+                  name="birthDate"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  name="phone"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddUserModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#FF9800] text-white rounded-md hover:bg-[#F57C00] cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showEditUserModal && editingUser && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">Edit User</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const updatedUser = {
+                  ...editingUser,
+                  firstName: formData.get("firstName"),
+                  lastName: formData.get("lastName"),
+                  email: formData.get("email"),
+                  phone: formData.get("phone"),
+                  birthDate: formData.get("birthDate"),
+                  address: formData.get("address"),
+                };
+                handleSaveEditedUser(updatedUser);
+              }}
+            >
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  defaultValue={editingUser.firstName}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  defaultValue={editingUser.lastName}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  defaultValue={editingUser.email}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  name="phone"
+                  defaultValue={editingUser.phone}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Birth Date
+                </label>
+                <input
+                  type="date"
+                  name="birthDate"
+                  defaultValue={
+                    editingUser.birthDate
+                      ? new Date(editingUser.birthDate)
+                          .toISOString()
+                          .split("T")[0]
+                      : ""
+                  }
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  defaultValue={editingUser.address || ""}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowEditUserModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#FF9800] text-white rounded-md hover:bg-[#F57C00] cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

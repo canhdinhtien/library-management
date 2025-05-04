@@ -55,7 +55,7 @@ function BorrowedBookItem({ book, onRenew }) {
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => onRenew(book._id)}
+                  onClick={() => onRenew(book.borrowRecordId)}
                   disabled={!isRenewable}
                   className={`px-3 py-1 rounded-md text-sm flex items-center ${
                     isRenewable
@@ -143,7 +143,7 @@ function OverdueBookItem({ book, onPayFine }) {
                 {canPayFine && (
                   <button
                     onClick={() =>
-                      onPayFine(book._id, book.fineAmount, book.RecordId)
+                      onPayFine(book.fineAmount, book.borrowRecordId)
                     }
                     className="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm"
                   >
@@ -438,8 +438,8 @@ export default function Profile() {
     }
   };
 
-  const handleRenewBook = async (bookId) => {
-    console.log("Attempting to renew book:", bookId);
+  const handleRenewBook = async (borrowId) => {
+    console.log("Attempting to renew:", borrowId);
     const token = localStorage.getItem("authToken");
     if (!token) {
       logout();
@@ -455,14 +455,22 @@ export default function Profile() {
     }
 
     try {
-      const response = await fetch(`/api/books/${bookId}/renew`, {
-        method: "POST",
+      const response = await fetch(`/api/borrow/renew`, {
+        method: "PUT",
+        body: JSON.stringify({ borrowId }),
         headers: { Authorization: `Bearer ${token}` },
       });
-      const result = await response.json();
 
-      if (!response.ok)
-        throw new Error(result.message || "Failed to renew book");
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Renew response:", data);
+        alert(data.message);
+      }
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Renewal failed:", error);
+        alert(error.error || "Failed to renew book.");
+      }
 
       fetchProfileData();
     } catch (error) {
@@ -471,9 +479,9 @@ export default function Profile() {
     }
   };
 
-  const handlePayFine = async (bookId, fineAmount) => {
-    console.log("Attempting to pay fine for book:", bookId);
-    localStorage.setItem("bookId", bookId);
+  const handlePayFine = async (fineAmount, borrowId) => {
+    console.log("Attempting to pay fine for:", borrowId);
+    localStorage.setItem("borrowId", borrowId); // Lưu borrowId vào localStorage
     const token = localStorage.getItem("authToken");
     if (!token) {
       logout();
@@ -827,9 +835,10 @@ export default function Profile() {
                 </div>
               )}
               <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
-                <button 
-                  onClick={handleEditProfile} 
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                <button
+                  onClick={handleEditProfile}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                >
                   Edit Profile
                 </button>
                 <button className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors">
