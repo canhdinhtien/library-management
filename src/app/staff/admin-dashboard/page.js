@@ -15,11 +15,12 @@ import {
 
 import DashboardHeader from "../../../components/Dashboard/DashboardHeader";
 import DashboardStats from "../../../components/Dashboard/DashboardStats";
-import DashboardControls from "../../../components/Dashboard/DashboardControls";
+// import DashboardControls from "../../../components/Dashboard/DashboardControls";
 import BooksManagementSection from "../../../components/Dashboard/BooksManagementSection";
 import UsersManagementSection from "../../../components/Dashboard/UsersManagementSection";
 
 import StaffManagementSection from "../../../components/Dashboard/StaffsManagementSection";
+// import { logout } from "@/lib/auth";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -39,6 +40,12 @@ export default function AdminDashboard() {
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
+  console.log(
+    "%cAdminDashboard RENDER START",
+    "color: blue; font-weight: bold;",
+    { authLoading, user }
+  );
+
   useEffect(() => {
     if (!authLoading) {
       if (!user) {
@@ -54,32 +61,83 @@ export default function AdminDashboard() {
     }
   }, [user, authLoading, router]);
 
+  // const loadAdminDashboardData = async () => {
+  //   setIsLoading(true);
+  //   try {
+  //     console.log("Loading ADMIN dashboard data...");
+
+  //     // Gọi API để lấy thống kê
+  //     const statsResponse = await fetch("/api/stats");
+  //     const statsData = await statsResponse.json();
+  //     console.log("AdminDashboard: statsData", statsData);
+
+  //     // // Gọi API để lấy danh sách sách
+  //     // const booksResponse = await fetch("/api/admin/books");
+  //     // const booksData = await booksResponse.json();
+
+  //     // Gọi API để lấy danh sách người dùng
+  //     const usersResponse = await fetch("/api/admin/members");
+  //     const usersData = await usersResponse.json();
+
+  //     // Gọi API để lấy danh sách nhân viên
+  //     const staffsResponse = await fetch("/api/employees");
+  //     const staffsData = await staffsResponse.json();
+
+  //     // Cập nhật state với dữ liệu từ API
+  //     setStats(statsData);
+  //     console.log("AdminDashboard:", stats);
+  //     // setBooks(booksData);
+  //     setUsers(usersData);
+  //     setStaffs(staffsData);
+
+  //     console.log("ADMIN dashboard data loaded successfully.");
+
+  //     await new Promise((resolve) => setTimeout(resolve, 500));
+  //   } catch (error) {
+  //     console.error("Failed to load ADMIN dashboard data:", error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
   const loadAdminDashboardData = async () => {
     setIsLoading(true);
     try {
       console.log("Loading ADMIN dashboard data...");
 
-      // Gọi API để lấy thống kê
-      const statsResponse = await fetch("/api/stats");
+      // Lấy token từ localStorage
+      const token = localStorage.getItem("authToken");
+
+      if (!token) {
+        throw new Error("No token found. Please log in.");
+      }
+
+      // Gọi API để lấy thống kê với Authorization header
+      const statsResponse = await fetch("/api/stats", {
+        headers: {
+          Authorization: `Bearer ${token}`, // Thêm header Authorization
+        },
+      });
       const statsData = await statsResponse.json();
       console.log("AdminDashboard: statsData", statsData);
 
-      // // Gọi API để lấy danh sách sách
-      // const booksResponse = await fetch("/api/admin/books");
-      // const booksData = await booksResponse.json();
-
       // Gọi API để lấy danh sách người dùng
-      const usersResponse = await fetch("/api/admin/members");
+      const usersResponse = await fetch("/api/admin/members", {
+        headers: {
+          Authorization: `Bearer ${token}`, // Thêm header Authorization
+        },
+      });
       const usersData = await usersResponse.json();
 
       // Gọi API để lấy danh sách nhân viên
-      const staffsResponse = await fetch("/api/employees");
+      const staffsResponse = await fetch("/api/employees", {
+        headers: {
+          Authorization: `Bearer ${token}`, // Thêm header Authorization
+        },
+      });
       const staffsData = await staffsResponse.json();
 
       // Cập nhật state với dữ liệu từ API
       setStats(statsData);
-      console.log("AdminDashboard:", stats);
-      // setBooks(booksData);
       setUsers(usersData);
       setStaffs(staffsData);
 
@@ -92,7 +150,6 @@ export default function AdminDashboard() {
       setIsLoading(false);
     }
   };
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -179,10 +236,15 @@ export default function AdminDashboard() {
   };
   const handleSaveEditedUser = async (editedUser) => {
     try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("No authorization token found.");
+      }
       const response = await fetch(`/api/admin/members/${editedUser.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(editedUser),
       });
@@ -199,13 +261,51 @@ export default function AdminDashboard() {
       );
       alert("User updated successfully!");
       setShowEditUserModal(false);
-      loadAdminDashboardData(); // Refresh the data after updating a user
+      loadAdminDashboardData();
       console.log("User updated successfully:", updatedUser);
     } catch (error) {
       console.error("Failed to update user:", error);
     }
   };
+  // const handleDeleteUser = async (userId) => {
+  //   const token = localStorage.getItem("authToken");
+  //   if (!token) {
+  //     throw new Error("No authorization token found.");
+  //   }
+
+  //   if (!window.confirm("Are you sure you want to delete this user?")) {
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await fetch(`/api/admin/members/${userId}`, {
+  //       method: "DELETE",
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to delete user.");
+  //     }
+
+  //     // Cập nhật danh sách người dùng sau khi xóa thành công
+  //     setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+  //     alert("User deleted successfully!");
+  //     loadAdminDashboardData(); // Refresh the data after deleting a user
+  //   } catch (error) {
+  //     console.error("Failed to delete user:", error);
+  //     alert("Failed to delete user. Please try again.");
+  //   }
+  //   localStorage.removeItem("authToken");
+  // };
   const handleDeleteUser = async (userId) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("No authorization token found.");
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to delete this user?")) {
       return;
     }
@@ -213,22 +313,26 @@ export default function AdminDashboard() {
     try {
       const response = await fetch(`/api/admin/members/${userId}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete user.");
+        throw new Error("Failed to delete user. Please try again.");
       }
 
       // Cập nhật danh sách người dùng sau khi xóa thành công
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
       alert("User deleted successfully!");
-      loadAdminDashboardData(); // Refresh the data after deleting a user
+
+      // Tải lại dữ liệu bảng điều khiển
+      loadAdminDashboardData();
     } catch (error) {
       console.error("Failed to delete user:", error);
-      alert("Failed to delete user. Please try again.");
+      alert(error.message || "An error occurred while deleting the user.");
     }
   };
-
   const handleEditStaff = (staffId) => {
     const staffToEdit = staffs.find((staff) => staff.id === staffId);
     console.log("Admin: Edit staff:", staffToEdit);
@@ -238,18 +342,58 @@ export default function AdminDashboard() {
       setShowEditStaffModal(true);
     }
   };
+  // const handleSaveEditedStaff = async (editedStaff) => {
+  //   try {
+  //     const response = await fetch(`/api/employees/${editedStaff.id}`, {
+  //       method: "PUT",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(editedStaff),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to update staff member.");
+  //     }
+
+  //     const updatedStaff = await response.json();
+  //     setStaffs((prevStaffs) =>
+  //       prevStaffs.map((staff) =>
+  //         staff.id === updatedStaff.id ? updatedStaff : staff
+  //       )
+  //     );
+  //     alert("Staff updated successfully!");
+  //     setShowEditStaffModal(false);
+  //     loadAdminDashboardData(); // Refresh the data after updating a staff member
+  //   } catch (error) {
+  //     console.error("Failed to update staff:", error);
+  //   }
+  // };
   const handleSaveEditedStaff = async (editedStaff) => {
     try {
+      const token = localStorage.getItem("authToken"); // Lấy token từ localStorage
+
+      if (!token) {
+        throw new Error("No authorization token found.");
+      }
+
       const response = await fetch(`/api/employees/${editedStaff.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Gửi token trong header Authorization
         },
         body: JSON.stringify(editedStaff),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update staff member.");
+        const errorData = await response.json();
+        console.error("Failed to update staff member. Error:", errorData);
+        throw new Error(
+          `Failed to update staff member. Reason: ${
+            errorData.message || "Unknown"
+          }`
+        );
       }
 
       const updatedStaff = await response.json();
@@ -261,10 +405,13 @@ export default function AdminDashboard() {
       alert("Staff updated successfully!");
       setShowEditStaffModal(false);
       loadAdminDashboardData(); // Refresh the data after updating a staff member
+      console.log("Staff updated successfully:", updatedStaff);
     } catch (error) {
       console.error("Failed to update staff:", error);
+      alert("Failed to update staff. Please try again.");
     }
   };
+
   const handleDeleteStaff = async (staffId) => {
     if (!window.confirm("Are you sure you want to delete this staff member?")) {
       return;

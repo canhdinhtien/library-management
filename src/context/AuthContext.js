@@ -40,16 +40,24 @@ export const AuthProvider = ({ children }) => {
     console.log("AuthProvider useEffect: Initial loading finished.");
   }, []);
 
-  const login = (userData, token) => {
-    console.log("AuthContext login: Saving token and setting user:", userData);
-    localStorage.setItem("authToken", token);
+  const login = (userInfo, accessToken) => {
+    console.log("AuthContext login: Saving token and setting user:", userInfo);
+
+    if (typeof accessToken !== "string") {
+      console.error(
+        "AuthContext login: accessToken must be a string. Got:",
+        accessToken
+      );
+      return;
+    }
+
+    localStorage.setItem("authToken", accessToken);
 
     try {
-      const decodedLogin = jwtDecode(token);
-      setUser(decodedLogin);
+      const decoded = jwtDecode(accessToken);
+      setUser(decoded);
     } catch (error) {
       console.error("AuthContext login: Error decoding token:", error);
-
       localStorage.removeItem("authToken");
       setUser(null);
     }

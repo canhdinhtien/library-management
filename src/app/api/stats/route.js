@@ -1,4 +1,5 @@
 import { connectToDatabase } from "@/lib/dbConnect";
+import verifyToken from "../../../middleware/auth";
 
 export async function GET() {
   try {
