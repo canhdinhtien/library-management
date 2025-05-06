@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-
 import { connectToDatabase } from "@/lib/dbConnect";
-
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -41,6 +39,7 @@ export async function POST(request) {
         { status: 401 }
       );
     }
+
     if (!account.password) {
       console.error(
         `Password field missing for user ${username}. Check database or projection.`
@@ -50,6 +49,7 @@ export async function POST(request) {
         { status: 500 }
       );
     }
+
     const isPasswordMatch = await bcrypt.compare(password, account.password);
 
     if (!isPasswordMatch) {
