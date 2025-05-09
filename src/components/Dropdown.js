@@ -12,7 +12,7 @@ export default function Dropdown({ label, options, onSelect, onSearch }) {
     option.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSearch = () => {
+  const handleSearchTrigger = () => {
     if (onSearch) {
       onSearch(searchTerm);
     }
@@ -34,7 +34,9 @@ export default function Dropdown({ label, options, onSelect, onSearch }) {
   return (
     <div className="relative w-full max-w-xs sm:max-w-sm" ref={dropdownRef}>
       <div className="flex items-center border rounded-lg px-2 py-2 bg-white shadow-sm w-full">
+        {/* Dropdown Toggle Button */}
         <button
+          type="button" // Add type="button"
           className="flex items-center px-3 sm:px-4 py-2 border-r text-gray-800 bg-white hover:bg-gray-100 rounded-l-lg"
           onClick={() => setIsOpen(!isOpen)}
         >
@@ -58,14 +60,15 @@ export default function Dropdown({ label, options, onSelect, onSearch }) {
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              handleSearch();
+              handleSearchTrigger();
             }
           }}
         />
 
         <button
+          type="button"
           className="px-3 sm:px-4 py-2 bg-orange-400 text-white rounded-lg hover:scale-105 transition-transform duration-200"
-          onClick={handleSearch}
+          onClick={handleSearchTrigger}
         >
           Search
         </button>
@@ -80,9 +83,11 @@ export default function Dropdown({ label, options, onSelect, onSearch }) {
                   key={index}
                   className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm sm:text-base"
                   onClick={() => {
-                    onSelect(option);
+                    setSearchTerm(option);
+                    if (onSelect) {
+                      onSelect(option);
+                    }
                     setIsOpen(false);
-                    setSearchTerm("");
                   }}
                 >
                   {option}

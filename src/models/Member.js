@@ -1,28 +1,36 @@
 import mongoose from "mongoose";
 
-const MemberSchema = new mongoose.Schema({
-  memberCode: { type: String, required: true, unique: true }, // Ma_thanh_vien
-  username: { type: String, required: true },                 // Ten_thanh_vien
+const MemberSchema = new mongoose.Schema(
+  {
+    memberCode: { type: String, required: true, unique: true },
+    username: { type: String, required: true },
 
-  firstName: { type: String, required: true },                // Ten
-  middleName: { type: String },                               // Ten_dem
-  lastName: { type: String, required: true },                 // Ho
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
 
-  birthDate: { type: Date, required: true },                  // Ngay_sinh
-  gender: { type: String, enum: ["Male", "Female", "Other"] },// Gioi_tinh
-  address: { type: String },                                  // Dia_chi
-  phone: { type: String },                                    // SDT
+    avatar: { type: String },
 
-  registeredAt: { type: Date, default: Date.now },            // Ngay_dang_ky
+    birthDate: { type: Date, required: false },
+    address: { type: String },
+    phone: { type: String },
 
-  //Liên kết đến tài khoản người dùng
-    accountId: {type: mongoose.Schema.Types.ObjectId, ref: "Account", required: true }
+    registeredAt: { type: Date, default: Date.now },
 
-}, { collection: "members", timestamps: true });
+    accountId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Account",
+      required: true,
 
-// Virtual: Họ tên đầy đủ
+      unique: true,
+    },
+  },
+  { collection: "members", timestamps: true }
+);
+
 MemberSchema.virtual("fullName").get(function () {
-  return `${this.lastName} ${this.middleName || ""} ${this.firstName}`.trim();
+  return `${this.lastName} ${this.firstName}`.trim();
 });
+
+MemberSchema.index({ accountId: 1 });
 
 export default mongoose.models.Member || mongoose.model("Member", MemberSchema);
