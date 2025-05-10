@@ -87,9 +87,9 @@ export async function GET() {
       }
       return {
         id: employee._id,
-        firstName: employee.firstName,
-        middleName: employee.middleName,
-        lastName: employee.lastName,
+        name: `${employee.firstName} ${employee.middleName || ""} ${
+          employee.lastName
+        }`,
         email: account.email,
         phone: employee.phone,
         role: account.role,

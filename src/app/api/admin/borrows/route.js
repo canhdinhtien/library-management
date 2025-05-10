@@ -83,7 +83,6 @@ export async function POST(req) {
       bookId: new ObjectId(body.bookId),
       borrowDate: new Date(body.borrowDate),
       expectedReturnDate: new Date(body.expectedReturnDate),
-      returnDate: body.returnDate ? new Date(body.returnDate) : null,
     };
     // Thay đổi số lượng sách trong kho
     const booksCollection = db.collection("books");

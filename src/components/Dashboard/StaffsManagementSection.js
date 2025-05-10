@@ -123,9 +123,7 @@ export default function StaffManagementSection({
                     filteredStaffs.map((staff) => (
                       <tr key={staff.id || staff._id}>
                         <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {`${staff.firstName} ${staff.middleName || ""} ${
-                            staff.lastName
-                          }`}
+                          {staff.name}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                           {staff.email}

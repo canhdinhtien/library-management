@@ -125,7 +125,7 @@ export default function UsersManagementSection({
                     filteredUsers.map((user) => (
                       <tr key={user.id || user._id}>
                         <td className="px-5 py-4 text-sm text-gray-900">
-                          {user.firstName} {user.lastName}
+                          {user.name}
                         </td>
                         <td className="px-5 py-4 text-sm text-gray-500">
                           {user.email}

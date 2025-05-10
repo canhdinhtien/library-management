@@ -1253,7 +1253,6 @@ export default function AdminDashboard() {
                   renewCount: 0,
                   is_fine_paid: false,
                   fine: 0,
-                  returnDate: null,
                 };
                 handleSaveBorrow(newBorrow);
               }}

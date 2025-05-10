@@ -41,6 +41,7 @@ export async function GET() {
 
       return {
         id: member._id,
+        name: `${member.firstName} ${member.lastName}`,
         firstName: member.firstName,
         lastName: member.lastName,
         email,

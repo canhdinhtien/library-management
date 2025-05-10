@@ -20,7 +20,13 @@ export default function PaymentSuccess() {
     const fetchPaymentStatus = async () => {
       try {
         const response = await fetch(
-          `/api/fines/payment-success?${searchParams.toString()}`
+          `/api/fines/payment-success?${searchParams.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
         );
         const result = await response.json();
 
@@ -42,7 +48,7 @@ export default function PaymentSuccess() {
         const response = await fetch(`/api/fines/update-status`, {
           method: "PUT",
           headers: {
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
           body: JSON.stringify({ borrowId }),
         });

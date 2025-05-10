@@ -1,12 +1,30 @@
 "use client";
 
 import { Search, Filter, ChevronDown, Edit, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 export default function BorrowsManagementSection({
   borrows = [],
   onEditBorrow,
   onDeleteBorrow,
 }) {
+  // Lọc và tìm kiếm người dùng
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("All");
+
+  // Lọc và tìm kiếm người dùng
+  const filteredBorrows = Array.isArray(borrows)
+    ? borrows.filter((borrow) => {
+        const matchesSearch = (borrow.userName?.toLowerCase() || "").includes(
+          searchTerm.toLowerCase()
+        );
+        const matchesFilter =
+          filterStatus === "All" ||
+          borrow.status.toLowerCase() === filterStatus.toLowerCase();
+        return matchesSearch && matchesFilter;
+      })
+    : [];
+
   return (
     <div className="space-y-5">
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
@@ -25,16 +43,25 @@ export default function BorrowsManagementSection({
                 <input
                   type="search"
                   placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full sm:w-72 pl-12 pr-4 py-3 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF9800] focus:border-transparent text-gray-400"
                 />
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
-              <div className="relative">
-                <button className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-md text-base w-full justify-center sm:w-auto text-gray-400">
-                  <Filter className="h-5 w-5" />
-                  Filter
-                  <ChevronDown className="h-5 w-5" />
-                </button>
+              <div className="relative flex items-center flex-row gap-2">
+                <Filter className="h-5 w-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="flex items-center pl-10 pr-2 py-3 border border-gray-300 rounded-md text-base w-full sm:w-auto text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF9800] focus:border-transparent cursor-pointer"
+                >
+                  <option value="All">All Borrows</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Borrowed">Borrowed</option>
+                  <option value="Overdue">Overdue</option>
+                  <option value="Returned">Returned</option>
+                </select>
               </div>
             </div>
           </div>
@@ -92,8 +119,8 @@ export default function BorrowsManagementSection({
                 </thead>
 
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {borrows.length > 0 ? (
-                    borrows.map((borrow) => (
+                  {filteredBorrows.length > 0 ? (
+                    filteredBorrows.map((borrow) => (
                       <tr key={borrow._id}>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900 ">
                           {borrow.userName}
@@ -127,7 +154,9 @@ export default function BorrowsManagementSection({
                           </span>
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
-                          {borrow.returnDate || "Not Returned"}
+                          {borrow.returnDate
+                            ? new Date(borrow.returnDate).toLocaleDateString()
+                            : "Not Returned"}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button

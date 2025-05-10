@@ -476,7 +476,7 @@ export default function Profile() {
           fineAmount,
         }),
         headers: {
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
       });
       if (!res.ok) {
@@ -664,16 +664,18 @@ export default function Profile() {
           {activeTab === "borrowed" && (
             <div className="space-y-6">
               {/* Notice */}
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg shadow-sm">
-                <div className="flex items-center">
-                  <Info className="h-5 w-5 text-yellow-500 mr-3" />
-                  <p className="text-sm text-yellow-800">
-                    <strong>Note:</strong> Your book reservation will be valid
-                    for the next <strong>3 days</strong>. Please visit the
-                    library to collect your book.
-                  </p>
+              {pendingBooks?.length > 0 && (
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg shadow-sm">
+                  <div className="flex items-center">
+                    <Info className="h-5 w-5 text-yellow-500 mr-3" />
+                    <p className="text-sm text-yellow-800">
+                      <strong>Note:</strong> Your book reservation will be valid
+                      for the next <strong>3 days</strong>. Please visit the
+                      library to collect your book.
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
               {pendingBooks?.length > 0 &&
                 pendingBooks?.map((book, index) => (
                   <PendingBookItem key={`${book._id}-${index}`} book={book} />
