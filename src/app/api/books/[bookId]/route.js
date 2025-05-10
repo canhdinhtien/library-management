@@ -151,3 +151,65 @@ export async function GET(request, { params }) {
     );
   }
 }
+export async function PUT(request, { params }) {
+  const { bookId } = await  params;
+  const updateData = await request.json();
+
+  try {
+    const { db } = await connectToDatabase();
+    const books = db.collection("books");
+
+    const result = await books.updateOne(
+      { _id: new ObjectId(bookId) },
+      { $set: updateData }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json(
+        { success: false, message: "Book not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: true, message: "Book updated successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error updating book:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE: Xóa sách
+export async function DELETE(request, { params }) {
+  const { bookId } = await params;
+
+  try {
+    const { db } = await connectToDatabase();
+    const books = db.collection("books");
+
+    const result = await books.deleteOne({ _id: new ObjectId(bookId) });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { success: false, message: "Book not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: true, message: "Book deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting book:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}

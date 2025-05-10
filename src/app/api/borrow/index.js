@@ -9,6 +9,7 @@ export default async function handler(req, res) {
       const { member, employee, books } = req.body;
 
       const borrowCode = await generateBorrowCode(); // bạn phải import hoặc viết hàm generateBorrowCode nhé
+      //reply: Mình viết ở lib lâu rồi á :Đ
 
       if (!member || !books) {
         return res.status(400).json({ message: "Missing required fields" });
