@@ -7,7 +7,6 @@ import { use } from "react";
 import { jwtDecode } from "jwt-decode";
 
 function Review({ reviews, book }) {
-  // Kiểm tra nếu `reviews` không phải là mảng hoặc rỗng
   if (!Array.isArray(reviews) || reviews.length === 0) {
     return (
       <div>
@@ -18,10 +17,10 @@ function Review({ reviews, book }) {
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
-            fill="url(#starGradient)" // Gradient màu sắc
+            fill="url(#starGradient)"
             stroke="#ffdd00"
             strokeWidth="1.5"
-            className="w-16 h-16 text-gray-400 mb-4 transition-transform transform hover:scale-110" // Hiệu ứng hover
+            className="w-16 h-16 text-gray-400 mb-4 transition-transform transform hover:scale-110"
           >
             <defs>
               <linearGradient
@@ -60,7 +59,6 @@ function Review({ reviews, book }) {
     <div>
       <h2 className="text-xl font-semibold text-gray-900">Community Reviews</h2>
       <div className="flex items-center mt-4 space-x-2">
-        {/* Hiển thị các ngôi sao */}
         <div className="flex items-center">
           {Array.from({ length: 5 }, (_, index) => {
             const starValue = index + 1;
@@ -92,7 +90,6 @@ function Review({ reviews, book }) {
                 className="w-8 h-8"
                 viewBox="0 0 24 24"
               >
-                {/* Gradient cho sao 3/4 */}
                 {isThreeQuarterStar && (
                   <defs>
                     <linearGradient id="threeQuarterGradient">
@@ -102,7 +99,6 @@ function Review({ reviews, book }) {
                   </defs>
                 )}
 
-                {/* Gradient cho sao 1/2 */}
                 {isHalfStar && (
                   <defs>
                     <linearGradient id="halfGradient">
@@ -112,7 +108,6 @@ function Review({ reviews, book }) {
                   </defs>
                 )}
 
-                {/* Gradient cho sao 1/4 */}
                 {isQuarterStar && (
                   <defs>
                     <linearGradient id="quarterGradient">
@@ -164,11 +159,9 @@ function Review({ reviews, book }) {
                     }).format(new Date(review.createdAt))}
                   </p>
                 </div>
-                {/* Nội dung đánh giá */}
                 <div className="mt-2">
                   <p className="text-gray-700">{review.text}</p>
                 </div>
-                {/* Điểm đánh giá */}
                 <div className="mt-2 flex items-center space-x-1">
                   {Array.from({ length: 5 }, (_, index) => (
                     <svg
@@ -201,11 +194,11 @@ function Review({ reviews, book }) {
 }
 
 function WriteReview(bookId, fetchBookData) {
-  const [selectedRating, setSelectedRating] = useState(0); // Trạng thái cho sao được chọn
-  const [hoveredRating, setHoveredRating] = useState(0); // Trạng thái cho sao được hover
-  const [reviewText, setReviewText] = useState(""); // Trạng thái cho nội dung đánh giá
-  const [showReviewInput, setShowReviewInput] = useState(false); // Trạng thái cho việc hiển thị ô nhập đánh giá
-  const [userId, setUserId] = useState(null); // Trạng thái cho userId
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [showReviewInput, setShowReviewInput] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   const saveReview = async () => {
     try {
@@ -221,7 +214,7 @@ function WriteReview(bookId, fetchBookData) {
       const data = await response.json();
       if (data.success) {
         alert("Review submitted successfully!");
-        window.location.reload(); // Tải lại trang
+        window.location.reload();
       } else {
         alert("Failed to submit review.");
       }
@@ -233,13 +226,10 @@ function WriteReview(bookId, fetchBookData) {
   if (!showReviewInput) {
     return (
       <div>
-        {/* Ratings & Reviews Section */}
         <h2 className="text-2xl font-semibold text-gray-900">
           Ratings & Reviews
         </h2>
         <div className="mt-6 flex flex-col items-center">
-          {/* Icon và tiêu đề */}
-
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
               <svg
@@ -262,7 +252,6 @@ function WriteReview(bookId, fetchBookData) {
             </h3>
           </div>
 
-          {/* Stars for rating */}
           <div className="flex flex-row space-x-6 mt-2 items-center">
             <div className="flex flex-col items-center">
               <div className="mt-4 flex justify-center space-x-1">
@@ -283,7 +272,7 @@ function WriteReview(bookId, fetchBookData) {
                         alert(
                           "You need to log in to rate and review this book."
                         );
-                        window.location.href = "/login"; // Chuyển hướng đến trang đăng nhập
+                        window.location.href = "/login";
                         return;
                       }
 
@@ -294,13 +283,13 @@ function WriteReview(bookId, fetchBookData) {
                       } catch (error) {
                         console.error("Invalid token:", error);
                         alert("Your session has expired. Please log in again.");
-                        window.location.href = "/login"; // Chuyển hướng đến trang đăng nhập
+                        window.location.href = "/login";
                         return;
                       }
 
-                      setSelectedRating(index + 1); // Lưu số sao được chọn
-                      setShowReviewInput(true); // Hiển thị ô nhập review
-                    }} // Lưu số sao được chọn
+                      setSelectedRating(index + 1);
+                      setShowReviewInput(true);
+                    }}
                   >
                     <path
                       strokeLinecap="round"
@@ -321,7 +310,6 @@ function WriteReview(bookId, fetchBookData) {
   } else {
     return (
       <div>
-        {/* Ratings & Reviews Section */}
         <h2 className="text-2xl font-semibold text-gray-900">
           Ratings & Reviews
         </h2>
@@ -362,10 +350,10 @@ function WriteReview(bookId, fetchBookData) {
                   return;
                 }
 
-                setShowReviewInput(false); // Ẩn ô nhập review sau khi gửi
-                setSelectedRating(0); // Reset sao đã chọn
-                setReviewText(""); // Reset nội dung review
-                saveReview(); // Gọi hàm lưu review
+                setShowReviewInput(false);
+                setSelectedRating(0);
+                setReviewText("");
+                saveReview();
               }}
               className="mt-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition cursor-pointer"
             >
@@ -405,23 +393,23 @@ function AuthorDetail({ authorName, authorBio, authorImage }) {
 export default function BookDetail({ params }) {
   const { id } = use(params);
   const [book, setBook] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // Thêm trạng thái loading
+  const [isLoading, setIsLoading] = useState(true);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
-  const [showBorrowModal, setShowBorrowModal] = useState(false); // Trạng thái cho modal mượn sách
-  const [borrowQuantity, setBorrowQuantity] = useState(1); // Số lượng sách muốn mượn
-  const [returnDate, setReturnDate] = useState(""); // Ngày trả sách
-  const [userId, setUserId] = useState(null); // Trạng thái cho userId
+  const [showBorrowModal, setShowBorrowModal] = useState(false);
+  const [borrowQuantity, setBorrowQuantity] = useState(1);
+  const [returnDate, setReturnDate] = useState("");
+  const [userId, setUserId] = useState(null);
 
   const fetchBookData = async (id) => {
     try {
-      setIsLoading(true); // Bắt đầu tải dữ liệu
+      setIsLoading(true);
       const response = await fetch(`http://localhost:3000/api/books/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch book data");
       }
       const body = await response.json();
-      const book = body.data; // Giả sử bạn đã sửa API để trả về dữ liệu đúng định dạng
+      const book = body.data;
       if (book.reviews) {
         const average =
           book.reviews.reduce((sum, review) => sum + review.rating, 0) /
@@ -438,24 +426,24 @@ export default function BookDetail({ params }) {
       console.error("Error fetching book data:", error);
       setBook(null);
     } finally {
-      setIsLoading(false); // Kết thúc tải dữ liệu
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchBookData(id);
-  }, [id]); // Gọi hàm fetchBookData khi component được mount hoặc id thay đổi
+  }, [id]);
 
   const handleBorrowClick = (bookId) => {
     const token = localStorage.getItem("authToken");
     if (!token) {
       alert("You need to log in to borrow this book.");
-      window.location.href = "/login"; // Chuyển hướng đến trang đăng nhập
+      window.location.href = "/login";
       return;
     }
     const decodedToken = jwtDecode(token); // Giải mã token
     const userId = decodedToken.userId; // Lấy userId từ token
-    setUserId(userId); // Lưu userId vào state (nếu cần dùng sau này)
+    setUserId(userId);
     setShowBorrowModal(true);
   };
 
@@ -494,7 +482,7 @@ export default function BookDetail({ params }) {
             />
             <button
               className="ml-auto mr-auto mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition items-center justify-center flex cursor-pointer"
-              onClick={() => handleBorrowClick(book._id)} // Gọi hàm khi nhấn nút mượn sách
+              onClick={() => handleBorrowClick(book._id)}
             >
               Borrow Now
             </button>
@@ -504,13 +492,13 @@ export default function BookDetail({ params }) {
                   <svg
                     key={index}
                     xmlns="http://www.w3.org/2000/svg"
-                    fill={index < hoveredRating ? "#fbbf24" : "none"} // Tô màu vàng cho các sao được hover
-                    stroke={index < hoveredRating ? "#fbbf24" : "gray"} // Đổi màu viền
+                    fill={index < hoveredRating ? "#fbbf24" : "none"}
+                    stroke={index < hoveredRating ? "#fbbf24" : "gray"}
                     strokeWidth="2"
                     className="w-8 h-8 cursor-pointer transition"
                     viewBox="0 0 24 24"
-                    onMouseEnter={() => setHoveredRating(index + 1)} // Cập nhật số sao khi hover
-                    onMouseLeave={() => setHoveredRating(0)} // Reset khi không hover
+                    onMouseEnter={() => setHoveredRating(index + 1)}
+                    onMouseLeave={() => setHoveredRating(0)}
                   >
                     <path
                       strokeLinecap="round"
@@ -524,14 +512,12 @@ export default function BookDetail({ params }) {
             </div>
           </div>
 
-          {/* Book Details */}
           <div className="flex-1 ">
             <h1 className="text-4xl font-bold text-gray-900">{book.title}</h1>
             <p className="text-lg text-gray-600 mt-2">
               By <span className="font-medium">{book.authorName}</span>
             </p>
             <div className="flex items-center mt-4 space-x-2">
-              {/* Hiển thị các ngôi sao */}
               <div className="flex items-center">
                 {Array.from({ length: 5 }, (_, index) => {
                   const starValue = index + 1;
@@ -566,7 +552,6 @@ export default function BookDetail({ params }) {
                       className="w-8 h-8"
                       viewBox="0 0 24 24"
                     >
-                      {/* Gradient cho sao 3/4 */}
                       {isThreeQuarterStar && (
                         <defs>
                           <linearGradient id="threeQuarterGradient">
@@ -576,7 +561,6 @@ export default function BookDetail({ params }) {
                         </defs>
                       )}
 
-                      {/* Gradient cho sao 1/2 */}
                       {isHalfStar && (
                         <defs>
                           <linearGradient id="halfGradient">
@@ -586,7 +570,6 @@ export default function BookDetail({ params }) {
                         </defs>
                       )}
 
-                      {/* Gradient cho sao 1/4 */}
                       {isQuarterStar && (
                         <defs>
                           <linearGradient id="quarterGradient">
@@ -606,7 +589,6 @@ export default function BookDetail({ params }) {
                 })}
               </div>
 
-              {/* Hiển thị điểm trung bình và số lượng đánh giá */}
               <span className="text-yellow-500 text-xl font-bold">
                 {averageRating}
               </span>
@@ -617,7 +599,6 @@ export default function BookDetail({ params }) {
             <p className="mt-6 text-gray-700 whitespace-pre-line">
               {book.description}
             </p>
-            {/* Genres */}
             <div className="mt-8 flex flex-wrap gap-2">
               <span className="text-gray-900 font-semibold">Genres:</span>
               {book.genres.split(",").map((genre, index) => (
@@ -630,7 +611,6 @@ export default function BookDetail({ params }) {
               ))}
             </div>
             <hr className="my-6" />
-            {/* Author */}
             <div>
               <AuthorDetail
                 authorName={book.authorName}
@@ -639,16 +619,13 @@ export default function BookDetail({ params }) {
               />
             </div>
             <hr className="my-6" />
-            {/* Reviews and Ratings */}
             <WriteReview bookId={book._id} fetchBookData={fetchBookData} />
             <hr className="my-6" />
-            {/* Community Reviews */}
             <div>
               <Review reviews={book.reviews || []} book={book} />
             </div>
           </div>
         </div>
-        {/* Reviews Section */}
         {showBorrowModal && (
           <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -673,7 +650,6 @@ export default function BookDetail({ params }) {
                 onSubmit={async (e) => {
                   e.preventDefault();
 
-                  // Kiểm tra ràng buộc cho returnDate
                   const today = new Date();
                   const selectedDate = new Date(returnDate);
                   if (selectedDate <= today) {
@@ -681,7 +657,7 @@ export default function BookDetail({ params }) {
                     return;
                   }
                   const maxReturnDate = new Date(today);
-                  maxReturnDate.setDate(maxReturnDate.getDate() + 30); // Ngày tối đa là 30 ngày sau
+                  maxReturnDate.setDate(maxReturnDate.getDate() + 30);
                   if (selectedDate > maxReturnDate) {
                     alert("Return date must be within 30 days from today.");
                     return;
@@ -696,7 +672,7 @@ export default function BookDetail({ params }) {
                       headers: {
                         Authorization: `Bearer ${localStorage.getItem(
                           "authToken"
-                        )}`, // Gửi token trong header
+                        )}`,
                       },
                       body: JSON.stringify({
                         bookId: book._id,
@@ -709,7 +685,7 @@ export default function BookDetail({ params }) {
                     if (response.ok) {
                       alert("Book borrowed successfully!");
                       setShowBorrowModal(false);
-                      fetchBookData(book._id); // Tải lại dữ liệu sách
+                      fetchBookData(book._id);
                     } else {
                       const data = await response.json();
                       if (data.error === "User has overdue borrows") {
@@ -750,11 +726,11 @@ export default function BookDetail({ params }) {
                   </button>
                   <button
                     type="submit"
-                    disabled={book.availableQuantity === 0} // Vô hiệu hóa nếu số lượng sách bằng 0
+                    disabled={book.availableQuantity === 0}
                     className={`px-4 py-2 rounded-md ${
                       book.availableQuantity === 0
-                        ? "bg-gray-300 text-gray-700 cursor-not-allowed" // Màu sắc khi bị vô hiệu hóa
-                        : "bg-orange-500 text-white hover:bg-orange-600 cursor-pointer" // Màu sắc khi có thể nhấn
+                        ? "bg-gray-300 text-gray-700 cursor-not-allowed"
+                        : "bg-orange-500 text-white hover:bg-orange-600 cursor-pointer"
                     }`}
                   >
                     Confirm Borrow

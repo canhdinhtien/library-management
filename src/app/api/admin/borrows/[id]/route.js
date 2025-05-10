@@ -3,10 +3,14 @@ import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/dbConnect.js"; // Đường dẫn đến tệp kết nối cơ sở dữ liệu của bạn
 export async function PUT(req, { params }) {
   try {
+    // Lấy ID từ params
     const { id } = await params;
+    // Lấy dữ liệu cập nhật từ request body
     const updateData = await req.json();
+    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const borrowsCollection = db.collection("borrows");
+    // Tìm bản ghi mượn sách
     const borrowRecord = await borrowsCollection.findOne({
       _id: new ObjectId(id),
     });
@@ -26,6 +30,7 @@ export async function PUT(req, { params }) {
       updateData.borrowDate = new Date(updateData.borrowDate);
     }
 
+    // Cập nhật số lượng sách nếu trạng thái là "Returned"
     if (
       updateData.status === "Returned" &&
       borrowRecord.status !== "Returned"
@@ -47,10 +52,12 @@ export async function PUT(req, { params }) {
       { $set: updateData }
     );
 
+    // Kiểm tra xem có cập nhật được không
     if (updateResult.modifiedCount === 0) {
       throw new Error("Failed to update borrow record");
     }
 
+    // Trả về kết quả thành công
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error updating borrow record:", error);
@@ -63,13 +70,17 @@ export async function PUT(req, { params }) {
 
 export async function DELETE(req, { params }) {
   try {
+    // Lấy ID từ params
     const { id } = await params;
+    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const borrowsCollection = db.collection("borrows");
+    // Tìm bản ghi mượn sách
     const borrowRecord = await borrowsCollection.findOne({
       _id: new ObjectId(id),
     });
 
+    // Kiểm tra xem có bản ghi mượn sách không
     if (!borrowRecord) {
       throw new Error("Borrow record not found");
     }
@@ -91,10 +102,12 @@ export async function DELETE(req, { params }) {
       _id: new ObjectId(id),
     });
 
+    // Kiểm tra xem có xóa được không
     if (deleteResult.deletedCount === 0) {
       throw new Error("Failed to delete borrow record");
     }
 
+    // Trả về kết quả thành công
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error deleting borrow record:", error);

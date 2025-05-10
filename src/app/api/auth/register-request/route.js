@@ -4,13 +4,16 @@ import { validateRegistrationData } from "@/utils/validation";
 import { generateOtp, storeOtpData, getOtpData } from "@/lib/otpStore";
 import { connectToDatabase } from "@/lib/dbConnect";
 
+// Hàm kiểm tra xem người dùng đã tồn tại chưa
 async function checkUserExists(email, username) {
   console.log(
     `[DB Check] Checking if email '${email}' or username '${username}' exists...`
   );
   try {
+    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const accountsCollection = db.collection("accounts");
+    // Tìm người dùng theo email hoặc username
     const existingUser = await accountsCollection.findOne(
       { $or: [{ email: email }, { username: username }] },
       { projection: { _id: 1, email: 1, username: 1 } }
@@ -30,9 +33,11 @@ async function checkUserExists(email, username) {
     throw new Error("Database error during user check.");
   }
 }
+
 export async function POST(req) {
   let formData;
   try {
+    // Lấy dữ liệu từ request body
     formData = await req.json();
   } catch (error) {
     console.error("Failed to parse request body:", error);
@@ -44,6 +49,7 @@ export async function POST(req) {
 
   const { email, username, password /*, ... */ } = formData;
 
+  // Kiểm tra dữ liệu đăng ký
   const validationErrors = validateRegistrationData(formData);
   if (Object.keys(validationErrors).length > 0) {
     return new Response(
@@ -57,6 +63,7 @@ export async function POST(req) {
   }
 
   try {
+    // Kiểm tra xem OTP còn hiệu lực không
     const pendingData = await getOtpData(email);
     if (pendingData) {
       console.warn(
@@ -72,6 +79,7 @@ export async function POST(req) {
       );
     }
 
+    // Kiểm tra xem người dùng đã tồn tại chưa
     const existingUser = await checkUserExists(email, username);
     if (existingUser) {
       const errors = {};
@@ -92,8 +100,10 @@ export async function POST(req) {
       );
     }
 
+    // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Tạo OTP
     const otp = generateOtp();
     if (typeof otp === "undefined" || otp.length !== 6) {
       throw new Error("Failed to generate a valid OTP.");
@@ -104,6 +114,7 @@ export async function POST(req) {
     delete temporaryData.verifyPassword;
     temporaryData.hashedPassword = hashedPassword;
 
+    // Lưu dữ liệu tạm thời
     const storedSuccessfully = await storeOtpData(email, otp, temporaryData);
     if (!storedSuccessfully) {
       throw new Error("Failed to save temporary registration data.");
@@ -114,6 +125,7 @@ export async function POST(req) {
       otp,
       typeof otp
     );
+    // Gửi email OTP
     await sendOtpEmail(email, otp);
 
     console.log(

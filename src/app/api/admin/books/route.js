@@ -2,8 +2,11 @@ import { connectToDatabase } from "@/lib/dbConnect.js";
 
 export async function GET() {
   try {
+    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
-    if (!db) throw new Error("Database connection failed");
+    if (!db) {
+      throw new Error("Database connection failed");
+    }
 
     // Lấy danh sách sách từ cơ sở dữ liệu
     const books = await db.collection("books").find().toArray();
@@ -16,7 +19,6 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching books:", error);
 
-    // Trả về lỗi nếu có
     return new Response(JSON.stringify({ error: "Failed to fetch books" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

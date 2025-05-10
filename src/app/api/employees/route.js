@@ -60,6 +60,7 @@ export async function POST(req) {
       throw new Error("Failed to create employee");
     }
 
+    // Trả về dữ liệu nhân viên mới
     return new Response(JSON.stringify(newEmployee), { status: 201 });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -70,12 +71,14 @@ export async function POST(req) {
 
 export async function GET() {
   try {
+    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
 
     // Lấy danh sách members
     const employees = await db.collection("employees").find().toArray();
     const accounts = await db.collection("accounts").find().toArray();
 
+    // Xử lý dữ liệu
     const employeesData = employees.map((employee) => {
       // Tìm tài khoản tương ứng với nhân viên
       const account = accounts.find(

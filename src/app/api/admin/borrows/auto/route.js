@@ -2,10 +2,11 @@ import { connectToDatabase } from "@/lib/dbConnect.js";
 
 export async function POST() {
   try {
+    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     if (!db) throw new Error("Database connection failed");
 
-    const finePerDay = 10000; // Ví dụ: 10000 VND/ngày
+    const finePerDay = 10000;
     const currentDate = new Date();
 
     // Tìm các bản ghi mượn sách đã quá hạn
@@ -58,6 +59,7 @@ export async function POST() {
         );
       }
     }
+    // Cập nhật trạng thái và tính tiền phạt cho các bản ghi mượn sách đã quá hạn
     const updates = overdueBorrows.map(async (borrow) => {
       const expectedReturnDate = new Date(borrow.expectedReturnDate);
       expectedReturnDate.setDate(expectedReturnDate.getDate() + 1);

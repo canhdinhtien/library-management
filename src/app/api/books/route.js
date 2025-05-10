@@ -2,62 +2,26 @@ import { connectToDatabase } from "../../../lib/dbConnect";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
-// // Secret key để mã hóa và giải mã token (nên lưu trữ trong môi trường biến)
-// const JWT_SECRET = process.env.JWT_SECRET;
-
-// // Hàm xác thực JWT
-// const verifyToken = (token) => {
-//   try {
-//     return jwt.verify(token, JWT_SECRET);  // Giải mã token
-//   } catch (error) {
-//     return null;  // Nếu không giải mã được, trả về null
-//   }
-// };
-
 // Hàm tạo ID sách mới (Dùng ObjectId của mongoose)
 const generateBookId = () => {
-  return new mongoose.Types.ObjectId(); // Tạo ObjectId cho sách mới
+  return new mongoose.Types.ObjectId();
 };
 
 export async function GET(request) {
   try {
-    // // Lấy token từ header Authorization
-    // const authHeader = request.headers.get("Authorization");
-    // if (!authHeader) {
-    //   return new Response(
-    //     JSON.stringify({ message: 'Authorization header is required' }),
-    //     { headers: { "Content-Type": "application/json" }, status: 401 }
-    //   );
-    // }
-
-    // const token = authHeader.split(" ")[1]; // Lấy token sau từ "Bearer <token>"
-    // if (!token) {
-    //   return new Response(
-    //     JSON.stringify({ message: 'Token is required' }),
-    //     { headers: { "Content-Type": "application/json" }, status: 401 }
-    //   );
-    // }
-
-    // // Xác thực token
-    // const user = verifyToken(token);
-    // if (!user) {
-    //   return new Response(
-    //     JSON.stringify({ message: 'Invalid or expired token' }),
-    //     { headers: { "Content-Type": "application/json" }, status: 401 }
-    //   );
-    // }
-
     const { searchParams } = new URL(request.url);
     const genre = searchParams.get("genre");
     const authorName = searchParams.get("author");
     const title = searchParams.get("title");
     const featured = searchParams.get("featured") === "true";
 
+    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
     if (!db) throw new Error("Database connection failed");
 
     let pipeline = [];
 
+    // Xây dựng pipeline cho các sách nổi bật
     if (featured) {
       pipeline = [
         { $sort: { rating: -1 } },
@@ -85,6 +49,7 @@ export async function GET(request) {
         },
       ];
     } else {
+      // Xây dựng query cho các sách khác
       const query = {};
 
       if (title && title.trim() !== "") {
@@ -92,10 +57,12 @@ export async function GET(request) {
       }
 
       if (authorName && authorName.trim() !== "") {
+        // Tìm tác giả theo tên
         const authorMatch = await db.collection("authors").findOne({
           name: { $regex: authorName, $options: "i" },
         });
 
+        // Nếu không tìm thấy tác giả, trả về mảng rỗng
         if (!authorMatch) {
           return new Response(JSON.stringify([]), {
             headers: { "content-type": "application/json" },
@@ -117,7 +84,7 @@ export async function GET(request) {
       }
 
       if (genre && genre.trim() !== "") {
-        query.category = { $regex: genre, $options: "i" };
+        query.genres = { $regex: genre, $options: "i" };
       }
 
       pipeline = [
@@ -147,10 +114,15 @@ export async function GET(request) {
       ];
     }
 
+    // Lấy danh sách sách từ cơ sở dữ liệu
     const books = await db.collection("books").aggregate(pipeline).toArray();
 
+    // Trả về danh sách sách
     return new Response(JSON.stringify(books), {
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "Cache-Control": "public, max-age=3600",
+      },
       status: 200,
     });
   } catch (error) {
@@ -223,7 +195,7 @@ export async function POST(request) {
 
     // Tạo sách mới
     const newBook = {
-      _id: new mongoose.Types.ObjectId(), // Tạo ObjectId cho sách
+      _id: new mongoose.Types.ObjectId(),
       bookCode,
       title,
       price,
@@ -243,6 +215,7 @@ export async function POST(request) {
     // Chèn sách vào collection "books"
     await db.collection("books").insertOne(newBook);
 
+    // Trả về thông báo thành công
     return new Response(
       JSON.stringify({ message: "Book created successfully", book: newBook }),
       { status: 201 }

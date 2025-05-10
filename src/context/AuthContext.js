@@ -12,6 +12,8 @@ export const AuthProvider = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
+    {
+      /*
     console.log("AuthProvider useEffect: Checking initial token...");
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -39,7 +41,39 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
     console.log("AuthProvider useEffect: Initial loading finished.");
   }, []);
+  */
+    }
+    // Kiểm tra token ban đầu khi component được mount
+    console.log("AuthProvider useEffect: Checking initial token...");
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
 
+        // Kiểm tra xem token đã hết hạn chưa
+        if (decoded.exp && decoded.exp > currentTime) {
+          console.log(
+            "AuthProvider useEffect: Token valid, setting user:",
+            decoded
+          );
+          setUser(decoded);
+        } else {
+          console.log("AuthProvider useEffect: Token expired, removing.");
+          localStorage.removeItem("authToken");
+        }
+      } catch (error) {
+        console.error("AuthProvider useEffect: Invalid token found:", error);
+        localStorage.removeItem("authToken");
+      }
+    } else {
+      console.log("AuthProvider useEffect: No token found initially.");
+    }
+    setLoading(false);
+    console.log("AuthProvider useEffect: Initial loading finished.");
+  }, []);
+
+  // Hàm login để lưu token và thiết lập user
   const login = (userInfo, accessToken) => {
     console.log("AuthContext login: Saving token and setting user:", userInfo);
 
@@ -63,6 +97,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Hàm logout để xóa token và thiết lập user thành null
   const logout = () => {
     console.log("AuthContext logout: Removing token and clearing user state.");
     localStorage.removeItem("authToken");
@@ -71,10 +106,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const authValue = {
-    user,
-    loading,
-    login,
-    logout,
+    user, // Thông tin người dùng
+    loading, // Trạng thái loading
+    login, // Hàm login
+    logout, // Hàm logout
   };
 
   return (

@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { connectToDatabase } from "@/lib/dbConnect.js"; // Đường dẫn đến tệp kết nối cơ sở dữ liệu của bạn
+import { connectToDatabase } from "@/lib/dbConnect.js";
 export async function PUT(req, { params }) {
   try {
+    // Lấy ID từ params
     const { id } = await params;
+    // Lấy dữ liệu cập nhật từ request body
     const updateData = await req.json();
+    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const membersCollection = db.collection("members");
 
@@ -14,10 +17,12 @@ export async function PUT(req, { params }) {
       { $set: updateData }
     );
 
+    // Kiểm tra xem có cập nhật được không
     if (updateResult.modifiedCount === 0) {
       throw new Error("Failed to update member");
     }
 
+    // Trả về kết quả thành công
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
@@ -29,11 +34,14 @@ export async function PUT(req, { params }) {
 
 export async function DELETE(req, { params }) {
   try {
+    // Lấy ID từ params
     const { id } = params;
+    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
 
     const membersCollection = db.collection("members");
     const accountsCollection = db.collection("accounts");
+    // Tìm thành viên để xóa
     const memberToDelete = await membersCollection.findOne({
       _id: new ObjectId(id),
     });
@@ -41,7 +49,7 @@ export async function DELETE(req, { params }) {
       throw new Error("Member not found");
     }
     const accountId = memberToDelete.accountId;
-    console.log("Account ID to delete:", accountId); // Log ID tài khoản để xóa
+    console.log("Account ID to delete:", accountId);
 
     // Xóa người dùng
     const memberResult = await membersCollection.deleteOne({
@@ -60,6 +68,7 @@ export async function DELETE(req, { params }) {
     }
     console.log("Account deleted:", accountResult);
 
+    // Trả về kết quả thành công
     return new Response(
       JSON.stringify({ message: "Member deleted successfully." }),
       {
