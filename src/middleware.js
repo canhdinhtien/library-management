@@ -83,7 +83,14 @@ export async function middleware(request) {
 
     let message = "Invalid token.";
     if (error.code === "ERR_JWT_EXPIRED") {
-      message = "Token has expired.";
+      return new NextResponse(
+        JSON.stringify({
+          success: false,
+          message: "Access token has expired.",
+          code: "ACCESS_TOKEN_EXPIRED",
+        }),
+        { status: 401, headers: { "content-type": "application/json" } }
+      );
     } else if (
       error.code === "ERR_JWS_INVALID" ||
       error.code === "ERR_JWS_SIGNATURE_VERIFICATION_FAILED"
@@ -98,7 +105,6 @@ export async function middleware(request) {
   }
 }
 
-// Cấu hình để chỉ chạy middleware cho các API routes
 export const config = {
   matcher: ["/api/:path*"], // Chạy middleware cho tất cả các API
 };

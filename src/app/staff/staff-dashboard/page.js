@@ -10,6 +10,7 @@ import DashboardStats from "../../../components/Dashboard/DashboardStats";
 import DashboardControls from "../../../components/Dashboard/DashboardControls";
 import BooksManagementSection from "../../../components/Dashboard/BooksManagementSection";
 import UsersManagementSection from "../../../components/Dashboard/UsersManagementSection";
+// import { logout } from "@/lib/auth";
 
 export default function StaffDashboard() {
   const router = useRouter();
