@@ -92,21 +92,59 @@ export default function BooksManagementSection({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {/* {books.map((book) => (
 
-                            ))} */}
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {books.length > 0 ? (
+                    books.map((book) => (
+                      <tr key={book._id}>
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {book.title}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {book.author}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
+                          {book.rating}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
+                          {book.genres}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {book.status}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                          {book.borrower || "N/A"}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => onEditBook(book._id)}
+                            className="text-[#FF9800] hover:text-[#FF9800]/80"
+                          >
+                            <Edit className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => onDeleteBook(book._id)}
+                            className="text-red-500 hover:text-red-500/80 ml-3"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="text-center py-10 text-gray-500"
+                      >
+                        No books found.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
-
-        <div className="sm:hidden mt-5 px-5 pb-5 space-y-4">
-          <h4 className="text-base font-medium text-gray-500">Mobile View</h4>
-          {/* {books.map((book) => (
-
-                    ))} */}
         </div>
       </div>
     </div>

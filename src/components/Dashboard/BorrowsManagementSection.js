@@ -3,25 +3,28 @@
 import { Search, Filter, ChevronDown, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-export default function StaffManagementSection({
-  staffs = [],
-  onEditStaff,
-  onDeleteStaff,
+export default function BorrowsManagementSection({
+  borrows = [],
+  onEditBorrow,
+  onDeleteBorrow,
 }) {
+  // Lọc và tìm kiếm người dùng
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
   // Lọc và tìm kiếm người dùng
-  const filteredStaffs = Array.isArray(staffs)
-    ? staffs.filter((staff) => {
-        const matchesSearch = (staff.name?.toLowerCase() || "").includes(
+  const filteredBorrows = Array.isArray(borrows)
+    ? borrows.filter((borrow) => {
+        const matchesSearch = (borrow.userName?.toLowerCase() || "").includes(
           searchTerm.toLowerCase()
         );
         const matchesFilter =
-          filterStatus === "All" || staff.status === filterStatus;
+          filterStatus === "All" ||
+          borrow.status.toLowerCase() === filterStatus.toLowerCase();
         return matchesSearch && matchesFilter;
       })
     : [];
+
   return (
     <div className="space-y-5">
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
@@ -29,13 +32,12 @@ export default function StaffManagementSection({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div>
               <h3 className="text-xl font-medium text-gray-500">
-                Staff Management
-              </h3>{" "}
+                Borrows Management
+              </h3>
               <p className="text-base text-gray-500 mt-1">
-                Manage staff accounts and roles
-              </p>{" "}
+                Manage your library&apos;s borrow records
+              </p>
             </div>
-
             <div className="flex flex-col sm:flex-row gap-3 mt-3 sm:mt-0">
               <div className="relative">
                 <input
@@ -47,27 +49,19 @@ export default function StaffManagementSection({
                 />
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
-              <div className="relative">
-                <button
-                  className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-md text-base w-full justify-center sm:w-auto text-gray-400"
-                  onClick={() => {
-                    const nextStatus =
-                      filterStatus === "All"
-                        ? "Active"
-                        : filterStatus === "Active"
-                        ? "Inactive"
-                        : "All";
-                    setFilterStatus(nextStatus);
-                  }}
+              <div className="relative flex items-center flex-row gap-2">
+                <Filter className="h-5 w-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="flex items-center pl-10 pr-2 py-3 border border-gray-300 rounded-md text-base w-full sm:w-auto text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF9800] focus:border-transparent cursor-pointer"
                 >
-                  <Filter className="h-5 w-5" />
-                  {filterStatus === "All"
-                    ? "All Users"
-                    : filterStatus === "Active"
-                    ? "Active Users"
-                    : "Inactive Users"}
-                  <ChevronDown className="h-5 w-5" />
-                </button>
+                  <option value="All">All Borrows</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Borrowed">Borrowed</option>
+                  <option value="Overdue">Overdue</option>
+                  <option value="Returned">Returned</option>
+                </select>
               </div>
             </div>
           </div>
@@ -83,31 +77,37 @@ export default function StaffManagementSection({
                       scope="col"
                       className="px-5 py-4 text-left text-sm font-medium text-gray-900 uppercase tracking-wider"
                     >
-                      Name
+                      User
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-5 py-4 text-left text-sm font-medium text-gray-900 uppercase tracking-wider"
+                    >
+                      Book
                     </th>
                     <th
                       scope="col"
                       className="px-5 py-4 text-left text-sm font-medium text-gray-900 uppercase tracking-wider hidden sm:table-cell"
                     >
-                      Email
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-5 py-4 text-left text-sm font-medium text-gray-900 uppercase tracking-wider"
-                    >
-                      Phone Number
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-5 py-4 text-left text-sm font-medium text-gray-900 uppercase tracking-wider"
-                    >
-                      Status
+                      Borrow Date
                     </th>
                     <th
                       scope="col"
                       className="px-5 py-4 text-left text-sm font-medium text-gray-900 uppercase tracking-wider hidden md:table-cell"
                     >
-                      Join Date
+                      Expected Return Date
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-5 py-4 text-center text-sm font-medium text-gray-900 uppercase tracking-wider"
+                    >
+                      Status
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-5 py-4 text-left text-sm font-medium text-gray-900 uppercase tracking-wider hidden lg:table-cell"
+                    >
+                      Return Date
                     </th>
                     <th
                       scope="col"
@@ -119,44 +119,57 @@ export default function StaffManagementSection({
                 </thead>
 
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredStaffs.length > 0 ? (
-                    filteredStaffs.map((staff) => (
-                      <tr key={staff.id || staff._id}>
-                        <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {staff.name}
+                  {filteredBorrows.length > 0 ? (
+                    filteredBorrows.map((borrow) => (
+                      <tr key={borrow._id}>
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-900 ">
+                          {borrow.userName}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500 ">
+                          {borrow.bookTitle}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
-                          {staff.email}
+                          {new Date(borrow.borrowDate).toLocaleDateString()}
                         </td>
-                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {staff.phone}
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+                          {new Date(
+                            borrow.expectedReturnDate
+                          ).toLocaleDateString()}
                         </td>
-                        <td className="px-5 py-4 whitespace-nowrap text-sm">
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-center">
                           <span
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              staff.isVerified
+                              borrow.status === "Pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : borrow.status === "Borrowed"
+                                ? "bg-blue-100 text-blue-800"
+                                : borrow.status === "Overdue"
+                                ? "bg-red-100 text-red-800"
+                                : borrow.status === "Returned"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {staff.isVerified ? "Active" : "Inactive"}
+                            {borrow.status}
                           </span>
                         </td>
-                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
-                          {new Date(staff.joinDate).toLocaleDateString()}
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
+                          {borrow.returnDate
+                            ? new Date(borrow.returnDate).toLocaleDateString()
+                            : "Not Returned"}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button
-                            onClick={() => onEditStaff(staff.id)}
-                            className="text-[#FF9800] hover:text-[#F57C00] mr-4"
+                            onClick={() => onEditBorrow(borrow._id)}
+                            className="text-[#FF9800] hover:text-[#FF9800]/80"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => onDeleteStaff(staff.id)}
-                            className="text-red-600 hover:text-red-800 mr-2"
+                            onClick={() => onDeleteBorrow(borrow._id)}
+                            className="text-red-500 hover:text-red-500/80 ml-3"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </button>
                         </td>
                       </tr>
@@ -167,7 +180,7 @@ export default function StaffManagementSection({
                         colSpan="6"
                         className="text-center py-10 text-gray-500"
                       >
-                        No staff accounts found.
+                        No borrows records found.
                       </td>
                     </tr>
                   )}

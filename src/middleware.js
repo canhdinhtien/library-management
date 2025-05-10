@@ -8,6 +8,8 @@ const publicRoutes = [
   "/api/books",
   "/api/genres",
   "/api/authors",
+  "/api/notifications",
+  "/api/borrows/auto",
 ];
 
 // Kiểm tra xem route có phải là route công khai không
@@ -57,12 +59,7 @@ export async function middleware(request) {
     const secretKey = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jwtVerify(token, secretKey);
 
-    console.log(
-      "[Middleware] Token verified successfully for:",
-      path,
-      "Payload:",
-      payload
-    );
+    console.log("[Middleware] Token verified successfully for:", path);
 
     // Gắn thông tin user vào request headers để chuyển tiếp cho các handler tiếp theo
     const requestHeaders = new Headers(request.headers);
