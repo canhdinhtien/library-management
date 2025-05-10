@@ -12,14 +12,16 @@ export default function UsersManagementSection({
   const [filterStatus, setFilterStatus] = useState("All");
 
   // Lọc và tìm kiếm người dùng
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch = (user.name?.toLowerCase() || "").includes(
-      searchTerm.toLowerCase()
-    );
-    const matchesFilter =
-      filterStatus === "All" || user.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredUsers = Array.isArray(users)
+    ? users.filter((user) => {
+        const matchesSearch = (user.name?.toLowerCase() || "").includes(
+          searchTerm.toLowerCase()
+        );
+        const matchesFilter =
+          filterStatus === "All" || user.status === filterStatus;
+        return matchesSearch && matchesFilter;
+      })
+    : [];
 
   return (
     <div className="space-y-5">

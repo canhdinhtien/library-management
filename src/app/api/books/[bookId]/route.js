@@ -124,6 +124,7 @@ export async function GET(request, { params }) {
           authorImage: "$authorInfo.image", // Lấy hình ảnh tác giả từ "authorInfo"
           publisher: "$publisherInfo.name", // Lấy tên nhà xuất bản từ "publisherInfo"
           publishedDate: 1,
+          availableQuantity: 1,
           genres: 1,
         },
       },

@@ -12,14 +12,16 @@ export default function StaffManagementSection({
   const [filterStatus, setFilterStatus] = useState("All");
 
   // Lọc và tìm kiếm người dùng
-  const filteredStaffs = staffs.filter((staff) => {
-    const matchesSearch = (staff.name?.toLowerCase() || "").includes(
-      searchTerm.toLowerCase()
-    );
-    const matchesFilter =
-      filterStatus === "All" || staff.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredStaffs = Array.isArray(staffs)
+    ? staffs.filter((staff) => {
+        const matchesSearch = (staff.name?.toLowerCase() || "").includes(
+          searchTerm.toLowerCase()
+        );
+        const matchesFilter =
+          filterStatus === "All" || staff.status === filterStatus;
+        return matchesSearch && matchesFilter;
+      })
+    : [];
   return (
     <div className="space-y-5">
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">

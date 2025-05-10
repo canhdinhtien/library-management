@@ -74,20 +74,30 @@ export async function GET() {
 
     // Lấy danh sách members
     const employees = await db.collection("employees").find().toArray();
+    const accounts = await db.collection("accounts").find().toArray();
 
     const employeesData = employees.map((employee) => {
+      // Tìm tài khoản tương ứng với nhân viên
+      const account = accounts.find(
+        (acc) => acc._id.toString() === employee.accountId.toString()
+      );
+      if (!account) {
+        console.error("Account not found for employee:", employee._id);
+        return null; // Hoặc xử lý theo cách khác nếu không tìm thấy tài khoản
+      }
       return {
         id: employee._id,
         firstName: employee.firstName,
         middleName: employee.middleName,
         lastName: employee.lastName,
-        email: employee.email,
+        email: account.email,
         phone: employee.phone,
-        role: employee.role,
+        role: account.role,
         joinDate: employee.createdAt,
         status: employee.status || "Active",
         isVerified: employee.isVerified || true,
         birthDate: new Date(employee.birthDate),
+        address: employee.address || "",
       };
     });
 

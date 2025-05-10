@@ -12,7 +12,53 @@ import {
   AlertCircle,
   User,
   Loader2,
+  Info,
 } from "lucide-react";
+
+function PendingBookItem({ book }) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-yellow-200 ">
+      <div className="flex flex-col sm:flex-row">
+        <div className="w-full sm:w-1/4 md:w-1/5 p-4 flex items-center justify-center bg-yellow-50">
+          <div className="relative w-32 h-48 sm:w-full sm:h-56 max-w-[128px] sm:max-w-full">
+            <Image
+              src={book.coverImage || "/placeholder.svg?height=300&width=200"}
+              alt={book.title}
+              fill
+              className="object-cover rounded-md shadow-sm"
+              sizes="(max-width: 640px) 128px, 200px"
+            />
+          </div>
+        </div>
+        <div className="w-full sm:w-3/4 md:w-4/5 p-4 sm:p-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start">
+            <div className="w-full md:w-auto">
+              <div className="flex items-center mb-1 flex-wrap">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words mr-2">
+                  {book.title}
+                </h3>
+                <span className="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  Pending
+                </span>
+              </div>
+              <p className="text-gray-600 mb-4">
+                by {book.authorName || "Unknown Author"}
+              </p>
+            </div>
+            <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-start md:items-end flex-shrink-0">
+              <div className="flex items-center text-gray-600 mb-2 text-yellow-600">
+                <Calendar className="h-4 w-4 mr-1 flex-shrink-0 " />
+                <span className="text-sm">
+                  Borrowed: {new Date(book.borrowDate).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function BorrowedBookItem({ book, onRenew }) {
   const isRenewable = book.renewalsLeft > 0;
@@ -175,32 +221,9 @@ function EditProfileModal({ profile, onClose, onSave }) {
     phone: profile.phone || "",
   });
 
-  const [activeTab, setActiveTab] = useState("info");
-  const [newAvatar, setNewAvatar] = useState(null);
-  const [avatar, setAvatar] = useState(profile.avatar);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const validExtensions = ["jpg", "jpeg", "png", "gif"];
-      const fileExtension = file.name.split(".").pop().toLowerCase();
-
-      // Kiểm tra nếu đuôi file không hợp lệ
-      if (!validExtensions.includes(fileExtension)) {
-        alert(
-          "Please select a valid image file (e.g., .jpg, .jpeg, .png, .gif)."
-        );
-        e.target.value = ""; // Reset input file
-        return;
-      }
-      setNewAvatar(file);
-      setAvatar(URL.createObjectURL(file)); // Hiển thị ảnh xem trước
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -244,119 +267,70 @@ function EditProfileModal({ profile, onClose, onSave }) {
         <h2 className="text-xl font-semibold mb-4 text-gray-900">
           Edit Profile
         </h2>
-        <div className="flex border-b border-gray-200 mb-4">
-          <button
-            onClick={() => setActiveTab("info")}
-            className={`flex-1 text-center py-2 font-medium ${
-              activeTab === "info"
-                ? "border-b-2 border-orange-500 text-orange-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Personal Info
-          </button>
-          <button
-            onClick={() => setActiveTab("avatar")}
-            className={`flex-1 text-center py-2 font-medium ${
-              activeTab === "avatar"
-                ? "border-b-2 border-orange-500 text-orange-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Change Avatar
-          </button>
-        </div>
         <form onSubmit={handleSubmit}>
-          {activeTab === "info" && (
-            <>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  name="birthDate"
-                  value={formData.birthDate}
-                  onChange={handleChange}
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Phone
-                </label>
-                <input
-                  type="text"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2"
-                />
-              </div>
-            </>
-          )}
-          {activeTab === "avatar" && (
-            <div className="flex flex-col items-center">
-              <img
-                src={avatar || "/images/avatar.png"}
-                alt="Current Avatar"
-                className="w-32 h-32 rounded-full mb-4 border border-gray-300"
-              />
-              <div className="relative inline-block">
-                <input
-                  id="fileInput"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
-                />
-                <label
-                  htmlFor="fileInput"
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-orange-500 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
-                >
-                  Choose File
-                </label>
-              </div>
-            </div>
-          )}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-500">
+              First Name
+            </label>
+            <input
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-500">
+              Last Name
+            </label>
+            <input
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-500">
+              Date of Birth
+            </label>
+            <input
+              type="date"
+              name="birthDate"
+              value={formData.birthDate}
+              onChange={handleChange}
+              className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-500">
+              Address
+            </label>
+            <input
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-500">
+              Phone
+            </label>
+            <input
+              type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2"
+            />
+          </div>
+
           <div className="flex justify-end space-x-4 mt-4">
             <button
               type="button"
@@ -554,7 +528,8 @@ export default function Profile() {
     );
   }
 
-  const { profile, stats, borrowedBooks, overdueBooks } = profileData;
+  const { profile, stats, borrowedBooks, overdueBooks, pendingBooks } =
+    profileData;
 
   const handleEditProfile = () => {
     setIsEditing(true);
@@ -574,9 +549,9 @@ export default function Profile() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
-      <main className="flex-grow container mx-auto px-3 sm:px-4 py-6 sm:py-8 overflow-hidden">
+      <main className="flex-grow container mx-auto px-3 sm:px-4 py-6 sm:py-4 overflow-hidden">
         <>
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 mb-8">
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 mb-6">
             <div className="bg-gradient-to-r from-orange-500 to-amber-500 h-32 relative">
               <div className="absolute -bottom-16 left-4 sm:left-6 md:left-8">
                 <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white overflow-hidden bg-white">
@@ -688,18 +663,35 @@ export default function Profile() {
           </div>
           {activeTab === "borrowed" && (
             <div className="space-y-6">
+              {/* Notice */}
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg shadow-sm">
+                <div className="flex items-center">
+                  <Info className="h-5 w-5 text-yellow-500 mr-3" />
+                  <p className="text-sm text-yellow-800">
+                    <strong>Note:</strong> Your book reservation will be valid
+                    for the next <strong>3 days</strong>. Please visit the
+                    library to collect your book.
+                  </p>
+                </div>
+              </div>
+              {pendingBooks?.length > 0 &&
+                pendingBooks?.map((book, index) => (
+                  <PendingBookItem key={`${book._id}-${index}`} book={book} />
+                ))}
               {borrowedBooks?.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-lg">
                   <p className="text-gray-600">You have no borrowed books.</p>
                 </div>
               ) : (
-                borrowedBooks?.map((book) => (
-                  <BorrowedBookItem
-                    key={book._id}
-                    book={book}
-                    onRenew={handleRenewBook}
-                  />
-                ))
+                <>
+                  {borrowedBooks?.map((book) => (
+                    <BorrowedBookItem
+                      key={book._id}
+                      book={book}
+                      onRenew={handleRenewBook}
+                    />
+                  ))}
+                </>
               )}
             </div>
           )}
@@ -712,10 +704,10 @@ export default function Profile() {
               ) : (
                 <>
                   {/* Notice */}
-                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg shadow-sm">
+                  <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-lg shadow-sm">
                     <div className="flex items-center">
-                      <AlertCircle className="h-5 w-5 text-yellow-500 mr-3" />
-                      <p className="text-sm text-yellow-800">
+                      <AlertCircle className="h-5 w-5 text-red-500 mr-3" />
+                      <p className="text-sm text-red-800">
                         <strong>Warning:</strong> You have overdue books. A fine
                         of <strong>10,000 VND per day</strong> is being applied
                         for each overdue book. Please return or renew your books
@@ -834,15 +826,12 @@ export default function Profile() {
                   </div>
                 </div>
               )}
-              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
+              <div className="mt-4 sm:mt-8 flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
                 <button
                   onClick={handleEditProfile}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   Edit Profile
-                </button>
-                <button className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors">
-                  Upgrade Membership
                 </button>
               </div>
             </div>

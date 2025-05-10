@@ -42,6 +42,7 @@ async function getUserProfileDataNative(db, userId) {
         stats: {},
         borrowedBooks: [],
         overdueBooks: [],
+        pendingBooks: [],
       };
     }
 
@@ -57,6 +58,7 @@ async function getUserProfileDataNative(db, userId) {
         stats: {},
         borrowedBooks: [],
         overdueBooks: [],
+        pendingBooks: [],
       };
     }
 
@@ -118,7 +120,7 @@ async function getUserProfileDataNative(db, userId) {
       {
         $match: {
           member: member._id,
-          returnDate: null,
+          status: { $in: ["Pending", "Borrowed", "Overdue"] },
         },
       },
       {
@@ -155,6 +157,7 @@ async function getUserProfileDataNative(db, userId) {
           dueDate: "$expectedReturnDate",
           renewalsLeft: { $subtract: [2, "$renewCount"] },
           isFinePaid: "$is_fine_paid",
+          status: 1,
         },
       },
     ];
@@ -169,6 +172,7 @@ async function getUserProfileDataNative(db, userId) {
 
     const borrowedBooks = [];
     const overdueBooks = [];
+    const pendingBooks = [];
     let currentFineTotal = 0;
 
     borrowDetails.forEach((record) => {
@@ -195,6 +199,7 @@ async function getUserProfileDataNative(db, userId) {
         renewalsLeft: record.renewalsLeft,
         isFinePaid: record.isFinePaid || false,
         fineAmount,
+        borrowStatus: record.status,
       };
 
       if (dayOverdue > 0) {
@@ -206,15 +211,16 @@ async function getUserProfileDataNative(db, userId) {
           ),
         };
         overdueBooks.push(overdueData);
-        console.log("overdueBooks: ", overdueBooks);
+      } else if (bookData.borrowStatus === "Pending") {
+        pendingBooks.push(bookData);
       } else {
         borrowedBooks.push(bookData);
-        console.log("borrowedBooks: ", borrowedBooks);
       }
     });
 
     const stats = {
-      totalBorrowed: member.totalBorrowedCount || borrowDetails.length,
+      totalBorrowed:
+        member.totalBorrowedCount || borrowDetails.length - pendingBooks.length,
       currentlyBorrowed: borrowedBooks.length + overdueBooks.length,
       overdue: overdueBooks.length,
       totalFines: currentFineTotal,
@@ -235,7 +241,7 @@ async function getUserProfileDataNative(db, userId) {
     };
 
     console.log("Native Driver: User profile data processed successfully.");
-    return { profile, stats, borrowedBooks, overdueBooks };
+    return { profile, stats, borrowedBooks, overdueBooks, pendingBooks };
   } catch (error) {
     console.error("Native Driver: Error fetching user profile data:", error);
     throw error;

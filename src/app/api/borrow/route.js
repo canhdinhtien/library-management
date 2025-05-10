@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 
 export async function POST(req) {
   try {
-    const { bookId, userId, quantity, returnDate } = await req.json();
+    const { bookId, userId, returnDate } = await req.json();
     // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
 
@@ -16,12 +16,6 @@ export async function POST(req) {
         status: 404,
       });
     }
-    if (book.quantity < quantity) {
-      return new Response(
-        JSON.stringify({ error: "Not enough books available" }),
-        { status: 400 }
-      );
-    }
 
     const member = await db
       .collection("members")
@@ -32,9 +26,29 @@ export async function POST(req) {
         status: 404,
       });
     }
+
+    // Kiểm tra người dùng có sách quá hạn hay không
+    const overdueBorrows = await db
+      .collection("borrows")
+      .find({
+        member: new ObjectId(member._id),
+        status: "Overdue",
+      })
+      .toArray();
+    if (overdueBorrows.length > 0) {
+      console.log("User has overdue borrows"); // Log thông tin chi tiết
+      return new Response(
+        JSON.stringify({ error: "User has overdue borrows" }),
+        { status: 400 }
+      );
+    }
+
     await db
       .collection("books")
-      .updateOne({ _id: bookId }, { $inc: { borrowedCount: +quantity } });
+      .updateOne(
+        { _id: new ObjectId(bookId) },
+        { $inc: { borrowedCount: +1, availableQuantity: -1 } }
+      );
 
     // Tìm borrowCode lớn nhất hiện tại
     const lastBorrow = await db
@@ -55,11 +69,10 @@ export async function POST(req) {
       borrowCode: nextBorrowCode,
       member: new ObjectId(member._id),
       borrowDate: new Date(),
-      status: "Borrowed",
       bookId: new ObjectId(bookId),
-      quantity,
       expectedReturnDate: new Date(returnDate),
       is_fine_paid: false,
+      status: "Pending",
       renewCount: 0,
     };
     const result = await db.collection("borrows").insertOne(borrow);

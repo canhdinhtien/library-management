@@ -214,7 +214,7 @@ function WriteReview(bookId, fetchBookData) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Gửi token trong header
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Gửi token trong header
         },
         body: JSON.stringify({ bookID, selectedRating, reviewText, userId }),
       });
@@ -493,7 +493,7 @@ export default function BookDetail({ params }) {
               className="w-64 h-96 object-cover rounded-lg shadow-md"
             />
             <button
-              className="ml-auto mr-auto mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition items-center justify-center flex"
+              className="ml-auto mr-auto mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition items-center justify-center flex cursor-pointer"
               onClick={() => handleBorrowClick(book._id)} // Gọi hàm khi nhấn nút mượn sách
             >
               Borrow Now
@@ -652,6 +652,11 @@ export default function BookDetail({ params }) {
         {showBorrowModal && (
           <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              {book.availableQuantity === 0 && (
+                <p className="text-red-500 mb-4 bg-red-100 p-2 rounded-md">
+                  <strong>Sorry!</strong> This book is currently not available.
+                </p>
+              )}
               <h2 className="text-xl font-bold mb-4 text-gray-900">
                 Borrow Book
               </h2>
@@ -661,35 +666,58 @@ export default function BookDetail({ params }) {
                 </p>
                 <p className="text-gray-700">
                   <strong>Available Quantity:</strong>{" "}
-                  {book.quantity - book.borrowedCount}
-                </p>
-                <p className="text-gray-700">
-                  <strong>Your Borrow Quantity:</strong> {1}
+                  {book.availableQuantity || 0}
                 </p>
               </div>
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
+
+                  // Kiểm tra ràng buộc cho returnDate
+                  const today = new Date();
+                  const selectedDate = new Date(returnDate);
+                  if (selectedDate <= today) {
+                    alert("Return date must be in the future.");
+                    return;
+                  }
+                  const maxReturnDate = new Date(today);
+                  maxReturnDate.setDate(maxReturnDate.getDate() + 30); // Ngày tối đa là 30 ngày sau
+                  if (selectedDate > maxReturnDate) {
+                    alert("Return date must be within 30 days from today.");
+                    return;
+                  }
+                  if (!returnDate) {
+                    alert("Please select a return date.");
+                    return;
+                  }
                   try {
                     const response = await fetch("/api/borrow", {
                       method: "POST",
                       headers: {
-                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem(
+                          "authToken"
+                        )}`, // Gửi token trong header
                       },
                       body: JSON.stringify({
                         bookId: book._id,
                         userId,
-                        quantity: borrowQuantity,
                         returnDate,
                       }),
                     });
+                    console.log("Response:", response.body);
 
                     if (response.ok) {
                       alert("Book borrowed successfully!");
                       setShowBorrowModal(false);
                       fetchBookData(book._id); // Tải lại dữ liệu sách
                     } else {
-                      alert(data.message || "Failed to borrow book.");
+                      const data = await response.json();
+                      if (data.error === "User has overdue borrows") {
+                        alert(
+                          "You have overdue borrows. Please return them first."
+                        );
+                        setShowBorrowModal(false);
+                      }
                     }
                   } catch (error) {
                     console.error("Error borrowing book:", error);
@@ -697,20 +725,6 @@ export default function BookDetail({ params }) {
                   }
                 }}
               >
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-500">
-                    Quantity
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max={book.availableQuantity}
-                    value={borrowQuantity}
-                    onChange={(e) => setBorrowQuantity(e.target.value)}
-                    required
-                    className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
-                  />
-                </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-500">
                     Return Date
@@ -722,6 +736,9 @@ export default function BookDetail({ params }) {
                     required
                     className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
                   />
+                  <p className="text-sm text-gray-500 mt-2">
+                    You can borrow the book for a maximum of 30 days.
+                  </p>
                 </div>
                 <div className="flex justify-end gap-3">
                   <button
@@ -733,7 +750,12 @@ export default function BookDetail({ params }) {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 cursor-pointer"
+                    disabled={book.availableQuantity === 0} // Vô hiệu hóa nếu số lượng sách bằng 0
+                    className={`px-4 py-2 rounded-md ${
+                      book.availableQuantity === 0
+                        ? "bg-gray-300 text-gray-700 cursor-not-allowed" // Màu sắc khi bị vô hiệu hóa
+                        : "bg-orange-500 text-white hover:bg-orange-600 cursor-pointer" // Màu sắc khi có thể nhấn
+                    }`}
                   >
                     Confirm Borrow
                   </button>
