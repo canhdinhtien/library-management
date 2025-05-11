@@ -127,6 +127,7 @@ export async function POST(req) {
     const member = await membersCollection.findOne({ _id: newMemberId });
     return NextResponse.json({ success: true, data: member }, { status: 200 });
   } catch (error) {
+    console.error("Error creating member:", error);
     return NextResponse.json(
       { success: false, message: error.message },
       { status: 400 }

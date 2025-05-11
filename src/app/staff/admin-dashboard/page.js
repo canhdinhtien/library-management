@@ -111,6 +111,7 @@ export default function AdminDashboard() {
         },
       });
       const statsData = await statsResponse.json();
+      console.log("AdminDashboard: statsData", statsData);
 
       // Gọi API để lấy danh sách sách
       const booksResponse = await fetch("/api/admin/books", {
@@ -120,7 +121,6 @@ export default function AdminDashboard() {
         },
       });
       const booksData = await booksResponse.json();
-      console.log("Books data:", booksData);
 
       // Gọi API để lấy danh sách bản ghi mượn sách
       const borrowsResponse = await fetch("/api/admin/borrows", {
@@ -703,7 +703,7 @@ export default function AdminDashboard() {
         </div>
       </main>
       {showAddStaffModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-gray-900">
               Add New Staff
@@ -834,7 +834,7 @@ export default function AdminDashboard() {
         </div>
       )}
       {showEditStaffModal && editingStaff && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-gray-900">Edit Staff</h2>
             <form
@@ -948,7 +948,7 @@ export default function AdminDashboard() {
         </div>
       )}
       {showAddUserModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-gray-900">
               Add New User
@@ -1079,7 +1079,7 @@ export default function AdminDashboard() {
         </div>
       )}
       {showEditUserModal && editingUser && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-gray-900">Edit User</h2>
             <form
@@ -1197,7 +1197,7 @@ export default function AdminDashboard() {
         </div>
       )}
       {showEditBorrowModal && editingBorrow && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-gray-900">
               Edit Borrow
@@ -1358,7 +1358,7 @@ export default function AdminDashboard() {
         </div>
       )}
       {showAddBorrowModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-gray-900">Add Borrow</h2>
             <form

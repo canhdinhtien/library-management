@@ -1,6 +1,13 @@
 "use client";
 
-import { Users, BookOpen, RefreshCw, BookPlus, UserPlus } from "lucide-react";
+import {
+  Users,
+  BookOpen,
+  RefreshCw,
+  BookPlus,
+  UserPlus,
+  BookCopy,
+} from "lucide-react";
 
 export default function DashboardControls({
   activeTab,
@@ -9,6 +16,7 @@ export default function DashboardControls({
   isLoading,
   onAddBook,
   onAddUser,
+  onAddBorrow,
 }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -21,6 +29,17 @@ export default function DashboardControls({
         >
           <BookOpen className="h-5 w-5" />
           Books
+        </button>
+        <button
+          onClick={() => onTabChange("borrows")}
+          className={`flex items-center gap-2 px-5 py-3 rounded-md text-base font-medium ${
+            activeTab === "borrows"
+              ? "bg-[#FF9800] text-white"
+              : "text-gray-700"
+          }`}
+        >
+          <BookCopy className="h-5 w-5" />
+          Borrows
         </button>
         <button
           onClick={() => onTabChange("users")}
@@ -47,7 +66,7 @@ export default function DashboardControls({
           />
           <span className="hidden sm:inline text-gray-700">Refresh</span>
         </button>
-        {activeTab === "books" ? (
+        {activeTab === "books" && (
           <button
             onClick={onAddBook}
             className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
@@ -55,7 +74,17 @@ export default function DashboardControls({
             <BookPlus className="h-5 w-5" />
             <span className="hidden sm:inline">Add Book</span>
           </button>
-        ) : (
+        )}
+        {activeTab === "borrows" && (
+          <button
+            onClick={onAddBorrow}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
+          >
+            <BookPlus className="h-5 w-5" />
+            <span className="hidden sm:inline">Add Borrow</span>
+          </button>
+        )}
+        {activeTab === "users" && (
           <button
             onClick={onAddUser}
             className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"

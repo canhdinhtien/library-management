@@ -10,6 +10,7 @@ import DashboardStats from "../../../components/Dashboard/DashboardStats";
 import DashboardControls from "../../../components/Dashboard/DashboardControls";
 import BooksManagementSection from "../../../components/Dashboard/BooksManagementSection";
 import UsersManagementSection from "../../../components/Dashboard/UsersManagementSection";
+import BorrowsManagementSection from "../../../components/Dashboard/BorrowsManagementSection";
 // import { logout } from "@/lib/auth";
 
 export default function StaffDashboard() {
@@ -21,7 +22,15 @@ export default function StaffDashboard() {
 
   const [stats, setStats] = useState({});
   const [books, setBooks] = useState([]);
+  const [borrows, setBorrows] = useState([]);
   const [users, setUsers] = useState([]);
+
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [showAddBorrowModal, setShowAddBorrowModal] = useState(false);
+  const [showEditBorrowModal, setShowEditBorrowModal] = useState(false);
+  const [editingBorrow, setEditingBorrow] = useState(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -39,6 +48,50 @@ export default function StaffDashboard() {
     setIsLoading(true);
     try {
       console.log("Placeholder: Load dashboard data here");
+      const token = localStorage.getItem("authToken");
+
+      // api/stats
+      const statsResponse = await fetch("/api/stats", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const statsData = await statsResponse.json();
+
+      setStats(statsData);
+
+      // api/admin/books
+      const booksResponse = await fetch("/api/admin/books", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const booksData = await booksResponse.json();
+
+      setBooks(booksData);
+
+      // api/admin/borrows
+      const borrowsResponse = await fetch("/api/admin/borrows", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const borrowsData = await borrowsResponse.json();
+      setBorrows(borrowsData);
+
+      // api/admin/members
+      const usersResponse = await fetch("/api/admin/members", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const usersData = await usersResponse.json();
+
+      setUsers(usersData);
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (error) {
@@ -63,10 +116,201 @@ export default function StaffDashboard() {
   };
 
   const handleAddBook = () => console.log("Add Book clicked");
-  const handleAddUser = () => console.log("Add User clicked");
-  const handleBookSearch = (event) =>
-    console.log("Search books:", event.target.value);
-  const handleBookFilter = () => console.log("Filter books clicked");
+  const handleAddBorrow = () => {
+    console.log("Admin: Add Borrow");
+    setShowAddBorrowModal(true);
+  };
+  const handleAddUser = () => {
+    console.log("Admin: Add User");
+    setShowAddUserModal(true);
+  };
+
+  const handleSaveBorrow = async (newBorrow) => {
+    try {
+      const response = await fetch("/api/admin/borrows", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+        body: JSON.stringify(newBorrow),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to add borrow.");
+      }
+      const savedBorrow = await response.json();
+      setBorrows((prevBorrows) => [...prevBorrows, savedBorrow]);
+      alert("Borrow added successfully!");
+      setShowAddBorrowModal(false);
+      loadDashboardData(); // Refresh the data after adding a new borrow
+    } catch (error) {
+      console.error("Failed to add borrow:", error);
+    }
+  };
+
+  const handleSaveUser = async (newUser) => {
+    try {
+      const response = await fetch("/api/admin/members", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+        body: JSON.stringify(newUser),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to add user.");
+      }
+      const savedUser = await response.json();
+      setUsers((prevUsers) => [...prevUsers, savedUser]);
+      alert("User added successfully!");
+      setShowAddUserModal(false);
+      loadDashboardData(); // Refresh the data after adding a new user
+    } catch (error) {
+      console.error("Failed to add user:", error);
+    }
+  };
+
+  const handleEditBorrow = (borrowId) => {
+    const borrowToEdit = borrows.find((borrow) => borrow._id === borrowId);
+    console.log("Admin: Edit borrow:", borrowToEdit);
+
+    if (borrowToEdit) {
+      setEditingBorrow(borrowToEdit);
+      setShowEditBorrowModal(true);
+    }
+  };
+  const handleSaveEditedBorrow = async (editedBorrow) => {
+    try {
+      console.log("Saving edited borrow:", editedBorrow);
+      const response = await fetch(`/api/admin/borrows/${editedBorrow._id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+        body: JSON.stringify(editedBorrow),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update borrow.");
+      }
+      const updatedBorrow = await response.json();
+      setBorrows((prevBorrows) =>
+        prevBorrows.map((borrow) =>
+          borrow.id === updatedBorrow.id ? updatedBorrow : borrow
+        )
+      );
+      alert("Borrow updated successfully!");
+      setShowEditBorrowModal(false);
+      loadDashboardData(); // Refresh the data after updating a borrow
+    } catch (error) {
+      console.error("Failed to update borrow:", error);
+    }
+  };
+
+  const handleDeleteBorrow = async (borrowId) => {
+    if (!window.confirm("Are you sure you want to delete this borrow?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/borrows/${borrowId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete borrow.");
+      }
+
+      // Cập nhật danh sách mượn sách sau khi xóa thành công
+      setBorrows((prevBorrows) =>
+        prevBorrows.filter((borrow) => borrow.id !== borrowId)
+      );
+      alert("Borrow deleted successfully!");
+      loadDashboardData(); // Refresh the data after deleting a borrow
+    } catch (error) {
+      console.error("Failed to delete borrow:", error);
+      alert("Failed to delete borrow. Please try again.");
+    }
+  };
+
+  const handleEditUser = (userId) => {
+    const userToEdit = users.find((user) => user.id === userId);
+    console.log("Admin: Edit user:", userToEdit);
+
+    if (userToEdit) {
+      setEditingUser(userToEdit);
+      setShowEditUserModal(true);
+    }
+  };
+  const handleSaveEditedUser = async (editedUser) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("No authorization token found.");
+      }
+      const response = await fetch(`/api/admin/members/${editedUser.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+        body: JSON.stringify(editedUser),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update user.");
+      }
+
+      const updatedUser = await response.json();
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === updatedUser.id ? updatedUser : user
+        )
+      );
+      alert("User updated successfully!");
+      setShowEditUserModal(false);
+      loadDashboardData();
+      console.log("User updated successfully:", updatedUser);
+    } catch (error) {
+      console.error("Failed to update user:", error);
+    }
+  };
+  const handleDeleteUser = async (userId) => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("No authorization token found.");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this user?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/members/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete user. Please try again.");
+      }
+
+      // Cập nhật danh sách người dùng sau khi xóa thành công
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+      alert("User deleted successfully!");
+
+      // Tải lại dữ liệu bảng điều khiển
+      loadDashboardData();
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      alert(error.message || "An error occurred while deleting the user.");
+    }
+  };
+
   const handleEditBook = (bookId) => console.log("Edit book:", bookId);
   const handleDeleteBook = (bookId) => console.log("Delete book:", bookId);
 
@@ -102,22 +346,561 @@ export default function StaffDashboard() {
           isLoading={isLoading}
           onAddBook={handleAddBook}
           onAddUser={handleAddUser}
+          onAddBorrow={handleAddBorrow}
         />
 
         <div className="w-full">
           {activeTab === "books" && (
             <BooksManagementSection
               books={books}
-              onSearchChange={handleBookSearch}
-              onFilterClick={handleBookFilter}
               onEditBook={handleEditBook}
               onDeleteBook={handleDeleteBook}
             />
           )}
 
-          {activeTab === "users" && <UsersManagementSection users={users} />}
+          {activeTab === "borrows" && (
+            <BorrowsManagementSection
+              borrows={borrows}
+              onEditBorrow={handleEditBorrow}
+              onDeleteBorrow={handleDeleteBorrow}
+            />
+          )}
+
+          {activeTab === "users" && (
+            <UsersManagementSection
+              users={users}
+              onEditUser={handleEditUser}
+              onDeleteUser={handleDeleteUser}
+            />
+          )}
         </div>
       </main>
+      {showAddUserModal && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">
+              Add New User
+            </h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const newUser = {
+                  userCode: formData.get("userCode"),
+                  username: formData.get("username"),
+                  password: formData.get("password"),
+                  firstName: formData.get("firstName"),
+                  lastName: formData.get("lastName"),
+                  email: formData.get("email"),
+                  phone: formData.get("phone"),
+                  birthDate: formData.get("birthDate"),
+                };
+                handleSaveUser(newUser);
+              }}
+            >
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  User Code
+                </label>
+                <input
+                  type="text"
+                  name="userCode"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Password
+                </label>
+                <input
+                  type="text"
+                  name="password"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Birth Date
+                </label>
+                <input
+                  type="date"
+                  name="birthDate"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  name="phone"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddUserModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#FF9800] text-white rounded-md hover:bg-[#F57C00] cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showEditUserModal && editingUser && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">Edit User</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const updatedUser = {
+                  ...editingUser,
+                  firstName: formData.get("firstName"),
+                  lastName: formData.get("lastName"),
+                  email: formData.get("email"),
+                  phone: formData.get("phone"),
+                  birthDate: formData.get("birthDate"),
+                  address: formData.get("address"),
+                };
+                handleSaveEditedUser(updatedUser);
+              }}
+            >
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  defaultValue={editingUser.firstName}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  defaultValue={editingUser.lastName}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  defaultValue={editingUser.email}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  name="phone"
+                  defaultValue={editingUser.phone}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Birth Date
+                </label>
+                <input
+                  type="date"
+                  name="birthDate"
+                  defaultValue={
+                    editingUser.birthDate
+                      ? new Date(editingUser.birthDate)
+                          .toISOString()
+                          .split("T")[0]
+                      : ""
+                  }
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  defaultValue={editingUser.address || ""}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowEditUserModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#FF9800] text-white rounded-md hover:bg-[#F57C00] cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showEditBorrowModal && editingBorrow && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">
+              Edit Borrow
+            </h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const updatedBorrow = {
+                  ...editingBorrow,
+                  borrowDate: formData.get("borrowDate"),
+                  expectedReturnDate: formData.get("expectedReturnDate"),
+                  returnDate: formData.get("returnDate"),
+                  status: formData.get("status"),
+                  is_fine_paid: formData.get("is_fine_paid"),
+                };
+                handleSaveEditedBorrow(updatedBorrow);
+              }}
+            >
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  User
+                </label>
+                <input
+                  type="text"
+                  name="userName"
+                  defaultValue={editingBorrow.userName}
+                  readOnly
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border cursor-not-allowed bg-gray-100"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Book
+                </label>
+                <input
+                  type="text"
+                  name="bookTitle"
+                  defaultValue={editingBorrow.bookTitle}
+                  readOnly
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border cursor-not-allowed bg-gray-100"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Borrow Date
+                </label>
+                <input
+                  type="date"
+                  name="borrowDate"
+                  defaultValue={
+                    new Date(editingBorrow.borrowDate)
+                      .toISOString()
+                      .split("T")[0]
+                  }
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Expected Return Date
+                </label>
+                <input
+                  type="date"
+                  name="expectedReturnDate"
+                  defaultValue={
+                    new Date(editingBorrow.expectedReturnDate)
+                      .toISOString()
+                      .split("T")[0]
+                  }
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Return Date
+                </label>
+                <input
+                  type="date"
+                  name="returnDate"
+                  defaultValue={
+                    editingBorrow.returnDate
+                      ? new Date(editingBorrow.returnDate)
+                          .toISOString()
+                          .split("T")[0]
+                      : ""
+                  }
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Status
+                </label>
+                <select
+                  name="status"
+                  defaultValue={editingBorrow.status}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Borrowed">Borrowed</option>
+                  <option value="Returned">Returned</option>
+                  <option value="Overdue">Overdue</option>
+                </select>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Fine Amount
+                </label>
+                <input
+                  type="number"
+                  name="fineAmount"
+                  defaultValue={editingBorrow.fine}
+                  readOnly
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border cursor-not-allowed bg-gray-100"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Fine Paid
+                </label>
+                <select
+                  name="is_fine_paid"
+                  defaultValue={editingBorrow.is_fine_paid}
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
+                >
+                  <option value="true">True</option>
+                  <option value="false">False</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowEditBorrowModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#FF9800] text-white rounded-md hover:bg-[#F57C00] cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showAddBorrowModal && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">Add Borrow</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const newBorrow = {
+                  borrowCode: formData.get("borrowCode"),
+                  member: formData.get("memberId"),
+                  bookId: formData.get("bookId"),
+                  borrowDate: formData.get("borrowDate"),
+                  expectedReturnDate: formData.get("expectedReturnDate"),
+                  status: "Borrowed",
+                  renewCount: 0,
+                  is_fine_paid: false,
+                  fine: 0,
+                };
+                handleSaveBorrow(newBorrow);
+              }}
+            >
+              {/* Member Dropdown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Borrow Code
+                </label>
+                <input
+                  type="text"
+                  name="borrowCode"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Member
+                </label>
+                <select
+                  name="memberId"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
+                >
+                  <option value="">Select a member</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.firstName} {user.lastName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Book Dropdown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Book
+                </label>
+                <select
+                  name="bookId"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
+                >
+                  <option value="">Select a book</option>
+                  {books.map((book) => (
+                    <option key={book._id} value={book._id}>
+                      {book.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Borrow Date */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Borrow Date
+                </label>
+                <input
+                  type="date"
+                  name="borrowDate"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+
+              {/* Expected Return Date */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">
+                  Expected Return Date
+                </label>
+                <input
+                  type="date"
+                  name="expectedReturnDate"
+                  required
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddBorrowModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#FF9800] text-white rounded-md hover:bg-[#F57C00] cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
