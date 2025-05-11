@@ -6,6 +6,7 @@ export async function POST(request) {
   try {
     // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
+    // Lấy dữ liệu từ request body
     const body = await request.json();
     console.log("Request body:", body); // Log the request body to check its content
     const { bookID, selectedRating, reviewText, userId } = body;
@@ -41,6 +42,7 @@ export async function POST(request) {
       }
     );
 
+    // Trả về thông báo thành công
     return NextResponse.json(
       { success: true, message: "Review added successfully." },
       { status: 200 }

@@ -14,16 +14,17 @@ import {
   Smartphone,
   Coffee,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Info() {
   const router = useRouter();
+  const { user } = useAuth();
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
 
       <main className="flex-grow">
-        {/* Hero Section */}
         <section className="bg-gradient-to-b from-amber-50 to-white py-16 px-4">
           <div className="container mx-auto max-w-4xl text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -36,7 +37,6 @@ export default function Info() {
           </div>
         </section>
 
-        {/* Mission Section */}
         <section className="py-16 px-6 sm:px-12">
           <div className="container mx-auto max-w-4xl">
             <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
@@ -57,7 +57,6 @@ export default function Info() {
           </div>
         </section>
 
-        {/* Services Section */}
         <section className="py-16 px-6 bg-gray-50">
           <div className="container mx-auto max-w-6xl">
             <h2 className="text-2xl sm:text-3xl font-bold mb-10 text-gray-800 text-center">
@@ -107,8 +106,6 @@ export default function Info() {
             </div>
           </div>
         </section>
-
-        {/* Community Initiatives Section */}
         <section className="py-16 px-6">
           <div className="container mx-auto max-w-4xl">
             <h2 className="text-2xl sm:text-3xl font-bold mb-10 text-gray-800 text-center">
@@ -148,12 +145,14 @@ export default function Info() {
                     opportunities. Sign up to make a difference and connect with
                     fellow book lovers today!
                   </p>
-                  <button
-                    onClick={() => router.push("/register")}
-                    className="bg-white text-orange-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors shadow-md"
-                  >
-                    Join for Free
-                  </button>
+                  {!user && (
+                    <button
+                      onClick={() => router.push("/register")}
+                      className="bg-white text-orange-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors shadow-md"
+                    >
+                      Join for Free
+                    </button>
+                  )}
                 </div>
                 <div className="relative h-64 md:h-full">
                   <Image
@@ -175,7 +174,6 @@ export default function Info() {
   );
 }
 
-// Service Card Component
 function ServiceCard({ icon, title, description }) {
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -188,7 +186,6 @@ function ServiceCard({ icon, title, description }) {
   );
 }
 
-// Initiative Card Component
 function InitiativeCard({ imageSrc, title, description }) {
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow">

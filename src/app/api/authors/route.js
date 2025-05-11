@@ -4,9 +4,11 @@ export async function GET(request) {
   console.log("--- GET /api/authors request received (Native Driver) ---");
   try {
     console.log("Attempting native MongoDB connection...");
+    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     console.log("Native MongoDB connection successful.");
 
+    // Kiểm tra xem kết nối có thành công không
     if (!db) {
       throw new Error("Database connection failed (db object not received).");
     }
@@ -15,11 +17,13 @@ export async function GET(request) {
       "Attempting to get distinct author names using native driver..."
     );
 
+    // Lấy danh sách tác giả
     const authorsData = await db
       .collection("authors")
       .find({}, { projection: { name: 1, _id: 0 } })
       .toArray();
 
+    // Lấy danh sách tên tác giả
     const authorNames = authorsData
       .map((author) => author.name)
       .filter(Boolean)
@@ -30,6 +34,7 @@ export async function GET(request) {
       authorNames
     );
 
+    // Trả về danh sách tên tác giả
     return new Response(JSON.stringify(authorNames), {
       headers: { "content-type": "application/json" },
       status: 200,

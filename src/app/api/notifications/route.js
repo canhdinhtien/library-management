@@ -3,6 +3,7 @@ import nodemailer from "nodemailer";
 
 export async function POST(request) {
   try {
+    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const borrowsCollection = db.collection("borrows");
     const membersCollection = db.collection("members");
@@ -120,6 +121,7 @@ export async function POST(request) {
       await transporter.sendMail(mailOptions);
     }
 
+    // Trả về thông báo thành công
     return new Response(
       JSON.stringify({
         success: true,

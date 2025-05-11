@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Hàm tính tiền phạt
 function calculateFine(dueDate) {
   const now = new Date();
   const due = new Date(dueDate);
@@ -13,11 +14,14 @@ function calculateFine(dueDate) {
   return Math.max(0, daysOverdue * 10000);
 }
 
+// Hàm lấy thông tin profile người dùng
 async function getUserProfileDataNative(db, userId) {
   try {
+    // Tạo ObjectId từ userId
     const userIdObject = new ObjectId(userId);
     const now = new Date();
 
+    // Lấy thông tin tài khoản
     const accountsCollection = db.collection("accounts");
     const account = await accountsCollection.findOne(
       { _id: userIdObject },
@@ -30,11 +34,13 @@ async function getUserProfileDataNative(db, userId) {
       }
     );
 
+    // Kiểm tra xem có tài khoản không
     if (!account) {
       console.log(`Native Driver: User account not found for ID: ${userId}`);
       return null;
     }
 
+    // Kiểm tra role của tài khoản
     if (account.role !== "member") {
       console.log(`Native Driver: User role is not 'member': ${account.role}`);
       return {
@@ -46,9 +52,11 @@ async function getUserProfileDataNative(db, userId) {
       };
     }
 
+    // Lấy thông tin thành viên
     const membersCollection = db.collection("members");
     const member = await membersCollection.findOne({ accountId: userIdObject });
 
+    // Kiểm tra xem có thông tin thành viên không
     if (!member) {
       console.log(
         `Native Driver: Member details not found for account ID: ${userId}`
@@ -116,6 +124,7 @@ async function getUserProfileDataNative(db, userId) {
     //   .aggregate(aggregationPipeline)
     //   .toArray();
 
+    // Tạo aggregation pipeline
     const aggregationPipeline = [
       {
         $match: {
@@ -162,6 +171,7 @@ async function getUserProfileDataNative(db, userId) {
       },
     ];
 
+    // Lấy thông tin mượn sách
     const borrowDetails = await borrowsCollection
       .aggregate(aggregationPipeline)
       .toArray();
@@ -175,6 +185,7 @@ async function getUserProfileDataNative(db, userId) {
     const pendingBooks = [];
     let currentFineTotal = 0;
 
+    // Xử lý thông tin mượn sách
     borrowDetails.forEach((record) => {
       if (!record.title) {
         console.log(
@@ -218,6 +229,7 @@ async function getUserProfileDataNative(db, userId) {
       }
     });
 
+    // Tạo thông tin thống kê
     const stats = {
       totalBorrowed:
         member.totalBorrowedCount || borrowDetails.length - pendingBooks.length,
@@ -227,6 +239,7 @@ async function getUserProfileDataNative(db, userId) {
       favoriteGenres: member.favoriteGenres || [],
     };
 
+    // Tạo thông tin profile
     const profile = {
       firstName: member.firstName,
       lastName: member.lastName,
@@ -241,6 +254,7 @@ async function getUserProfileDataNative(db, userId) {
     };
 
     console.log("Native Driver: User profile data processed successfully.");
+    // Trả về thông tin người dùng
     return { profile, stats, borrowedBooks, overdueBooks, pendingBooks };
   } catch (error) {
     console.error("Native Driver: Error fetching user profile data:", error);
@@ -249,6 +263,8 @@ async function getUserProfileDataNative(db, userId) {
 }
 
 export async function GET(request) {
+  console.log("API Profile: GET request received");
+  // Kiểm tra xem JWT_SECRET đã được định nghĩa chưa
   if (!JWT_SECRET) {
     console.error("API Error: JWT_SECRET is not defined.");
     return NextResponse.json(
@@ -257,6 +273,7 @@ export async function GET(request) {
     );
   }
 
+  // Lấy token từ header Authorization
   const authHeader = request.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     console.log("API Error: Authorization header missing or invalid.");
@@ -269,10 +286,12 @@ export async function GET(request) {
   console.log("API Info: Received token.");
 
   try {
+    // Xác thực token
     const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.userId;
     console.log(`API Info: Token verified for userId: ${userId}`);
 
+    // Kiểm tra xem có userId không
     if (!userId) {
       console.log("API Error: Invalid token payload (missing userId).");
       return NextResponse.json(
@@ -281,11 +300,14 @@ export async function GET(request) {
       );
     }
 
+    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
     console.log("API Info: Database connected (Native Driver).");
 
+    // Lấy thông tin người dùng
     const userData = await getUserProfileDataNative(db, userId);
 
+    // Kiểm tra xem có thông tin người dùng không
     if (!userData) {
       console.log(`API Error: User data not found for userId: ${userId}`);
       return NextResponse.json(
@@ -295,6 +317,7 @@ export async function GET(request) {
     }
 
     console.log("API Info: Returning successful profile data.");
+    // Trả về thông tin người dùng
     return NextResponse.json(
       { success: true, data: userData },
       { status: 200 }
@@ -326,6 +349,7 @@ export async function GET(request) {
 }
 
 export async function PUT(request) {
+  // Lấy token từ header Authorization
   const authHeader = request.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     console.log("API Error: Authorization header missing or invalid.");
@@ -337,9 +361,11 @@ export async function PUT(request) {
   const token = authHeader.split(" ")[1];
 
   try {
+    // Xác thực token
     const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.userId;
 
+    // Kiểm tra xem có userId không
     if (!userId) {
       console.log("API Error: Invalid token payload (missing userId).");
       return NextResponse.json(
@@ -348,12 +374,15 @@ export async function PUT(request) {
       );
     }
 
+    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
 
+    // Lấy dữ liệu cập nhật từ request body
     const updatedData = await request.json();
 
     console.log("updatedData: ", updatedData);
 
+    // Kiểm tra xem có dữ liệu cập nhật không
     if (!updatedData) {
       console.log("API Error: No data provided for update.");
       return NextResponse.json(
@@ -364,6 +393,7 @@ export async function PUT(request) {
 
     const membersCollection = db.collection("members");
 
+    // Cập nhật thông tin thành viên
     const memberUpdateResult = await membersCollection.updateOne(
       { accountId: new ObjectId(userId.toString()) },
       {
@@ -378,6 +408,7 @@ export async function PUT(request) {
       { upsert: true }
     );
 
+    // Kiểm tra xem có cập nhật được không
     if (memberUpdateResult.modifiedCount === 0) {
       console.log(`API Error: Member not found or no changes made.`);
       return NextResponse.json(
@@ -387,6 +418,7 @@ export async function PUT(request) {
     }
 
     console.log("API Info: User profile updated successfully.");
+    // Trả về thông báo thành công
     return NextResponse.json(
       { success: true, message: "Profile updated successfully." },
       { status: 200 }

@@ -5,6 +5,7 @@ import { NextResponse } from "next/server.js";
 
 export async function GET() {
   try {
+    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
 
     // Lấy danh sách members
@@ -59,6 +60,7 @@ export async function GET() {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // Xử lý lỗi nếu có
     console.error("Error fetching members:", error);
     return new Response(JSON.stringify({ error: "Failed to fetch members" }), {
       status: 500,
@@ -69,6 +71,7 @@ export async function GET() {
 
 export async function POST(req) {
   try {
+    // Lấy dữ liệu từ request
     const {
       userCode,
       username,
@@ -128,6 +131,7 @@ export async function POST(req) {
     return NextResponse.json({ success: true, data: member }, { status: 200 });
   } catch (error) {
     console.error("Error creating member:", error);
+    // Xử lý lỗi nếu có
     return NextResponse.json(
       { success: false, message: error.message },
       { status: 400 }

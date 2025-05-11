@@ -838,7 +838,6 @@ export default function Profile() {
               </div>
             </div>
           )}
-          {/* Hiển thị modal chỉnh sửa */}
           {isEditing && (
             <EditProfileModal
               profile={profile}

@@ -3,10 +3,12 @@ import { ObjectId } from "mongodb";
 
 export async function POST(req) {
   try {
+    // Lấy dữ liệu từ request body
     const { bookId, userId, returnDate } = await req.json();
     // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
 
+    // Tìm sách theo ID
     const book = await db
       .collection("books")
       .findOne({ _id: new ObjectId(bookId) });
@@ -17,6 +19,7 @@ export async function POST(req) {
       });
     }
 
+    // Tìm thành viên theo ID tài khoản
     const member = await db
       .collection("members")
       .findOne({ accountId: new ObjectId(userId) });
@@ -43,6 +46,7 @@ export async function POST(req) {
       );
     }
 
+    // Cập nhật số lượng sách đã mượn và số lượng sách còn lại
     await db
       .collection("books")
       .updateOne(
@@ -76,6 +80,7 @@ export async function POST(req) {
       renewCount: 0,
     };
     const result = await db.collection("borrows").insertOne(borrow);
+    // Trả về kết quả
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error) {
     console.error("Error in POST /api/borrow:", error); // Log lỗi chi tiết

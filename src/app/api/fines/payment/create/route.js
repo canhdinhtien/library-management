@@ -10,6 +10,7 @@ export async function POST(req) {
 
     // Lấy fineAmount từ body
     const { fineAmount } = await req.json();
+    // Kiểm tra xem có fineAmount không và có hợp lệ không
     if (!fineAmount || fineAmount <= 0) {
       return new Response(
         JSON.stringify({ success: false, message: "Invalid fine amount" }),
@@ -80,6 +81,7 @@ export async function POST(req) {
 
     console.log("Payment URL:", paymentUrl);
 
+    // Trả về URL thanh toán
     return new Response(JSON.stringify({ success: true, paymentUrl }), {
       status: 200,
       headers: { "Content-Type": "application/json" },

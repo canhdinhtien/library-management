@@ -1,6 +1,7 @@
 import { connectToDatabase } from "@/lib/dbConnect.js";
 import { ObjectId } from "mongodb";
 export async function PUT(req) {
+  // Lấy borrowId từ request body
   const { db } = await connectToDatabase();
   const { borrowId } = await req.json();
 
@@ -11,6 +12,7 @@ export async function PUT(req) {
       returnDate: null, // Chỉ gia hạn nếu sách chưa được trả
     });
 
+    // Kiểm tra xem có bản ghi mượn sách không
     if (!borrowRecord) {
       return new Response(
         JSON.stringify({ error: "Borrow record not found" }),
@@ -35,6 +37,7 @@ export async function PUT(req) {
       }
     );
 
+    // Kiểm tra xem có cập nhật được không
     if (!borrow.matchedCount) {
       return new Response(
         JSON.stringify({ error: "Borrow record not found" }),
@@ -42,6 +45,7 @@ export async function PUT(req) {
       );
     }
 
+    // Trả về thông báo thành công
     return new Response(
       JSON.stringify({ message: "Book renewed successfully" }),
       { status: 200, headers: { "Content-Type": "application/json" } }
