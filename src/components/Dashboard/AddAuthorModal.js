@@ -36,6 +36,34 @@ const AddAuthorModal = ({ isOpen, onClose, onAuthorAdded }) => {
     }
   };
 
+  // const uploadAuthorCoverImage = async (file) => {
+  //   if (!file) {
+  //     setAuthorCoverImage("");
+  //     return;
+  //   }
+
+  //   const formData = new FormData();
+  //   formData.append("image", file);
+
+  //   try {
+  //     const response = await fetch("/api/upload-author-cover", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+  //     setAuthorCoverImage(data.imageUrl);
+  //   } catch (error) {
+  //     console.error("Failed to upload author cover image:", error);
+  //     // Handle error appropriately (e.g., display an error message)
+  //     setAuthorCoverImage("");
+  //   }
+  // };
+
   const uploadAuthorCoverImage = async (file) => {
     if (!file) {
       setAuthorCoverImage("");
@@ -51,15 +79,10 @@ const AddAuthorModal = ({ isOpen, onClose, onAuthorAdded }) => {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const data = await response.json();
-      setAuthorCoverImage(data.imageUrl);
+      setAuthorCoverImage(data.imageUrl); // Dùng để hiển thị hoặc lưu vào DB
     } catch (error) {
-      console.error("Failed to upload author cover image:", error);
-      // Handle error appropriately (e.g., display an error message)
+      console.error("Failed to upload image:", error);
       setAuthorCoverImage("");
     }
   };
