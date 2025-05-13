@@ -29,6 +29,7 @@ const BorrowSchema = new mongoose.Schema(
     is_fine_paid: { type: Boolean, default: false }, // Đã thanh toán phí phạt
     fine: { type: Number, default: 0 }, // Số tiền phạt
     returnDate: { type: Date }, // Ngày trả thực tế
+    userRating: { type: Number, default: 0 },
   },
   {
     collection: "borrows",

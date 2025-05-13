@@ -9,10 +9,18 @@ export async function POST(request) {
     // Lấy dữ liệu từ request body
     const body = await request.json();
     console.log("Request body:", body); // Log the request body to check its content
-    const { bookID, selectedRating, reviewText, userId } = body;
+    const { bookID, selectedRating, reviewText, userId, borrowId } = body;
 
     const booksCollection = db.collection("books");
     const membersCollection = db.collection("members");
+
+    // Cập nhật trạng thái đã đánh giá trong bảng mượn
+    await db
+      .collection("borrows")
+      .updateOne(
+        { _id: new ObjectId(borrowId) },
+        { $set: { userRating: selectedRating } }
+      );
 
     // Tìm thành viên dựa trên accountId
     const member = await membersCollection.findOne({

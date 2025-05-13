@@ -10,6 +10,7 @@ const publicRoutes = [
   "/api/authors",
   "/api/notifications",
   "/api/borrows/auto",
+  "/api/books/related",
 ];
 
 // Kiểm tra xem route có phải là route công khai không

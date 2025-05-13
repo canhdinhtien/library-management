@@ -15,9 +15,113 @@ import {
   Info,
   BookCheck,
 } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
+
+function ReviewModal({ onClose, onSubmit, rating }) {
+  const [reviewText, setReviewText] = useState("");
+
+  const handleSubmit = () => {
+    if (!reviewText.trim()) {
+      alert("Please write a review before submitting.");
+      return;
+    }
+    onSubmit(reviewText);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
+        <h2 className="text-xl font-semibold mb-4 text-gray-900">
+          Write a Review
+        </h2>
+        <div className="flex flex-row ">
+          <p className="text-gray-600 mr-2">Rating:</p>
+          <div className="flex items-center mb-4">
+            {Array.from({ length: 5 }, (_, index) => (
+              <svg
+                key={index}
+                xmlns="http://www.w3.org/2000/svg"
+                fill={index < rating ? "#fbbf24" : "none"}
+                stroke={index < rating ? "#fbbf24" : "gray"}
+                strokeWidth="2"
+                className="w-6 h-6"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                />
+              </svg>
+            ))}
+          </div>
+        </div>
+        <textarea
+          value={reviewText}
+          onChange={(e) => setReviewText(e.target.value)}
+          placeholder="Write your review here..."
+          className="w-full h-32 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+        />
+        <div className="flex justify-end space-x-4 mt-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors cursor-pointer"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ReturnedBookItem({ book }) {
   const router = useRouter();
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [selectedRating, setSelectedRating] = useState(book.userRating || 0);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(book.userRating);
+
+  const handleReviewSubmit = async (reviewText) => {
+    try {
+      const bookID = book._id;
+      const token = localStorage.getItem("authToken");
+      const decodedToken = jwtDecode(token);
+      const userId = decodedToken.userId; // Lấy userId từ token
+      const borrowId = book.borrowRecordId; // Lấy borrowId từ props
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Gửi token trong header
+        },
+        body: JSON.stringify({
+          bookID,
+          selectedRating,
+          reviewText,
+          userId,
+          borrowId,
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert("Review submitted successfully!");
+        window.location.reload();
+      } else {
+        alert("Failed to submit review.");
+      }
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      alert("An error occurred while submitting the review.");
+    }
+  };
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-green-200">
       <div className="flex flex-col sm:flex-row">
@@ -46,6 +150,65 @@ function ReturnedBookItem({ book }) {
               <p className="text-gray-600 mb-4">
                 by {book.authorName || "Unknown Author"}
               </p>
+              <div className="flex flex-row items-center mb-2">
+                {hasReviewed ? (
+                  // Hiển thị số sao đã chọn nếu đã đánh giá
+                  <div className="flex items-center">
+                    <p className="text-gray-600 mr-2">Your Rating:</p>
+                    <div className="flex space-x-1">
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <svg
+                          key={index}
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill={index < selectedRating ? "#fbbf24" : "none"}
+                          stroke={index < selectedRating ? "#fbbf24" : "gray"}
+                          strokeWidth="2"
+                          className="w-6 h-6"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                          />
+                        </svg>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  // Hiển thị "Rate this book" nếu chưa đánh giá
+                  <>
+                    <p className="text-gray-600 justify-center items-center">
+                      Rate this book:
+                    </p>
+                    <div className="flex space-x-1 justify-center items-center ml-2">
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <svg
+                          key={index}
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill={index < hoveredRating ? "#fbbf24" : "none"}
+                          stroke={index < hoveredRating ? "#fbbf24" : "gray"}
+                          strokeWidth="2"
+                          className="w-6 h-6 cursor-pointer transition"
+                          viewBox="0 0 24 24"
+                          onMouseEnter={() => setHoveredRating(index + 1)}
+                          onMouseLeave={() => setHoveredRating(0)}
+                          onClick={() => {
+                            setSelectedRating(index + 1);
+                            setShowReviewModal(true);
+                          }}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                          />
+                        </svg>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
             <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-start md:items-end flex-shrink-0">
               <div className="flex items-center text-green-600 mb-2">
@@ -73,6 +236,13 @@ function ReturnedBookItem({ book }) {
           </div>
         </div>
       </div>
+      {showReviewModal && (
+        <ReviewModal
+          rating={selectedRating}
+          onClose={() => setShowReviewModal(false)}
+          onSubmit={handleReviewSubmit}
+        />
+      )}
     </div>
   );
 }

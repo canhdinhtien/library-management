@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { use } from "react";
 import { jwtDecode } from "jwt-decode";
 import { Loader2 } from "lucide-react";
+import RelatedBooks from "../../../components/RelatedBooks";
 
 function Review({ reviews, book }) {
   if (!Array.isArray(reviews) || reviews.length === 0) {
@@ -194,185 +195,6 @@ function Review({ reviews, book }) {
   );
 }
 
-function WriteReview(bookId, fetchBookData) {
-  const [selectedRating, setSelectedRating] = useState(0);
-  const [hoveredRating, setHoveredRating] = useState(0);
-  const [reviewText, setReviewText] = useState("");
-  const [showReviewInput, setShowReviewInput] = useState(false);
-  const [userId, setUserId] = useState(null);
-
-  const saveReview = async () => {
-    try {
-      const bookID = bookId.bookId;
-      const response = await fetch("/api/reviews", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Gửi token trong header
-        },
-        body: JSON.stringify({ bookID, selectedRating, reviewText, userId }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        alert("Review submitted successfully!");
-        window.location.reload();
-      } else {
-        alert("Failed to submit review.");
-      }
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      alert("An error occurred while submitting the review.");
-    }
-  };
-  if (!showReviewInput) {
-    return (
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-900">
-          Ratings & Reviews
-        </h2>
-        <div className="mt-6 flex flex-col items-center">
-          <div className="flex flex-col items-center">
-            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="w-6 h-6 text-gray-500"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 14.25l4.5 2.625-1.125-4.875L18 9.375l-4.875-.375L12 4.5l-1.125 4.5L6 9.375l2.625 2.625L7.5 16.875 12 14.25z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-semibold mt-4 text-gray-900">
-              What do <i>you</i> think?
-            </h3>
-          </div>
-
-          <div className="flex flex-row space-x-6 mt-2 items-center">
-            <div className="flex flex-col items-center">
-              <div className="mt-4 flex justify-center space-x-1">
-                {Array.from({ length: 5 }, (_, index) => (
-                  <svg
-                    key={index}
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill={index < hoveredRating ? "#fbbf24" : "none"}
-                    stroke={index < hoveredRating ? "#fbbf24" : "gray"}
-                    strokeWidth="2"
-                    className="w-8 h-8 cursor-pointer transition"
-                    viewBox="0 0 24 24"
-                    onMouseEnter={() => setHoveredRating(index + 1)}
-                    onMouseLeave={() => setHoveredRating(0)}
-                    onClick={() => {
-                      const token = localStorage.getItem("authToken");
-                      if (!token) {
-                        alert(
-                          "You need to log in to rate and review this book."
-                        );
-                        window.location.href = "/login";
-                        return;
-                      }
-
-                      try {
-                        const decodedToken = jwtDecode(token); // Giải mã token
-
-                        setUserId(decodedToken.userId); // Lưu userId vào state (nếu cần dùng sau này)
-                      } catch (error) {
-                        console.error("Invalid token:", error);
-                        alert("Your session has expired. Please log in again.");
-                        window.location.href = "/login";
-                        return;
-                      }
-
-                      setSelectedRating(index + 1);
-                      setShowReviewInput(true);
-                    }}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                    />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-gray-500 mt-2">
-                Rate this book and write a review
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  } else {
-    return (
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-900">
-          Ratings & Reviews
-        </h2>
-        <div className="flex flex-row mt-4">
-          <p className="font-semibold text-gray-700">Your rating: &nbsp; </p>
-          {Array.from({ length: 5 }, (_, index) => (
-            <svg
-              key={index}
-              xmlns="http://www.w3.org/2000/svg"
-              fill={index < selectedRating ? "#fbbf24" : "none"}
-              stroke={index < selectedRating ? "#fbbf24" : "gray"}
-              strokeWidth="2"
-              className="w-5 h-5"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-              />
-            </svg>
-          ))}
-        </div>
-
-        <div className="mt-4 w-full text-gray-700">
-          <textarea
-            value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)} // Cập nhật nội dung review
-            placeholder="Write your review here..."
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            rows="4"
-          ></textarea>
-          <div className="flex flex-row space-x-4 mt-2">
-            <button
-              onClick={() => {
-                if (!reviewText.trim()) {
-                  alert("Please write a review before submitting!");
-                  return;
-                }
-
-                setShowReviewInput(false);
-                setSelectedRating(0);
-                setReviewText("");
-                saveReview();
-              }}
-              className="mt-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition cursor-pointer"
-            >
-              Submit Review
-            </button>
-            <button
-              onClick={() => setShowReviewInput(false)}
-              className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition cursor-pointer"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-}
-
 function AuthorDetail({ authorName, authorBio, authorImage }) {
   return (
     <div className="flex flex-col  space-x-4 ">
@@ -450,7 +272,7 @@ export default function BookDetail({ params }) {
 
   if (isLoading) {
     return (
-      <div className="bg-gradient-to-b from-amber-50 to-white min-h-screen">
+      <div className="bg-white min-h-screen">
         <Navbar />
         <section className="flex-grow flex justify-center items-center mt-20">
           <Loader2 className="h-12 w-12 animate-spin text-orange-500" />
@@ -461,7 +283,7 @@ export default function BookDetail({ params }) {
 
   if (!book) {
     return (
-      <div className="bg-gradient-to-b from-amber-50 to-white min-h-screen">
+      <div className="bg-white min-h-screen">
         <Navbar />
         <section className="p-5">
           <h2 className="text-2xl font-bold text-center">Book Not Found</h2>
@@ -471,19 +293,19 @@ export default function BookDetail({ params }) {
   }
 
   return (
-    <div className="bg-gradient-to-b from-amber-50 to-white min-h-screen">
+    <div className="bg-white min-h-screen">
       <Navbar />
       <section className="p-6">
         <div className="flex flex-col lg:flex-row items-center lg:items-start lg:space-x-12 w-full max-w-7xl mx-auto">
           {/* Book Cover */}
-          <div className="w-64 flex-col items-center justify-center sticky top-27 ">
+          <div className="w-64 flex flex-col items-center justify-center sticky top-28 flex-shrink-0">
             <img
               src={book.coverImage || "/images/default-book-cover.jpg"}
               alt={book.title}
               className="w-64 h-96 object-cover rounded-lg shadow-md"
             />
             <button
-              className="ml-auto mr-auto mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition items-center justify-center flex cursor-pointer"
+              className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition flex items-center justify-center"
               onClick={() => handleBorrowClick(book._id)}
             >
               Borrow Now
@@ -510,7 +332,10 @@ export default function BookDetail({ params }) {
               ))} */}
               {Array.isArray(book.genres) &&
                 book.genres.map((genre, index) => (
-                  <span key={index} className="...">
+                  <span
+                    key={index}
+                    className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-orange-500 hover:text-white transition duration-200 cursor-pointer"
+                  >
                     {genre.trim()}
                   </span>
                 ))}
@@ -524,7 +349,7 @@ export default function BookDetail({ params }) {
               />
             </div>
             <hr className="my-6" />
-            <WriteReview bookId={book._id} fetchBookData={fetchBookData} />
+            <RelatedBooks bookGenres={book.genres} bookId={book._id} />
             <hr className="my-6" />
             <div>
               <Review reviews={book.reviews || []} book={book} />

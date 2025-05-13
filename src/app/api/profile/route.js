@@ -170,6 +170,7 @@ async function getUserProfileDataNative(db, userId) {
           renewalsLeft: { $subtract: [2, "$renewCount"] },
           isFinePaid: "$is_fine_paid",
           status: 1,
+          userRating: "$userRating",
         },
       },
     ];
@@ -212,6 +213,7 @@ async function getUserProfileDataNative(db, userId) {
         isFinePaid: record.isFinePaid || false,
         fineAmount,
         borrowStatus: record.status,
+        userRating: record.userRating || false,
       };
 
       if (dayOverdue > 0) {
