@@ -46,7 +46,7 @@ function PendingBookItem({ book }) {
               </p>
             </div>
             <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-start md:items-end flex-shrink-0">
-              <div className="flex items-center text-gray-600 mb-2 text-yellow-600">
+              <div className="flex items-center  mb-2 text-yellow-600">
                 <Calendar className="h-4 w-4 mr-1 flex-shrink-0 " />
                 <span className="text-sm">
                   Borrowed: {new Date(book.borrowDate).toLocaleDateString()}

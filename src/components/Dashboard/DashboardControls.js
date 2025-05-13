@@ -8,6 +8,8 @@ import {
   UserPlus,
   BookCopy,
 } from "lucide-react";
+import { useState } from "react";
+import AddBookModal from "./AddBookModal";
 
 export default function DashboardControls({
   activeTab,
@@ -18,6 +20,16 @@ export default function DashboardControls({
   onAddUser,
   onAddBorrow,
 }) {
+  const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
+
+  const handleOpenAddBookModal = () => {
+    setIsAddBookModalOpen(true);
+  };
+
+  const handleCloseAddBookModal = () => {
+    setIsAddBookModalOpen(false);
+  };
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
       <div className="flex bg-[#fff8e1] rounded-md p-1.5 self-start">
@@ -67,13 +79,19 @@ export default function DashboardControls({
           <span className="hidden sm:inline text-gray-700">Refresh</span>
         </button>
         {activeTab === "books" && (
-          <button
-            onClick={onAddBook}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
-          >
-            <BookPlus className="h-5 w-5" />
-            <span className="hidden sm:inline">Add Book</span>
-          </button>
+          <>
+            <button
+              onClick={handleOpenAddBookModal}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
+            >
+              <BookPlus className="h-5 w-5" />
+              <span className="hidden sm:inline">Add Book</span>
+            </button>
+            <AddBookModal
+              isOpen={isAddBookModalOpen}
+              onClose={handleCloseAddBookModal}
+            />
+          </>
         )}
         {activeTab === "borrows" && (
           <button
