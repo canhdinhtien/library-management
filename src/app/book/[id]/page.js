@@ -500,14 +500,20 @@ export default function BookDetail({ params }) {
             </p>
             <div className="mt-8 flex flex-wrap gap-2">
               <span className="text-gray-900 font-semibold">Genres:</span>
-              {book.genres.split(",").map((genre, index) => (
+              {/* {book.genres.split(",").map((genre, index) => (
                 <span
                   key={index}
                   className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm  hover:bg-orange-500 hover:text-white transition duration-200 cursor-pointer"
                 >
                   {genre.trim()}
                 </span>
-              ))}
+              ))} */}
+              {Array.isArray(book.genres) &&
+                book.genres.map((genre, index) => (
+                  <span key={index} className="...">
+                    {genre.trim()}
+                  </span>
+                ))}
             </div>
             <hr className="my-6" />
             <div>

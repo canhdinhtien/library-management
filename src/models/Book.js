@@ -6,7 +6,6 @@ const BookSchema = new mongoose.Schema(
     bookCode: { type: String, required: true, unique: true }, // Ma_sach
     title: { type: String, required: true }, // Ten_sach
     genres: { type: String, required: true }, // The_loai
-    coverImage: { type: String }, // Hinh_anh_bia
     description: { type: String }, // Mo_ta
     price: { type: Number, required: true }, // Gia
     quantity: { type: Number, required: true }, // So_luong

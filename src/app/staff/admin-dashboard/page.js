@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
+import AddBookModal from "@/components/Dashboard/AddBookModal";
 import {
   RefreshCw,
   BookOpen,
@@ -179,7 +180,16 @@ export default function AdminDashboard() {
     loadAdminDashboardData();
   };
 
-  const handleAddBook = () => console.log("Admin: Add Book");
+  const [showAddBookModal, setShowAddBookModal] = useState(false);
+
+  const handleAddBook = () => {
+    setShowAddBookModal(true);
+  };
+
+  const handleCloseAddBookModal = () => {
+    setShowAddBookModal(false);
+  };
+
   const handleAddBorrow = () => {
     console.log("Admin: Add Borrow");
     setShowAddBorrowModal(true);
@@ -638,6 +648,13 @@ export default function AdminDashboard() {
                 <span className="hidden sm:inline">Add Book</span>
               </button>
             )}
+            {showAddBookModal && (
+              <AddBookModal
+                isOpen={showAddBookModal}
+                onClose={handleCloseAddBookModal}
+              />
+            )}
+
             {activeTab === "borrows" && (
               <button
                 onClick={handleAddBorrow}
