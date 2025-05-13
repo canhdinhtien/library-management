@@ -40,7 +40,7 @@ export default function StaffManagementSection({
               <div className="relative">
                 <input
                   type="search"
-                  placeholder="Search users..."
+                  placeholder="Search staff..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full sm:w-72 pl-12 pr-4 py-3 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF9800] focus:border-transparent text-gray-400"
