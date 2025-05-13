@@ -135,7 +135,6 @@ export async function GET(request, { params }) {
 
     // Lấy thông tin sách
     const book = await books.aggregate(aggregatePipeline).toArray(); // Thực hiện truy vấn và chuyển đổi kết quả thành mảng
-    console.log("Book details:", book[0].reviews);
 
     // Kiểm tra xem có tìm thấy sách không
     if (!book || book.length === 0) {

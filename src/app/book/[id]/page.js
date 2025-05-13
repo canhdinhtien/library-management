@@ -5,6 +5,7 @@ import Navbar from "../../../components/Navbar";
 import { useState, useEffect } from "react";
 import { use } from "react";
 import { jwtDecode } from "jwt-decode";
+import { Loader2 } from "lucide-react";
 
 function Review({ reviews, book }) {
   if (!Array.isArray(reviews) || reviews.length === 0) {
@@ -450,8 +451,9 @@ export default function BookDetail({ params }) {
   if (isLoading) {
     return (
       <div className="bg-gradient-to-b from-amber-50 to-white min-h-screen">
-        <section className="p-5">
-          <h2 className="text-2xl font-bold text-center">Loading...</h2>
+        <Navbar />
+        <section className="flex-grow flex justify-center items-center mt-20">
+          <Loader2 className="h-12 w-12 animate-spin text-orange-500" />
         </section>
       </div>
     );
@@ -486,30 +488,6 @@ export default function BookDetail({ params }) {
             >
               Borrow Now
             </button>
-            <div className="mt-4 text-center">
-              <div className="flex justify-center space-x-1">
-                {Array.from({ length: 5 }, (_, index) => (
-                  <svg
-                    key={index}
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill={index < hoveredRating ? "#fbbf24" : "none"}
-                    stroke={index < hoveredRating ? "#fbbf24" : "gray"}
-                    strokeWidth="2"
-                    className="w-8 h-8 cursor-pointer transition"
-                    viewBox="0 0 24 24"
-                    onMouseEnter={() => setHoveredRating(index + 1)}
-                    onMouseLeave={() => setHoveredRating(0)}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                    />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-gray-500 mt-2">Rate this book</p>
-            </div>
           </div>
 
           <div className="flex-1 ">
@@ -517,85 +495,6 @@ export default function BookDetail({ params }) {
             <p className="text-lg text-gray-600 mt-2">
               By <span className="font-medium">{book.authorName}</span>
             </p>
-            <div className="flex items-center mt-4 space-x-2">
-              <div className="flex items-center">
-                {Array.from({ length: 5 }, (_, index) => {
-                  const starValue = index + 1;
-                  const isFullStar = starValue <= averageRating;
-                  const isThreeQuarterStar =
-                    starValue - 0.25 <= averageRating &&
-                    starValue > averageRating;
-                  const isHalfStar =
-                    starValue - 0.5 <= averageRating &&
-                    starValue > averageRating;
-                  const isQuarterStar =
-                    starValue - 0.75 <= averageRating &&
-                    starValue > averageRating;
-
-                  return (
-                    <svg
-                      key={index}
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill={
-                        isFullStar
-                          ? "#fbbf24"
-                          : isThreeQuarterStar
-                          ? "url(#threeQuarterGradient)"
-                          : isHalfStar
-                          ? "url(#halfGradient)"
-                          : isQuarterStar
-                          ? "url(#quarterGradient)"
-                          : "none"
-                      }
-                      stroke="#fbbf24"
-                      strokeWidth="2"
-                      className="w-8 h-8"
-                      viewBox="0 0 24 24"
-                    >
-                      {isThreeQuarterStar && (
-                        <defs>
-                          <linearGradient id="threeQuarterGradient">
-                            <stop offset="75%" stopColor="#fbbf24" />
-                            <stop offset="75%" stopColor="white" />
-                          </linearGradient>
-                        </defs>
-                      )}
-
-                      {isHalfStar && (
-                        <defs>
-                          <linearGradient id="halfGradient">
-                            <stop offset="50%" stopColor="#fbbf24" />
-                            <stop offset="50%" stopColor="white" />
-                          </linearGradient>
-                        </defs>
-                      )}
-
-                      {isQuarterStar && (
-                        <defs>
-                          <linearGradient id="quarterGradient">
-                            <stop offset="25%" stopColor="#fbbf24" />
-                            <stop offset="25%" stopColor="white" />
-                          </linearGradient>
-                        </defs>
-                      )}
-
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                      />
-                    </svg>
-                  );
-                })}
-              </div>
-
-              <span className="text-yellow-500 text-xl font-bold">
-                {averageRating}
-              </span>
-              <span className="text-gray-500">
-                ({book.reviews?.length || 0} reviews)
-              </span>
-            </div>
             <p className="mt-6 text-gray-700 whitespace-pre-line">
               {book.description}
             </p>

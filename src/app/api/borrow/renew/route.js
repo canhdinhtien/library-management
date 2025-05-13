@@ -9,7 +9,6 @@ export async function PUT(req) {
     // Lấy bản ghi mượn sách hiện tại
     const borrowRecord = await db.collection("borrows").findOne({
       _id: new ObjectId(borrowId),
-      returnDate: null, // Chỉ gia hạn nếu sách chưa được trả
     });
 
     // Kiểm tra xem có bản ghi mượn sách không
@@ -29,7 +28,6 @@ export async function PUT(req) {
     const borrow = await db.collection("borrows").updateOne(
       {
         _id: new ObjectId(borrowId),
-        returnDate: null, // Chỉ gia hạn nếu sách chưa được trả
       },
       {
         $set: { expectedReturnDate: newDueDate },
