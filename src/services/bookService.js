@@ -30,45 +30,45 @@
 //   return res.json();
 // }
 
-// export const fetchFeaturedBooks = async (token) => {
-//   if (!token) {
-//     throw new Error("Authentication token is required.");
-//   }
+export const fetchFeaturedBooks = async (token) => {
+  if (!token) {
+    throw new Error("Authentication token is required.");
+  }
 
-//   const response = await fetch("/api/books?featured=true", {
-//     headers: {
-//       Authorization: `Bearer ${token}`,
+  const response = await fetch("/api/books?featured=true", {
+    headers: {
+      Authorization: `Bearer ${token}`,
 
-//       "Content-Type": "application/json",
-//     },
-//   });
+      "Content-Type": "application/json",
+    },
+  });
 
-//   if (!response.ok) {
-//     if (response.status === 401) {
-//       throw new Error("Unauthorized: Invalid or expired token.");
-//     }
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Unauthorized: Invalid or expired token.");
+    }
 
-//     let errorData = { message: `HTTP error! Status: ${response.status}` };
-//     try {
-//       const body = await response.json();
-//       if (body.error) {
-//         errorData.message = body.error;
-//       }
-//     } catch (e) {
-//       console.warn("Could not parse error response body as JSON.");
-//     }
+    let errorData = { message: `HTTP error! Status: ${response.status}` };
+    try {
+      const body = await response.json();
+      if (body.error) {
+        errorData.message = body.error;
+      }
+    } catch (e) {
+      console.warn("Could not parse error response body as JSON.");
+    }
 
-//     throw new Error(errorData.message);
-//   }
+    throw new Error(errorData.message);
+  }
 
-//   try {
-//     const data = await response.json();
-//     return data;
-//   } catch (e) {
-//     console.error("Failed to parse books response:", e);
-//     throw new Error("Failed to parse response from server.");
-//   }
-// };
+  try {
+    const data = await response.json();
+    return data;
+  } catch (e) {
+    console.error("Failed to parse books response:", e);
+    throw new Error("Failed to parse response from server.");
+  }
+};
 export const fetchGenres = async () => {
   try {
     const res = await fetch("/api/genres"); // Giả sử API này được bảo vệ bởi middleware nếu cần token
