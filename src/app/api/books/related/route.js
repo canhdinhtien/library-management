@@ -54,7 +54,6 @@ export async function GET(request) {
       ])
       .toArray();
 
-    console.log("Related books:", books); // Log danh sách sách liên quan
     // Kiểm tra xem có sách nào không
     if (!books || books.length === 0) {
       return new Response(
