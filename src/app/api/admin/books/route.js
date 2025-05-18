@@ -287,8 +287,8 @@ export async function POST(request) {
       price: parseFloat(body.price),
       quantity: parseInt(body.quantity),
       availableQuantity: parseInt(body.quantity),
-      author: mongoose.Types.ObjectId(body.author),
-      publisher: mongoose.Types.ObjectId(body.publisher),
+      author: new mongoose.Types.ObjectId(body.author),
+      publisher: new mongoose.Types.ObjectId(body.publisher),
       borrowedCount: 0,
     };
 
