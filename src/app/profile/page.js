@@ -13,8 +13,240 @@ import {
   User,
   Loader2,
   Info,
+  BookCheck,
 } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
+
+function ReviewModal({ onClose, onSubmit, rating }) {
+  const [reviewText, setReviewText] = useState("");
+
+  const handleSubmit = () => {
+    if (!reviewText.trim()) {
+      toast.info("Please write a review before submitting.");
+      return;
+    }
+    onSubmit(reviewText);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
+        <h2 className="text-xl font-semibold mb-4 text-gray-900">
+          Write a Review
+        </h2>
+        <div className="flex flex-row ">
+          <p className="text-gray-600 mr-2">Rating:</p>
+          <div className="flex items-center mb-4">
+            {Array.from({ length: 5 }, (_, index) => (
+              <svg
+                key={index}
+                xmlns="http://www.w3.org/2000/svg"
+                fill={index < rating ? "#fbbf24" : "none"}
+                stroke={index < rating ? "#fbbf24" : "gray"}
+                strokeWidth="2"
+                className="w-6 h-6"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                />
+              </svg>
+            ))}
+          </div>
+        </div>
+        <textarea
+          value={reviewText}
+          onChange={(e) => setReviewText(e.target.value)}
+          placeholder="Write your review here..."
+          className="w-full h-32 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+        />
+        <div className="flex justify-end space-x-4 mt-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors cursor-pointer"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReturnedBookItem({ book }) {
+  const router = useRouter();
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [selectedRating, setSelectedRating] = useState(book.userRating || 0);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(book.userRating);
+
+  const handleReviewSubmit = async (reviewText) => {
+    try {
+      const bookID = book._id;
+      const token = localStorage.getItem("authToken");
+      const decodedToken = jwtDecode(token);
+      const userId = decodedToken.userId; // Lấy userId từ token
+      const borrowId = book.borrowRecordId; // Lấy borrowId từ props
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Gửi token trong header
+        },
+        body: JSON.stringify({
+          bookID,
+          selectedRating,
+          reviewText,
+          userId,
+          borrowId,
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Review submitted successfully!");
+        window.location.reload();
+      } else {
+        toast.error("Failed to submit review.");
+      }
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      toast.error("An error occurred while submitting the review.");
+    }
+  };
+  return (
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-green-200">
+      <div className="flex flex-col sm:flex-row">
+        <div className="w-full sm:w-1/4 md:w-1/5 p-4 flex items-center justify-center bg-green-50">
+          <div className="relative w-32 h-48 sm:w-full sm:h-56 max-w-[128px] sm:max-w-full">
+            <Image
+              src={book.coverImage || "/placeholder.svg?height=300&width=200"}
+              alt={book.title}
+              fill
+              className="object-cover rounded-md shadow-sm"
+              sizes="(max-width: 640px) 128px, 200px"
+            />
+          </div>
+        </div>
+        <div className="w-full sm:w-3/4 md:w-4/5 p-4 sm:p-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start">
+            <div className="w-full md:w-auto">
+              <div className="flex items-center mb-1 flex-wrap">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words mr-2">
+                  {book.title}
+                </h3>
+                <span className="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Returned
+                </span>
+              </div>
+              <p className="text-gray-600 mb-4">
+                by {book.authorName || "Unknown Author"}
+              </p>
+              <div className="flex flex-row items-center mb-2">
+                {hasReviewed ? (
+                  // Hiển thị số sao đã chọn nếu đã đánh giá
+                  <div className="flex items-center">
+                    <p className="text-gray-600 mr-2">Your Rating:</p>
+                    <div className="flex space-x-1">
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <svg
+                          key={index}
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill={index < selectedRating ? "#fbbf24" : "none"}
+                          stroke={index < selectedRating ? "#fbbf24" : "gray"}
+                          strokeWidth="2"
+                          className="w-6 h-6"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                          />
+                        </svg>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  // Hiển thị "Rate this book" nếu chưa đánh giá
+                  <>
+                    <p className="text-gray-600 justify-center items-center">
+                      Rate this book:
+                    </p>
+                    <div className="flex space-x-1 justify-center items-center ml-2">
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <svg
+                          key={index}
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill={index < hoveredRating ? "#fbbf24" : "none"}
+                          stroke={index < hoveredRating ? "#fbbf24" : "gray"}
+                          strokeWidth="2"
+                          className="w-6 h-6 cursor-pointer transition"
+                          viewBox="0 0 24 24"
+                          onMouseEnter={() => setHoveredRating(index + 1)}
+                          onMouseLeave={() => setHoveredRating(0)}
+                          onClick={() => {
+                            setSelectedRating(index + 1);
+                            setShowReviewModal(true);
+                          }}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                          />
+                        </svg>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-start md:items-end flex-shrink-0">
+              <div className="flex items-center text-green-600 mb-2">
+                <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
+                <span className="text-sm">
+                  Borrowed: {new Date(book.borrowDate).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="flex items-center text-green-600 mb-2">
+                <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
+                <span className="text-sm font-medium">
+                  Returned: {new Date(book.returnDate).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => router.push(`/book/${String(book._id)}`)}
+                  className="px-3 py-1 rounded-md text-sm flex items-center bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Borrow Again
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {showReviewModal && (
+        <ReviewModal
+          rating={selectedRating}
+          onClose={() => setShowReviewModal(false)}
+          onSubmit={handleReviewSubmit}
+        />
+      )}
+    </div>
+  );
+}
 
 function PendingBookItem({ book }) {
   return (
@@ -102,7 +334,7 @@ function BorrowedBookItem({ book, onRenew }) {
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => onRenew(book._id)}
+                  onClick={() => onRenew(book.borrowRecordId)}
                   disabled={!isRenewable}
                   className={`px-3 py-1 rounded-md text-sm flex items-center ${
                     isRenewable
@@ -112,6 +344,9 @@ function BorrowedBookItem({ book, onRenew }) {
                 >
                   <RefreshCw className="h-3 w-3 mr-1" />
                   Renew
+                  {isRenewable && (
+                    <span className="ml-1">({book.renewalsLeft} left)</span>
+                  )}
                 </button>
               </div>
             </div>
@@ -238,9 +473,8 @@ function EditProfileModal({ profile, onClose, onSave }) {
       formData.phone === profile.phone;
 
     if (isUnchanged) {
-      toast.error(
-        "❌ " +
-          "No changes detected. Please update your information before saving."
+      toast.info(
+        "No changes detected. Please update your information before saving."
       );
       return; // Dừng việc gửi dữ liệu
     }
@@ -256,7 +490,7 @@ function EditProfileModal({ profile, onClose, onSave }) {
       onClose(); // Close modal
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("❌ " + "Failed to update profile. Please try again later.");
+      toast.error("Failed to update profile. Please try again.");
     }
   };
 
@@ -424,41 +658,25 @@ export default function Profile() {
     );
     if (!confirmRenew) {
       console.log("Renew action canceled.");
-      return;
-    }
-
-    if (!borrowId) {
-      toast.error("❌ " + "Don't find borrowId to renew!");
-      return;
+      return; // Dừng nếu người dùng không xác nhận
     }
 
     try {
       const response = await fetch(`/api/borrow/renew`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ borrowId }),
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         const data = await response.json();
         console.log("Renew response:", data);
-        toast.success("Book renewed successfully!");
-      } else {
-        const text = await response.text();
-        console.warn("Raw error response:", text);
-
-        let error = {};
-        try {
-          error = JSON.parse(text);
-        } catch (jsonError) {
-          console.error("Error parsing JSON response:", jsonError);
-        }
-
+        toast.success(data.message);
+      }
+      if (!response.ok) {
+        const error = await response.json();
         console.error("Renewal failed:", error);
-        toast.error(error.error || error.message || "Failed to renew book.");
+        toast.error(error.error || "Failed to renew book.");
       }
 
       fetchProfileData();
@@ -467,6 +685,7 @@ export default function Profile() {
       toast.error(`Renew failed: ${error.message}`);
     }
   };
+
   const handlePayFine = async (fineAmount, borrowId) => {
     console.log("Attempting to pay fine for:", borrowId);
     localStorage.setItem("borrowId", borrowId); // Lưu borrowId vào localStorage
@@ -542,8 +761,14 @@ export default function Profile() {
     );
   }
 
-  const { profile, stats, borrowedBooks, overdueBooks, pendingBooks } =
-    profileData;
+  const {
+    profile,
+    stats,
+    borrowedBooks,
+    overdueBooks,
+    pendingBooks,
+    returnedBooks,
+  } = profileData;
 
   const handleEditProfile = () => {
     setIsEditing(true);
@@ -607,9 +832,24 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {stats && profile && profile.maxBooksAllowed && (
-                  <div className="mt-4 sm:mt-0"></div>
-                )}
+                {/* {stats && profile && profile.maxBooksAllowed && (
+                  <div className="mt-4 sm:mt-0">
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">
+                        {Math.max(
+                          0,
+                          profile.maxBooksAllowed -
+                            (stats.currentlyBorrowed || 0)
+                        )}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-medium">
+                        {profile.maxBooksAllowed}
+                      </span>{" "}
+                      book slots available
+                    </div>
+                  </div>
+                )} */}
               </div>
             </div>
           </div>
@@ -644,6 +884,22 @@ export default function Profile() {
                 {overdueBooks && (
                   <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full">
                     {overdueBooks.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab("returned")}
+                className={`flex items-center gap-2 px-4 py-2 font-medium text-sm ${
+                  activeTab === "returned"
+                    ? "border-b-2 border-orange-500 text-orange-600"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <BookCheck className="h-4.5 w-4.5" />
+                <span>Returned</span>
+                {returnedBooks && (
+                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full ">
+                    {returnedBooks.length}
                   </span>
                 )}
               </button>
@@ -685,13 +941,6 @@ export default function Profile() {
                 </div>
               ) : (
                 <>
-                  {/* {borrowedBooks?.map((book) => (
-                    <BorrowedBookItem
-                      key={book._id}
-                      book={book}
-                      onRenew={handleRenewBook}
-                    />
-                  ))} */}
                   {borrowedBooks?.map((book) => (
                     <BorrowedBookItem
                       key={book._id}
@@ -728,6 +977,24 @@ export default function Profile() {
                       key={`${book._id}-${index}`}
                       book={book}
                       onPayFine={handlePayFine}
+                    />
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+          {activeTab === "returned" && (
+            <div className="space-y-6">
+              {returnedBooks?.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <p className="text-gray-600">You have no returned books.</p>
+                </div>
+              ) : (
+                <>
+                  {returnedBooks?.map((book, index) => (
+                    <ReturnedBookItem
+                      key={`${book._id}-${index}`}
+                      book={book}
                     />
                   ))}
                 </>

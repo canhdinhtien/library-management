@@ -58,8 +58,9 @@ export default function BorrowsManagementSection({
               className="pl-10 pr-2 py-3 w-full border border-gray-300 rounded-lg text-base text-gray-700 focus:ring-2 focus:ring-[#FF9800] focus:border-[#FF9800] focus:outline-none transition duration-200 shadow-sm cursor-pointer"
             >
               <option value="All">All Borrows</option>
-              {/* <option value="Pending">Pending</option> */}
+              <option value="Pending">Pending</option>
               <option value="Borrowed">Borrowed</option>
+              <option value="Returned">Returned</option>
               <option value="Overdue">Overdue</option>
             </select>
           </div>

@@ -1,67 +1,58 @@
 import { connectToDatabase } from "@/lib/dbConnect.js";
 import { ObjectId } from "mongodb";
-
 export async function PUT(req) {
+  // Lấy borrowId từ request body
   const { db } = await connectToDatabase();
-  try {
-    const body = await req.json();
-    const { borrowId } = body;
-    if (!borrowId) {
-      return new Response(JSON.stringify({ error: "Missing borrowId" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+  const { borrowId } = await req.json();
 
-    // Tìm bản ghi borrow chưa trả
+  try {
+    // Lấy bản ghi mượn sách hiện tại
     const borrowRecord = await db.collection("borrows").findOne({
       _id: new ObjectId(borrowId),
-      returnDate: null,
     });
 
+    // Kiểm tra xem có bản ghi mượn sách không
     if (!borrowRecord) {
       return new Response(
-        JSON.stringify({
-          error: "Borrow record not found or already returned",
-        }),
+        JSON.stringify({ error: "Borrow record not found" }),
         { status: 404, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    if ((borrowRecord.renewCount || 0) >= 2) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "You have reached the maximum number of renewals for this book.",
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Tăng hạn trả thêm 7 ngày từ hạn cũ
-    const currentDueDate =
-      borrowRecord.expectedReturnDate || borrowRecord.dueDate || new Date();
+    // Tính toán ngày trả dự kiến mới (tăng thêm 7 ngày)
+    const currentDueDate = borrowRecord.expectedReturnDate || new Date();
     const newDueDate = new Date(currentDueDate);
-    newDueDate.setDate(newDueDate.getDate() + 7);
+    newDueDate.setDate(newDueDate.getDate() + 7); // Tăng thêm 7 ngày
 
-    // Update vào database
-    await db.collection("borrows").updateOne(
-      { _id: new ObjectId(borrowId) },
+    // Cập nhật bản ghi mượn sách
+    const borrow = await db.collection("borrows").updateOne(
+      {
+        _id: new ObjectId(borrowId),
+      },
       {
         $set: { expectedReturnDate: newDueDate },
         $inc: { renewCount: 1 },
       }
     );
 
+    // Kiểm tra xem có cập nhật được không
+    if (!borrow.matchedCount) {
+      return new Response(
+        JSON.stringify({ error: "Borrow record not found" }),
+        { status: 404, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Trả về thông báo thành công
     return new Response(
-      JSON.stringify({ message: "Book renewed successfully", newDueDate }),
+      JSON.stringify({ message: "Book renewed successfully" }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Error renewing book:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }

@@ -49,6 +49,7 @@ async function getUserProfileDataNative(db, userId) {
         borrowedBooks: [],
         overdueBooks: [],
         pendingBooks: [],
+        returnedBooks: [],
       };
     }
 
@@ -67,69 +68,17 @@ async function getUserProfileDataNative(db, userId) {
         borrowedBooks: [],
         overdueBooks: [],
         pendingBooks: [],
+        returnedBooks: [],
       };
     }
 
     const borrowsCollection = db.collection("borrows");
-    // const aggregationPipeline = [
-    //   {
-    //     $match: {
-    //       member: member._id,
-    //       returnDate: null,
-    //     },
-    //   },
-    //   {
-    //     $unwind: "$books",
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "books",
-    //       localField: "books.book",
-    //       foreignField: "_id",
-    //       as: "bookDetails",
-    //     },
-    //   },
 
-    //   {
-    //     $unwind: { path: "$bookDetails", preserveNullAndEmptyArrays: true },
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "authors",
-    //       localField: "bookDetails.author",
-    //       foreignField: "_id",
-    //       as: "authorDetails",
-    //     },
-    //   },
-    //   {
-    //     $unwind: { path: "$authorDetails", preserveNullAndEmptyArrays: true },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 0,
-    //       borrowRecordId: "$_id",
-    //       bookId: "$books.book",
-    //       title: "$bookDetails.title",
-    //       authorName: "$authorDetails.name",
-    //       coverImage: "$bookDetails.coverImage",
-    //       borrowDate: "$borrowDate",
-    //       dueDate: "$books.expectedReturnDate",
-    //       renewalsLeft: { $subtract: [2, "$books.renewCount"] },
-    //       isFinePaid: "$books.is_fine_paid",
-    //     },
-    //   },
-    // ];
-
-    // const borrowDetails = await borrowsCollection
-    //   .aggregate(aggregationPipeline)
-    //   .toArray();
-
-    // Tạo aggregation pipeline
     const aggregationPipeline = [
       {
         $match: {
           member: member._id,
-          status: { $in: ["Pending", "Borrowed", "Overdue"] },
+          status: { $in: ["Pending", "Borrowed", "Overdue", "Returned"] },
         },
       },
       {
@@ -164,9 +113,11 @@ async function getUserProfileDataNative(db, userId) {
           coverImage: "$bookDetails.coverImage",
           borrowDate: "$borrowDate",
           dueDate: "$expectedReturnDate",
+          returnDate: "$returnDate",
           renewalsLeft: { $subtract: [2, "$renewCount"] },
           isFinePaid: "$is_fine_paid",
           status: 1,
+          userRating: "$userRating",
         },
       },
     ];
@@ -176,13 +127,10 @@ async function getUserProfileDataNative(db, userId) {
       .aggregate(aggregationPipeline)
       .toArray();
 
-    console.log(
-      `Native Driver: Found ${borrowDetails.length} active borrow details.`
-    );
-
     const borrowedBooks = [];
     const overdueBooks = [];
     const pendingBooks = [];
+    const returnedBooks = [];
     let currentFineTotal = 0;
 
     // Xử lý thông tin mượn sách
@@ -207,10 +155,12 @@ async function getUserProfileDataNative(db, userId) {
         coverImage: record.coverImage || null,
         borrowDate: record.borrowDate,
         dueDate: record.dueDate,
+        returnDate: record.returnDate,
         renewalsLeft: record.renewalsLeft,
         isFinePaid: record.isFinePaid || false,
         fineAmount,
         borrowStatus: record.status,
+        userRating: record.userRating || false,
       };
 
       if (dayOverdue > 0) {
@@ -224,8 +174,10 @@ async function getUserProfileDataNative(db, userId) {
         overdueBooks.push(overdueData);
       } else if (bookData.borrowStatus === "Pending") {
         pendingBooks.push(bookData);
-      } else {
+      } else if (bookData.borrowStatus === "Borrowed") {
         borrowedBooks.push(bookData);
+      } else if (bookData.borrowStatus === "Returned") {
+        returnedBooks.push(bookData);
       }
     });
 
@@ -253,9 +205,15 @@ async function getUserProfileDataNative(db, userId) {
       birthDate: member.birthDate,
     };
 
-    console.log("Native Driver: User profile data processed successfully.");
     // Trả về thông tin người dùng
-    return { profile, stats, borrowedBooks, overdueBooks, pendingBooks };
+    return {
+      profile,
+      stats,
+      borrowedBooks,
+      overdueBooks,
+      pendingBooks,
+      returnedBooks,
+    };
   } catch (error) {
     console.error("Native Driver: Error fetching user profile data:", error);
     throw error;
@@ -276,7 +234,6 @@ export async function GET(request) {
   // Lấy token từ header Authorization
   const authHeader = request.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.log("API Error: Authorization header missing or invalid.");
     return NextResponse.json(
       { success: false, message: "Authorization header missing or invalid." },
       { status: 401 }
@@ -289,11 +246,9 @@ export async function GET(request) {
     // Xác thực token
     const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.userId;
-    console.log(`API Info: Token verified for userId: ${userId}`);
 
     // Kiểm tra xem có userId không
     if (!userId) {
-      console.log("API Error: Invalid token payload (missing userId).");
       return NextResponse.json(
         { success: false, message: "Invalid token payload." },
         { status: 401 }
@@ -302,7 +257,6 @@ export async function GET(request) {
 
     // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
-    console.log("API Info: Database connected (Native Driver).");
 
     // Lấy thông tin người dùng
     const userData = await getUserProfileDataNative(db, userId);
@@ -315,8 +269,6 @@ export async function GET(request) {
         { status: 404 }
       );
     }
-
-    console.log("API Info: Returning successful profile data.");
     // Trả về thông tin người dùng
     return NextResponse.json(
       { success: true, data: userData },
@@ -327,20 +279,17 @@ export async function GET(request) {
       error.name === "JsonWebTokenError" ||
       error.name === "TokenExpiredError"
     ) {
-      console.log("API Error: Invalid or expired token.");
       return NextResponse.json(
         { success: false, message: "Invalid or expired token." },
         { status: 401 }
       );
     }
     if (error.message.includes("Argument passed in must be a single String")) {
-      console.log("API Error: Invalid ObjectId format for user ID.");
       return NextResponse.json(
         { success: false, message: "Invalid user identifier format." },
         { status: 400 }
       );
     }
-    console.error("Profile API GET Error:", error);
     return NextResponse.json(
       { success: false, message: "Internal Server Error." },
       { status: 500 }

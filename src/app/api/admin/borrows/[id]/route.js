@@ -3,23 +3,17 @@ import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/dbConnect.js"; // Đường dẫn đến tệp kết nối cơ sở dữ liệu của bạn
 export async function PUT(req, { params }) {
   try {
-    // Lấy ID từ params
     const { id } = await params;
-    // Lấy dữ liệu cập nhật từ request body
     const updateData = await req.json();
-    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const borrowsCollection = db.collection("borrows");
-    // Tìm bản ghi mượn sách
     const borrowRecord = await borrowsCollection.findOne({
       _id: new ObjectId(id),
     });
 
-    // Loại bỏ trường _id nếu tồn tại trong updateData
     if (updateData._id) {
       delete updateData._id;
     }
-    // Đổi ngày tháng năm về định dạng ISO
     if (updateData.expectedReturnDate) {
       updateData.expectedReturnDate = new Date(updateData.expectedReturnDate);
     }
@@ -30,7 +24,6 @@ export async function PUT(req, { params }) {
       updateData.borrowDate = new Date(updateData.borrowDate);
     }
 
-    // Cập nhật số lượng sách nếu trạng thái là "Returned" hoặc "borrowd"
     if (
       updateData.status === "Returned" &&
       borrowRecord.status !== "Returned"
@@ -59,28 +52,17 @@ export async function PUT(req, { params }) {
       }
     }
 
-    // Cập nhật thông tin thành viên
     const updateResult = await borrowsCollection.updateOne(
       { _id: new ObjectId(id) },
       { $set: updateData }
     );
 
-    // Kiểm tra xem có cập nhật được không
     if (updateResult.modifiedCount === 0) {
       throw new Error("Failed to update borrow record");
     }
 
-    if (updateData.status === "Returned") {
-      const deleteResult = await borrowsCollection.deleteOne({
-        _id: new ObjectId(id),
-      });
+    // Đã bỏ phần xóa bản ghi khi Returned
 
-      if (deleteResult.deletedCount === 0) {
-        throw new Error("Failed to delete borrow record");
-      }
-    }
-
-    // Trả về kết quả thành công
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error updating borrow record:", error);

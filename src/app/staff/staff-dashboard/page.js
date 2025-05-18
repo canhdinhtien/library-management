@@ -44,9 +44,9 @@ export default function AdminDashboard() {
     if (!authLoading) {
       if (!user) {
         router.replace("/login");
-      } else if (user.role !== "admin") {
+      } else if (user.role !== "employee") {
         console.log(
-          `AdminDashboard: Role (${user.role}) not admin. Redirecting.`
+          `StaffDashboard: Role (${user.role}) not staff. Redirecting.`
         );
       } else {
         loadAdminDashboardData();
