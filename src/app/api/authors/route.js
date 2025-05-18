@@ -1,6 +1,8 @@
 import { connectToDatabase } from "@/lib/dbConnect";
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
+import verifyToken from "@/middleware/auth";
+import jwt from "jsonwebtoken";
 
 export async function GET(request) {
   try {
@@ -45,7 +47,6 @@ export async function GET(request) {
   }
 }
 
-// POST - Tạo tác giả mới
 export async function POST(request) {
   try {
     const { db } = await connectToDatabase();
@@ -59,38 +60,21 @@ export async function POST(request) {
       bio,
       birthYear,
       deathYear,
-      coopPublisher,
+      // coopPublisher, // XÓA dòng này
     } = body;
 
-    if (!authorCode || !name || !birthYear || !coopPublisher) {
+    if (!authorCode || !name || !birthYear) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Missing required fields: authorCode, name, birthYear, coopPublisher are required.",
+            "Missing required fields: authorCode, name, birthYear are required.",
         },
-        { status: 400 }
-      );
-    }
-    if (!ObjectId.isValid(coopPublisher)) {
-      return NextResponse.json(
-        { success: false, message: "Invalid coopPublisher ID format." },
         { status: 400 }
       );
     }
 
-    const publisherExists = await db
-      .collection("publishers")
-      .findOne({ _id: new ObjectId(coopPublisher) });
-    if (!publisherExists) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Publisher with ID ${coopPublisher} not found.`,
-        },
-        { status: 400 }
-      );
-    }
+    // XÓA kiểm tra publisherExists và ObjectId.isValid
 
     // Kiểm tra authorCode đã tồn tại chưa
     const existingAuthor = await db
@@ -106,12 +90,11 @@ export async function POST(request) {
       );
     }
 
-    // Chuẩn bị dữ liệu để insert, chuyển đổi coopPublisher thành ObjectId
+    // Chuẩn bị dữ liệu để insert, KHÔNG có coopPublisher
     const newAuthorDocument = {
       authorCode,
       name,
-      birthYear: parseInt(birthYear, 10), // Đảm bảo là số
-      coopPublisher: new ObjectId(coopPublisher), // Chuyển đổi sang ObjectId
+      birthYear: parseInt(birthYear, 10),
       ...(gender && { gender }),
       ...(image && { image }),
       ...(bio && { bio }),

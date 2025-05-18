@@ -1,4 +1,4 @@
-import dbConnect from "../../../../lib/dbConnect.js";
+import { connectToDatabase } from "../../../../lib/dbConnect.js";
 import mongoose from "mongoose";
 import { getUserBorrowedBooks } from "../../../../services/borrowService.js";
 

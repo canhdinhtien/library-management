@@ -30,7 +30,7 @@ export async function PUT(req, { params }) {
       updateData.borrowDate = new Date(updateData.borrowDate);
     }
 
-    // Cập nhật số lượng sách nếu trạng thái là "Returned"
+    // Cập nhật số lượng sách nếu trạng thái là "Returned" hoặc "borrowd"
     if (
       updateData.status === "Returned" &&
       borrowRecord.status !== "Returned"
@@ -40,6 +40,19 @@ export async function PUT(req, { params }) {
         .updateOne(
           { title: updateData.bookTitle },
           { $inc: { availableQuantity: 1 } }
+        );
+      if (bookUpdate.modifiedCount === 0) {
+        throw new Error("Failed to update book record");
+      }
+    } else if (
+      updateData.status === "borrowd" &&
+      borrowRecord.status !== "borrowd"
+    ) {
+      const bookUpdate = await db
+        .collection("books")
+        .updateOne(
+          { title: updateData.bookTitle },
+          { $inc: { availableQuantity: -1 } }
         );
       if (bookUpdate.modifiedCount === 0) {
         throw new Error("Failed to update book record");
@@ -55,6 +68,16 @@ export async function PUT(req, { params }) {
     // Kiểm tra xem có cập nhật được không
     if (updateResult.modifiedCount === 0) {
       throw new Error("Failed to update borrow record");
+    }
+
+    if (updateData.status === "Returned") {
+      const deleteResult = await borrowsCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+
+      if (deleteResult.deletedCount === 0) {
+        throw new Error("Failed to delete borrow record");
+      }
     }
 
     // Trả về kết quả thành công

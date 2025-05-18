@@ -32,6 +32,56 @@ export async function PUT(req, { params }) {
   }
 }
 
+// export async function DELETE(req, { params }) {
+//   try {
+//     // Lấy ID từ params
+//     const { id } = params;
+//     // Kết nối tới cơ sở dữ liệu
+//     const { db } = await connectToDatabase();
+
+//     const membersCollection = db.collection("members");
+//     const accountsCollection = db.collection("accounts");
+//     // Tìm thành viên để xóa
+//     const memberToDelete = await membersCollection.findOne({
+//       _id: new ObjectId(id),
+//     });
+//     if (!memberToDelete) {
+//       throw new Error("Member not found");
+//     }
+//     const accountId = memberToDelete.accountId;
+//     console.log("Account ID to delete:", accountId);
+
+//     // Xóa người dùng
+//     const memberResult = await membersCollection.deleteOne({
+//       _id: new ObjectId(id),
+//     });
+//     if (!memberResult.deletedCount) {
+//       throw new Error("Failed to delete member.");
+//     }
+
+//     // Xóa tài khoản liên quan
+//     const accountResult = await accountsCollection.deleteOne({
+//       _id: new ObjectId(accountId),
+//     });
+//     if (!accountResult.deletedCount) {
+//       throw new Error("Failed to delete account.");
+//     }
+//     console.log("Account deleted:", accountResult);
+
+//     // Trả về kết quả thành công
+//     return new Response(
+//       JSON.stringify({ message: "Member deleted successfully." }),
+//       {
+//         status: 200,
+//       }
+//     );
+//   } catch (error) {
+//     console.error("Failed to delete member:", error);
+//     return new Response(JSON.stringify({ error: error.message }), {
+//       status: 500,
+//     });
+//   }
+// }
 export async function DELETE(req, { params }) {
   try {
     // Lấy ID từ params
@@ -41,6 +91,8 @@ export async function DELETE(req, { params }) {
 
     const membersCollection = db.collection("members");
     const accountsCollection = db.collection("accounts");
+    const borrowsCollection = db.collection("borrows");
+
     // Tìm thành viên để xóa
     const memberToDelete = await membersCollection.findOne({
       _id: new ObjectId(id),
@@ -49,7 +101,20 @@ export async function DELETE(req, { params }) {
       throw new Error("Member not found");
     }
     const accountId = memberToDelete.accountId;
-    console.log("Account ID to delete:", accountId);
+
+    // Kiểm tra thành viên có đang mượn sách chưa trả không
+    const hasUnreturned = await borrowsCollection.findOne({
+      member: new ObjectId(id),
+      status: { $ne: "Returned" },
+    });
+    if (hasUnreturned) {
+      return new Response(
+        JSON.stringify({
+          error: "Cannot delete member with unreturned books.",
+        }),
+        { status: 400 }
+      );
+    }
 
     // Xóa người dùng
     const memberResult = await membersCollection.deleteOne({

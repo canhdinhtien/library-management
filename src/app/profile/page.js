@@ -14,6 +14,7 @@ import {
   Loader2,
   Info,
 } from "lucide-react";
+import { toast } from "sonner";
 
 function PendingBookItem({ book }) {
   return (
@@ -101,7 +102,7 @@ function BorrowedBookItem({ book, onRenew }) {
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => onRenew(book.borrowRecordId)}
+                  onClick={() => onRenew(book._id)}
                   disabled={!isRenewable}
                   className={`px-3 py-1 rounded-md text-sm flex items-center ${
                     isRenewable
@@ -111,9 +112,6 @@ function BorrowedBookItem({ book, onRenew }) {
                 >
                   <RefreshCw className="h-3 w-3 mr-1" />
                   Renew
-                  {isRenewable && (
-                    <span className="ml-1">({book.renewalsLeft} left)</span>
-                  )}
                 </button>
               </div>
             </div>
@@ -240,8 +238,9 @@ function EditProfileModal({ profile, onClose, onSave }) {
       formData.phone === profile.phone;
 
     if (isUnchanged) {
-      alert(
-        "No changes detected. Please update your information before saving."
+      toast.error(
+        "❌ " +
+          "No changes detected. Please update your information before saving."
       );
       return; // Dừng việc gửi dữ liệu
     }
@@ -257,7 +256,7 @@ function EditProfileModal({ profile, onClose, onSave }) {
       onClose(); // Close modal
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile. Please try again.");
+      toast.error("❌ " + "Failed to update profile. Please try again later.");
     }
   };
 
@@ -425,34 +424,49 @@ export default function Profile() {
     );
     if (!confirmRenew) {
       console.log("Renew action canceled.");
-      return; // Dừng nếu người dùng không xác nhận
+      return;
+    }
+
+    if (!borrowId) {
+      toast.error("❌ " + "Don't find borrowId to renew!");
+      return;
     }
 
     try {
       const response = await fetch(`/api/borrow/renew`, {
         method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ borrowId }),
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         const data = await response.json();
         console.log("Renew response:", data);
-        alert(data.message);
-      }
-      if (!response.ok) {
-        const error = await response.json();
+        toast.success("Book renewed successfully!");
+      } else {
+        const text = await response.text();
+        console.warn("Raw error response:", text);
+
+        let error = {};
+        try {
+          error = JSON.parse(text);
+        } catch (jsonError) {
+          console.error("Error parsing JSON response:", jsonError);
+        }
+
         console.error("Renewal failed:", error);
-        alert(error.error || "Failed to renew book.");
+        toast.error(error.error || error.message || "Failed to renew book.");
       }
 
       fetchProfileData();
     } catch (error) {
       console.error("Renew failed:", error);
-      alert(`Renew failed: ${error.message}`);
+      toast.error(`Renew failed: ${error.message}`);
     }
   };
-
   const handlePayFine = async (fineAmount, borrowId) => {
     console.log("Attempting to pay fine for:", borrowId);
     localStorage.setItem("borrowId", borrowId); // Lưu borrowId vào localStorage
@@ -490,7 +504,7 @@ export default function Profile() {
       }
     } catch (error) {
       console.error("Payment failed:", error);
-      alert(`Payment failed: ${error.message}`);
+      toast.error(`Payment failed: ${error.message}`);
     }
   };
 
@@ -541,7 +555,7 @@ export default function Profile() {
 
   const handleSaveProfile = () => {
     // Refresh profile data here
-    alert("Profile updated successfully!");
+    toast.success("Profile updated successfully!");
     setIsEditing(false);
     fetchProfileData(); // Refresh profile data after closing modal
   };
@@ -594,22 +608,7 @@ export default function Profile() {
                 </div>
 
                 {stats && profile && profile.maxBooksAllowed && (
-                  <div className="mt-4 sm:mt-0">
-                    <div className="text-sm text-gray-600">
-                      <span className="font-medium">
-                        {Math.max(
-                          0,
-                          profile.maxBooksAllowed -
-                            (stats.currentlyBorrowed || 0)
-                        )}
-                      </span>{" "}
-                      of{" "}
-                      <span className="font-medium">
-                        {profile.maxBooksAllowed}
-                      </span>{" "}
-                      book slots available
-                    </div>
-                  </div>
+                  <div className="mt-4 sm:mt-0"></div>
                 )}
               </div>
             </div>
@@ -686,6 +685,13 @@ export default function Profile() {
                 </div>
               ) : (
                 <>
+                  {/* {borrowedBooks?.map((book) => (
+                    <BorrowedBookItem
+                      key={book._id}
+                      book={book}
+                      onRenew={handleRenewBook}
+                    />
+                  ))} */}
                   {borrowedBooks?.map((book) => (
                     <BorrowedBookItem
                       key={book._id}

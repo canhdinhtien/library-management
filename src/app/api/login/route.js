@@ -70,7 +70,7 @@ export async function POST(request) {
     };
 
     // Tạo access token
-    const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
+    const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "12h" });
 
     // Create a refresh token with a 7-day expiration time
     // Tạo refresh token với thời gian hết hạn là 7 ngày
