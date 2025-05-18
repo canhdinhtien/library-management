@@ -156,7 +156,8 @@ export default function useBookCatalog() {
           throw new Error("Failed to load filter options");
         }
         const genres = await genresRes.json();
-        const authors = await authorsRes.json();
+        const authorsData = await authorsRes.json();
+        const authors = authorsData.data;
         setGenreOptions(genres || []);
         setAuthorOptions(authors || []);
       } catch (err) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useBookCatalog } from "../../hooks/useBookCatalog";
+import useBookCatalog from "../../hooks/useBookCatalog";
 import Navbar from "../../components/Navbar";
 import BookCard from "../../components/BookCard";
 import { Search, X, BookOpen, RefreshCw } from "lucide-react";
@@ -95,8 +95,8 @@ export default function CatalogPage() {
                 >
                   <option value="">All Authors</option>
                   {authorOptions.map((author, index) => (
-                    <option key={index} value={author}>
-                      {author}
+                    <option key={index} value={author.name}>
+                      {author.name}
                     </option>
                   ))}
                 </select>
