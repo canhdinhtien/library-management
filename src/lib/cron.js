@@ -14,7 +14,7 @@ if (typeof window === "undefined") {
           }
         );
         const borrowResponse = await fetch(
-          "http://localhost:3000/api/borrows/auto",
+          "http://localhost:3000/api/borrow/auto",
           {
             method: "POST",
           }
@@ -22,6 +22,8 @@ if (typeof window === "undefined") {
 
         const result = await response.json();
         console.log("Reminder job result:", result);
+        const borrowResult = await borrowResponse.json();
+        console.log("Borrow job result:", borrowResult);
       } catch (error) {
         console.error("Error running reminder job:", error);
       }

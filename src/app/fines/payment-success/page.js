@@ -43,6 +43,10 @@ export default function PaymentSuccess() {
       }
     };
 
+    fetchPaymentStatus();
+  }, [searchParams]);
+
+  useEffect(() => {
     const fetchUpdatedBookStatus = async (borrowId) => {
       try {
         const response = await fetch(`/api/fines/update-status`, {
@@ -64,12 +68,11 @@ export default function PaymentSuccess() {
         setUpdatedBookStatus("error");
       }
     };
-
     const borrowId = localStorage.getItem("borrowId");
-    fetchUpdatedBookStatus(borrowId);
-    // Fetch payment status after updating book status
-    fetchPaymentStatus();
-  }, [searchParams]);
+    if (paymentStatus === "success") {
+      fetchUpdatedBookStatus(borrowId);
+    }
+  }, [paymentStatus]);
 
   if (loading) {
     return (
