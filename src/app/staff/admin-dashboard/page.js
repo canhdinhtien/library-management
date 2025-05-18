@@ -235,12 +235,13 @@ export default function AdminDashboard() {
         body: JSON.stringify(newStaff),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error("Failed to add staff member.");
+        alert(data.error || "Failed to add staff member.");
+        return;
       }
 
-      const savedStaff = await response.json();
-      setStaffs((prevStaffs) => [...prevStaffs, savedStaff]);
+      setStaffs((prevStaffs) => [...prevStaffs, data]);
       alert("Staff added successfully!");
       setShowAddStaffModal(false);
       loadAdminDashboardData(); // Refresh the data after adding a new staff member
@@ -257,11 +258,14 @@ export default function AdminDashboard() {
         },
         body: JSON.stringify(newUser),
       });
+
+      const data = await response.json();
+      console.log("AdminDashboard: handleSaveUser", data);
       if (!response.ok) {
-        throw new Error("Failed to add user.");
+        alert(data.error || "Failed to add user.");
+        return;
       }
-      const savedUser = await response.json();
-      setUsers((prevUsers) => [...prevUsers, savedUser]);
+      setUsers((prevUsers) => [...prevUsers, data]);
       alert("User added successfully!");
       setShowAddUserModal(false);
       loadAdminDashboardData(); // Refresh the data after adding a new user
@@ -363,11 +367,14 @@ export default function AdminDashboard() {
         body: JSON.stringify(editedUser),
       });
 
+      const updatedUser = await response.json();
+      console.log("AdminDashboard: handleSaveEditedUser", updatedUser);
+
       if (!response.ok) {
-        throw new Error("Failed to update user.");
+        alert(updatedUser.message || "Failed to update user.");
+        return;
       }
 
-      const updatedUser = await response.json();
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.id === updatedUser.id ? updatedUser : user
@@ -499,26 +506,19 @@ export default function AdminDashboard() {
         body: JSON.stringify(editedStaff),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to update staff member. Error:", errorData);
-        throw new Error(
-          `Failed to update staff member. Reason: ${
-            errorData.message || "Unknown"
-          }`
-        );
+        alert(data.error || "Failed to update staff member.");
+        return;
       }
 
-      const updatedStaff = await response.json();
       setStaffs((prevStaffs) =>
-        prevStaffs.map((staff) =>
-          staff.id === updatedStaff.id ? updatedStaff : staff
-        )
+        prevStaffs.map((staff) => (staff.id === data.id ? data : staff))
       );
       alert("Staff updated successfully!");
       setShowEditStaffModal(false);
       loadAdminDashboardData(); // Refresh the data after updating a staff member
-      console.log("Staff updated successfully:", updatedStaff);
+      console.log("Staff updated successfully:", data);
     } catch (error) {
       console.error("Failed to update staff:", error);
       alert("Failed to update staff. Please try again.");

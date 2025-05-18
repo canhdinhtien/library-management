@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/dbConnect.js";
 export async function PUT(req, { params }) {
@@ -10,11 +9,44 @@ export async function PUT(req, { params }) {
     // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const membersCollection = db.collection("members");
+    const accountsCollection = db.collection("accounts");
+
+    // Kiểm tra xem thành viên có tồn tại không
+    const memberToUpdate = await membersCollection.findOne({
+      _id: new ObjectId(id),
+    });
+    if (!memberToUpdate) {
+      return Response.json(
+        { success: false, message: "Member not found" },
+        { status: 404 }
+      );
+    }
+
+    // Kiểm tra xem email có bị trùng không
+    const existingEmail = await accountsCollection.findOne({
+      email: updateData.email,
+      _id: { $ne: new ObjectId(memberToUpdate.accountId) }, // Không kiểm tra chính nó
+    });
+    if (existingEmail) {
+      return Response.json(
+        { success: false, message: "Email already exists" },
+        { status: 400 }
+      );
+    }
 
     // Cập nhật thông tin thành viên
     const updateResult = await membersCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: updateData }
+      {
+        $set: {
+          firstName: updateData.firstName,
+          lastName: updateData.lastName,
+          email: updateData.email,
+          phone: updateData.phone,
+          birthDate: updateData.birthDate,
+          address: updateData.address,
+        },
+      }
     );
 
     // Kiểm tra xem có cập nhật được không
@@ -22,12 +54,29 @@ export async function PUT(req, { params }) {
       throw new Error("Failed to update member");
     }
 
+    // Cập nhật thông tin tài khoản
+    const accountUpdateResult = await accountsCollection.updateOne(
+      { _id: new ObjectId(memberToUpdate.accountId) },
+      {
+        $set: {
+          email: updateData.email,
+        },
+      }
+    );
+    // Kiểm tra xem có cập nhật được không
+    if (accountUpdateResult.modifiedCount === 0) {
+      throw new Error("Failed to update account");
+    }
+
     // Trả về kết quả thành công
-    return NextResponse.json({ success: true }, { status: 200 });
+    return Response.json(
+      { success: true, message: "Member updated successfully" },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json(
+    return Response.json(
       { success: false, message: error.message },
-      { status: 400 }
+      { status: 500 }
     );
   }
 }

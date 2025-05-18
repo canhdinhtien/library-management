@@ -20,6 +20,14 @@ export async function POST(req) {
     const accountsCollection = db.collection("accounts");
     const employeesCollection = db.collection("employees");
 
+    // Kiểm tra trùng lặp mã nhân viên
+    const existingEmployee = await employeesCollection.findOne({
+      employeeCode: staffCode,
+    });
+    if (existingEmployee) {
+      throw new Error("Employee code already exists");
+    }
+
     // Kiểm tra trùng lặp tài khoản
     const existingAccount = await accountsCollection.findOne({
       $or: [{ username }, { email }],
@@ -64,7 +72,7 @@ export async function POST(req) {
     return new Response(JSON.stringify(newEmployee), { status: 201 });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+      status: 400,
     });
   }
 }
@@ -90,9 +98,8 @@ export async function GET() {
       }
       return {
         id: employee._id,
-        name: `${employee.firstName} ${employee.middleName || ""} ${
-          employee.lastName
-        }`,
+        firstName: employee.firstName,
+        lastName: employee.lastName,
         email: account.email,
         phone: employee.phone,
         role: account.role,

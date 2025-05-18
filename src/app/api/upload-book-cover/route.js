@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
+import cloudinary from "@/lib/cloudinary";
 
 export async function POST(request) {
   try {
@@ -15,13 +14,17 @@ export async function POST(request) {
     }
 
     const buffer = await image.arrayBuffer();
-    const filename = `${Date.now()}-${image.name}`;
-    const filepath = path.join(process.cwd(), "public/images/books", filename);
+    const arrayBuffer = await image.arrayBuffer();
+    const buffer2 = Buffer.from(arrayBuffer);
 
-    await fs.writeFile(filepath, Buffer.from(buffer));
+    const uploadedResponse = await cloudinary.uploader.upload(
+      "data:image/png;base64," + buffer2.toString("base64"),
+      {
+        folder: "books",
+      }
+    );
 
-    const imageUrl = `/images/books/${filename}`;
-    return NextResponse.json({ imageUrl });
+    return NextResponse.json({ imageUrl: uploadedResponse.secure_url });
   } catch (error) {
     console.error("Failed to upload image:", error);
     return NextResponse.json(

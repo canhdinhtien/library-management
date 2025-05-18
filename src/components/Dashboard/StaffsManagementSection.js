@@ -40,7 +40,7 @@ export default function StaffManagementSection({
               <div className="relative">
                 <input
                   type="search"
-                  placeholder="Search users..."
+                  placeholder="Search staff..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full sm:w-72 pl-12 pr-4 py-3 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF9800] focus:border-transparent text-gray-400"
@@ -123,7 +123,7 @@ export default function StaffManagementSection({
                     filteredStaffs.map((staff) => (
                       <tr key={staff.id || staff._id}>
                         <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {staff.name}
+                          {`${staff.firstName} ${staff.lastName}`}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                           {staff.email}

@@ -41,7 +41,7 @@ export default function UsersManagementSection({
               <div className="relative">
                 <input
                   type="search"
-                  placeholder="Search users..."
+                  placeholder="Search user..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full sm:w-72 pl-12 pr-4 py-3 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF9800] focus:border-transparent text-gray-400"
@@ -141,7 +141,7 @@ export default function UsersManagementSection({
                             {user.status}
                           </span>
                         </td>
-                        <td className="px-5 py-4 text-sm text-gray-500">
+                        <td className="px-5 py-4 text-sm max-w-[400px] truncate text-gray-500">
                           {user.books?.join(", ") || "No books"}
                         </td>
                         <td className="px-5 py-4 text-sm text-gray-500">
