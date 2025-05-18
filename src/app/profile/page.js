@@ -16,13 +16,14 @@ import {
   BookCheck,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "sonner";
 
 function ReviewModal({ onClose, onSubmit, rating }) {
   const [reviewText, setReviewText] = useState("");
 
   const handleSubmit = () => {
     if (!reviewText.trim()) {
-      alert("Please write a review before submitting.");
+      toast.info("Please write a review before submitting.");
       return;
     }
     onSubmit(reviewText);
@@ -112,14 +113,14 @@ function ReturnedBookItem({ book }) {
       });
       const data = await response.json();
       if (data.success) {
-        alert("Review submitted successfully!");
+        toast.success("Review submitted successfully!");
         window.location.reload();
       } else {
-        alert("Failed to submit review.");
+        toast.error("Failed to submit review.");
       }
     } catch (error) {
       console.error("Error submitting review:", error);
-      alert("An error occurred while submitting the review.");
+      toast.error("An error occurred while submitting the review.");
     }
   };
   return (
@@ -472,7 +473,7 @@ function EditProfileModal({ profile, onClose, onSave }) {
       formData.phone === profile.phone;
 
     if (isUnchanged) {
-      alert(
+      toast.info(
         "No changes detected. Please update your information before saving."
       );
       return; // Dừng việc gửi dữ liệu
@@ -489,7 +490,7 @@ function EditProfileModal({ profile, onClose, onSave }) {
       onClose(); // Close modal
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile. Please try again.");
+      toast.error("Failed to update profile. Please try again.");
     }
   };
 
@@ -670,18 +671,18 @@ export default function Profile() {
       if (response.ok) {
         const data = await response.json();
         console.log("Renew response:", data);
-        alert(data.message);
+        toast.success(data.message);
       }
       if (!response.ok) {
         const error = await response.json();
         console.error("Renewal failed:", error);
-        alert(error.error || "Failed to renew book.");
+        toast.error(error.error || "Failed to renew book.");
       }
 
       fetchProfileData();
     } catch (error) {
       console.error("Renew failed:", error);
-      alert(`Renew failed: ${error.message}`);
+      toast.error(`Renew failed: ${error.message}`);
     }
   };
 
@@ -722,7 +723,7 @@ export default function Profile() {
       }
     } catch (error) {
       console.error("Payment failed:", error);
-      alert(`Payment failed: ${error.message}`);
+      toast.error(`Payment failed: ${error.message}`);
     }
   };
 
@@ -779,7 +780,7 @@ export default function Profile() {
 
   const handleSaveProfile = () => {
     // Refresh profile data here
-    alert("Profile updated successfully!");
+    toast.success("Profile updated successfully!");
     setIsEditing(false);
     fetchProfileData(); // Refresh profile data after closing modal
   };
@@ -831,7 +832,7 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {stats && profile && profile.maxBooksAllowed && (
+                {/* {stats && profile && profile.maxBooksAllowed && (
                   <div className="mt-4 sm:mt-0">
                     <div className="text-sm text-gray-600">
                       <span className="font-medium">
@@ -848,7 +849,7 @@ export default function Profile() {
                       book slots available
                     </div>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           </div>

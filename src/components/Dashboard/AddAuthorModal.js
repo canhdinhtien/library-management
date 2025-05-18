@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Image from "next/image";
 
 const AddAuthorModal = ({ isOpen, onClose, onAuthorAdded }) => {
   const [name, setName] = useState("");
@@ -156,7 +157,7 @@ const AddAuthorModal = ({ isOpen, onClose, onAuthorAdded }) => {
                   </div>
                 </div>
                 {authorCoverImage && (
-                  <img
+                  <Image
                     src={authorCoverImage}
                     alt="Cover Preview"
                     className="mt-2 h-20 w-auto"

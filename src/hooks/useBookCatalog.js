@@ -23,9 +23,10 @@ export const useBookCatalog = () => {
   useEffect(() => {
     const loadOptions = async () => {
       try {
+        const token = localStorage.getItem("authToken"); // Lấy token từ localStorage
         const [genres, authors] = await Promise.all([
           fetchGenres(),
-          fetchAuthors(),
+          fetchAuthors(token), // Truyền token vào đây
         ]);
         setGenreOptions(genres);
         setAuthorOptions(authors);

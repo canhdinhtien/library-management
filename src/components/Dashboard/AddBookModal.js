@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { toast } from "sonner";
 
 const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
   const [coverImage, setCoverImage] = useState("");
@@ -163,7 +164,7 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
       return data.imageUrl;
     } catch (error) {
       console.error(`Failed to upload image to ${uploadEndpoint}:`, error);
-      alert(`Image upload failed: ${error.message}`);
+      toast.error(`Image upload failed: ${error.message}`);
       return null;
     } finally {
       setLoadingState(false);
@@ -196,10 +197,10 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
     if (
       !newAuthorCode.trim() ||
       !newAuthorName.trim() ||
-      !newAuthorBirthYear.trim() ||
-      !newAuthorCoopPublisherId.trim()
+      !newAuthorBirthYear.trim()
+      // !newAuthorCoopPublisherId.trim()
     ) {
-      alert(
+      toast.toast(
         "Vui lòng nhập đủ các trường bắt buộc cho tác giả: Mã tác giả, Tên, Năm sinh, NXB hợp tác."
       );
       return;
@@ -247,16 +248,16 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
           for (const field in responseData.errors) {
             errorMessages += `- ${responseData.errors[field]}\n`;
           }
-          alert(errorMessages.trim());
+          toast(errorMessages.trim());
         } else {
-          alert(
+          toast(
             responseData.message ||
               `Không thể lưu tác giả. Status: ${response.status}`
           );
         }
         return;
       }
-      alert(responseData.message || "Tác giả đã được thêm thành công!");
+      toast(responseData.message || "Tác giả đã được thêm thành công!");
       setNewAuthorCode("");
       setNewAuthorName("");
       setNewAuthorGender("");
@@ -272,13 +273,13 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
         setAuthor(responseData.data._id);
     } catch (error) {
       console.error("Lỗi khi lưu tác giả:", error);
-      alert(`Đã xảy ra lỗi: ${error.message}`);
+      toast(`Đã xảy ra lỗi: ${error.message}`);
     }
   };
 
   const handleSaveNewPublisher = async () => {
     if (!newPublisherCode.trim() || !newPublisherName.trim()) {
-      alert("Vui lòng nhập Mã NXB và Tên NXB.");
+      toast("Vui lòng nhập đủ các trường bắt buộc cho NXB: Mã NXB và Tên NXB.");
       return;
     }
     let finalPublisherLogoUrl = newPublisherLogoUrl;
@@ -321,16 +322,16 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
           for (const field in responseData.errors) {
             errorMessages += `- ${responseData.errors[field]}\n`;
           }
-          alert(errorMessages.trim());
+          toast(errorMessages.trim());
         } else {
-          alert(
+          toast(
             responseData.message ||
               `Không thể lưu NXB. Status: ${response.status}`
           );
         }
         return;
       }
-      alert(responseData.message || "Nhà xuất bản đã được thêm thành công!");
+      toast(responseData.message || "Nhà xuất bản đã được thêm thành công!");
       setNewPublisherCode("");
       setNewPublisherName("");
       setNewPublisherAddress("");
@@ -343,81 +344,10 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
         setPublisher(responseData.data._id);
     } catch (error) {
       console.error("Lỗi khi lưu NXB:", error);
-      alert(`Đã xảy ra lỗi: ${error.message}`);
+      toast(`Đã xảy ra lỗi: ${error.message}`);
     }
   };
 
-  // const handleSubmitBook = async (e) => {
-  //   e.preventDefault();
-  //   setIsSubmittingBook(true);
-
-  //   let finalBookCoverImageUrl = coverImage;
-  //   if (coverImageFile) {
-  //     finalBookCoverImageUrl = await uploadImage(
-  //       coverImageFile,
-  //       "/api/upload-book-cover",
-  //       setIsUploadingBookCover,
-  //       setCoverImage
-  //     );
-  //     if (!finalBookCoverImageUrl) {
-  //       setIsSubmittingBook(false);
-  //       return;
-  //     }
-  //   } else if (coverImageURLInput.trim()) {
-  //     finalBookCoverImageUrl = coverImageURLInput.trim();
-  //   } else if (!finalBookCoverImageUrl) {
-  //     alert("Vui lòng cung cấp ảnh bìa sách.");
-  //     setIsSubmittingBook(false);
-  //     return;
-  //   }
-
-  //   const bookData = {
-  //     coverImage: finalBookCoverImageUrl,
-  //     bookCode,
-  //     title,
-  //     genres: genres
-  //       .split(",")
-  //       .map((g) => g.trim())
-  //       .filter((g) => g),
-  //     description,
-  //     price: parseFloat(price),
-  //     quantity: parseInt(quantity, 10),
-  //     availableQuantity: availableQuantity
-  //       ? parseInt(availableQuantity, 10)
-  //       : parseInt(quantity, 10),
-  //     author,
-  //     publisher,
-  //   };
-
-  //   console.log("bookData before submit:", bookData);
-
-  //   try {
-  //     const token = localStorage.getItem("authToken");
-  //     const response = await fetch("/api/admin/books", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify(bookData),
-  //     });
-  //     const responseData = await response.json();
-  //     if (!response.ok) {
-  //       throw new Error(
-  //         responseData.message ||
-  //           `Không thể thêm sách. Status: ${response.status}`
-  //       );
-  //     }
-  //     alert("Sách đã được thêm thành công!");
-  //     if (typeof onBookAdded === "function") onBookAdded(responseData.data);
-  //     onClose();
-  //   } catch (error) {
-  //     console.error("Lỗi khi thêm sách:", error);
-  //     alert(`Lỗi: ${error.message}`);
-  //   } finally {
-  //     setIsSubmittingBook(false);
-  //   }
-  // };
   const isValidObjectId = (id) => {
     return /^[0-9a-fA-F]{24}$/.test(id);
   };
@@ -441,13 +371,13 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
     } else if (coverImageURLInput.trim()) {
       finalBookCoverImageUrl = coverImageURLInput.trim();
     } else if (!finalBookCoverImageUrl) {
-      alert("Vui lòng cung cấp ảnh bìa sách.");
+      toast("Vui lòng cung cấp ảnh bìa sách.");
       setIsSubmittingBook(false);
       return;
     }
 
     if (!isValidObjectId(author) || !isValidObjectId(publisher)) {
-      alert("Invalid Author or Publisher ID");
+      toast("Invalid Author or Publisher ID");
       setIsSubmittingBook(false);
       return;
     }
@@ -463,9 +393,7 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
       description,
       price: parseFloat(price),
       quantity: parseInt(quantity, 10),
-      availableQuantity: availableQuantity
-        ? parseInt(availableQuantity, 10)
-        : parseInt(quantity, 10),
+      availableQuantity: parseInt(availableQuantity, 10),
       author, // Lưu ObjectId của Author
       publisher, // Lưu ObjectId của Publisher
       borrowedCount: 0,
@@ -490,12 +418,12 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
             `Không thể thêm sách. Status: ${response.status}`
         );
       }
-      alert("Sách đã được thêm thành công!");
+      toast.success("Book added successfully!");
       if (typeof onBookAdded === "function") onBookAdded(responseData.data);
       onClose();
     } catch (error) {
       console.error("Lỗi khi thêm sách:", error);
-      alert(`Lỗi: ${error.message}`);
+      toast(`Lỗi: ${error.message}`);
     } finally {
       setIsSubmittingBook(false);
     }
@@ -504,8 +432,8 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-600/20">
-      <div className="bg-white p-6 rounded-md shadow-md w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-2 min-w-0 overflow-y-auto max-h-screen">
         <h2 className="text-xl font-bold mb-4">Add New Book</h2>
 
         <div className="mb-4 border-b">
@@ -629,20 +557,6 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
                   className="w-full p-2 border rounded-md"
                 />
               </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">
-                Available Quantity
-              </label>
-              <input
-                type="number"
-                value={availableQuantity}
-                onChange={(e) => setAvailableQuantity(e.target.value)}
-                min="0"
-                className="w-full p-2 border rounded-md"
-                placeholder="Defaults to Quantity"
-              />
             </div>
 
             <div className="mb-4">
@@ -777,7 +691,7 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
                   </select>
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium mb-1">
                     Cooperating Publisher
                   </label>
@@ -795,7 +709,7 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
                       </option>
                     ))}
                   </select>
-                </div>
+                </div> */}
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -868,9 +782,9 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
               </button>
             </div>
 
-            {showPublisherInlineForm && (
-              <div className="space-y-3 mb-4">
-                <div>
+            {/* {showPublisherInlineForm && (
+              <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+                <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-2 min-w-0 overflow-y-auto max-h-screen">
                   <label className="block text-sm font-medium mb-1">
                     Publisher Code
                   </label>
@@ -916,25 +830,59 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
                   />
                 </div>
 
+                <button
+                  type="button"
+                  onClick={handleSaveNewPublisher}
+                  className="w-full p-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+                >
+                  Save Publisher
+                </button>
+              </div>
+            )} */}
+            {showPublisherInlineForm && (
+              <div className="space-y-3 mb-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Publisher Logo
+                    Publisher Code
                   </label>
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      handlePublisherLogoFileChange(e.target.files[0])
-                    }
-                    className="w-full p-1 border rounded-md text-sm"
+                    type="text"
+                    value={newPublisherCode}
+                    onChange={(e) => setNewPublisherCode(e.target.value)}
+                    className="w-full p-2 border rounded-md"
                   />
-                  {newPublisherLogoImageFile && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Selected: {newPublisherLogoImageFile.name}
-                    </p>
-                  )}
                 </div>
-
+                <div>
+                  <label className="block text-sm font-medium mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={newPublisherName}
+                    onChange={(e) => setNewPublisherName(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    value={newPublisherAddress}
+                    onChange={(e) => setNewPublisherAddress(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Phone
+                  </label>
+                  <input
+                    type="text"
+                    value={newPublisherPhone}
+                    onChange={(e) => setNewPublisherPhone(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={handleSaveNewPublisher}

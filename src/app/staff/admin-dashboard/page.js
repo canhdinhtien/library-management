@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 import AddBookModal from "@/components/Dashboard/AddBookModal";
+import BooksManagementSection from "../../../components/Dashboard/BooksManagementSection";
 import {
   RefreshCw,
   BookOpen,
@@ -18,10 +19,10 @@ import {
 import DashboardHeader from "../../../components/Dashboard/DashboardHeader";
 import DashboardStats from "../../../components/Dashboard/DashboardStats";
 // import DashboardControls from "../../../components/Dashboard/DashboardControls";
-import BooksManagementSection from "../../../components/Dashboard/BooksManagementSection";
 import UsersManagementSection from "../../../components/Dashboard/UsersManagementSection";
 import StaffManagementSection from "../../../components/Dashboard/StaffsManagementSection";
 import BorrowsManagementSection from "../../../components/Dashboard/BorrowsManagementSection";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -60,44 +61,6 @@ export default function AdminDashboard() {
     }
   }, [user, authLoading, router]);
 
-  // const loadAdminDashboardData = async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     console.log("Loading ADMIN dashboard data...");
-
-  //     // Gọi API để lấy thống kê
-  //     const statsResponse = await fetch("/api/stats");
-  //     const statsData = await statsResponse.json();
-  //     console.log("AdminDashboard: statsData", statsData);
-
-  //     // // Gọi API để lấy danh sách sách
-  //     // const booksResponse = await fetch("/api/admin/books");
-  //     // const booksData = await booksResponse.json();
-
-  //     // Gọi API để lấy danh sách người dùng
-  //     const usersResponse = await fetch("/api/admin/members");
-  //     const usersData = await usersResponse.json();
-
-  //     // Gọi API để lấy danh sách nhân viên
-  //     const staffsResponse = await fetch("/api/employees");
-  //     const staffsData = await staffsResponse.json();
-
-  //     // Cập nhật state với dữ liệu từ API
-  //     setStats(statsData);
-  //     console.log("AdminDashboard:", stats);
-  //     // setBooks(booksData);
-  //     setUsers(usersData);
-  //     setStaffs(staffsData);
-
-  //     console.log("ADMIN dashboard data loaded successfully.");
-
-  //     await new Promise((resolve) => setTimeout(resolve, 500));
-  //   } catch (error) {
-  //     console.error("Failed to load ADMIN dashboard data:", error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
   const loadAdminDashboardData = async () => {
     setIsLoading(true);
     try {
@@ -209,19 +172,22 @@ export default function AdminDashboard() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(newBorrow),
       });
+      const result = await response.json();
       if (!response.ok) {
-        throw new Error("Failed to add borrow.");
+        toast.error(result.error || "Failed to add borrow.");
+        return; // Dừng lại, không thực hiện các bước bên dưới
       }
-      const savedBorrow = await response.json();
-      setBorrows((prevBorrows) => [...prevBorrows, savedBorrow]);
-      alert("Borrow added successfully!");
+      setBorrows((prevBorrows) => [...prevBorrows, result.data || result]);
+      toast.success("✔️ Borrow added successfully!");
       setShowAddBorrowModal(false);
-      loadAdminDashboardData(); // Refresh the data after adding a new borrow
+      loadAdminDashboardData();
     } catch (error) {
       console.error("Failed to add borrow:", error);
+      toast.error("❌ " + (error.message || "Failed to add borrow."));
     }
   };
 
@@ -241,8 +207,9 @@ export default function AdminDashboard() {
         return;
       }
 
-      setStaffs((prevStaffs) => [...prevStaffs, data]);
-      alert("Staff added successfully!");
+      const savedStaff = await response.json();
+      setStaffs((prevStaffs) => [...prevStaffs, savedStaff]);
+      toast.success("✔️ Staff added successfully!");
       setShowAddStaffModal(false);
       loadAdminDashboardData(); // Refresh the data after adding a new staff member
     } catch (error) {
@@ -265,8 +232,9 @@ export default function AdminDashboard() {
         alert(data.error || "Failed to add user.");
         return;
       }
-      setUsers((prevUsers) => [...prevUsers, data]);
-      alert("User added successfully!");
+      const savedUser = await response.json();
+      setUsers((prevUsers) => [...prevUsers, savedUser]);
+      toast.success("✔️ User added successfully!");
       setShowAddUserModal(false);
       loadAdminDashboardData(); // Refresh the data after adding a new user
     } catch (error) {
@@ -275,8 +243,42 @@ export default function AdminDashboard() {
   };
 
   const handleEditBook = (bookId) => console.log("Admin: Edit book:", bookId);
-  const handleDeleteBook = (bookId) =>
-    console.log("Admin: Delete book:", bookId);
+
+  const handleDeleteBook = async (bookId) => {
+    if (!window.confirm("Are you sure you want to delete this book?")) return;
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(`/api/admin/books/${bookId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      let data = null;
+      if (response.status !== 204) {
+        try {
+          data = await response.json();
+        } catch (e) {
+          data = {};
+        }
+      }
+
+      if (!response.ok) {
+        toast.error(
+          (data && (data.error || data.message)) || "Failed to delete book."
+        );
+        return;
+      }
+      toast.success("✔️ Book deleted successfully!");
+      await loadAdminDashboardData();
+    } catch (error) {
+      console.error("Failed to delete book:", error);
+      toast.error(
+        "❌ " + (error.message || "An error occurred while deleting the book.")
+      );
+    }
+  };
 
   const handleEditBorrow = (borrowId) => {
     const borrowToEdit = borrows.find((borrow) => borrow._id === borrowId);
@@ -285,6 +287,28 @@ export default function AdminDashboard() {
     if (borrowToEdit) {
       setEditingBorrow(borrowToEdit);
       setShowEditBorrowModal(true);
+    }
+  };
+
+  const handleSaveEditBook = async (bookId, updatedBook) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(`/api/admin/books/${bookId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedBook),
+      });
+      if (!response.ok) {
+        toast.error("Failed to update book.");
+        return;
+      }
+      toast.success("✔️ Book updated successfully!");
+      loadAdminDashboardData();
+    } catch (error) {
+      toast.error("❌ " + (error.message || "Failed to update book."));
     }
   };
   const handleSaveEditedBorrow = async (editedBorrow) => {
@@ -307,40 +331,11 @@ export default function AdminDashboard() {
           borrow.id === updatedBorrow.id ? updatedBorrow : borrow
         )
       );
-      alert("Borrow updated successfully!");
+      toast.success("✔️ Borrow updated successfully!");
       setShowEditBorrowModal(false);
-      loadAdminDashboardData(); // Refresh the data after updating a borrow
+      await loadAdminDashboardData();
     } catch (error) {
       console.error("Failed to update borrow:", error);
-    }
-  };
-
-  const handleDeleteBorrow = async (borrowId) => {
-    if (!window.confirm("Are you sure you want to delete this borrow?")) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/admin/borrows/${borrowId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete borrow.");
-      }
-
-      // Cập nhật danh sách mượn sách sau khi xóa thành công
-      setBorrows((prevBorrows) =>
-        prevBorrows.filter((borrow) => borrow.id !== borrowId)
-      );
-      alert("Borrow deleted successfully!");
-      loadAdminDashboardData(); // Refresh the data after deleting a borrow
-    } catch (error) {
-      console.error("Failed to delete borrow:", error);
-      alert("Failed to delete borrow. Please try again.");
     }
   };
 
@@ -380,7 +375,7 @@ export default function AdminDashboard() {
           user.id === updatedUser.id ? updatedUser : user
         )
       );
-      alert("User updated successfully!");
+      toast.success("✔️ User updated successfully!");
       setShowEditUserModal(false);
       loadAdminDashboardData();
       console.log("User updated successfully:", updatedUser);
@@ -388,10 +383,12 @@ export default function AdminDashboard() {
       console.error("Failed to update user:", error);
     }
   };
+
   // const handleDeleteUser = async (userId) => {
   //   const token = localStorage.getItem("authToken");
   //   if (!token) {
-  //     throw new Error("No authorization token found.");
+  //     toast.error("❌ No authorization token found.");
+  //     return;
   //   }
 
   //   if (!window.confirm("Are you sure you want to delete this user?")) {
@@ -402,28 +399,31 @@ export default function AdminDashboard() {
   //     const response = await fetch(`/api/admin/members/${userId}`, {
   //       method: "DELETE",
   //       headers: {
-  //         Authorization: `Bearer ${token}`,
+  //         Authorization: `Bearer ${localStorage.getItem("authToken")}`,
   //       },
   //     });
 
   //     if (!response.ok) {
-  //       throw new Error("Failed to delete user.");
+  //       throw new Error("Failed to delete user. Please try again.");
   //     }
 
   //     // Cập nhật danh sách người dùng sau khi xóa thành công
   //     setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-  //     alert("User deleted successfully!");
-  //     loadAdminDashboardData(); // Refresh the data after deleting a user
+  //     toast.success("✔️ User deleted successfully!");
+
+  //     // Tải lại dữ liệu bảng điều khiển
+  //     loadAdminDashboardData();
   //   } catch (error) {
   //     console.error("Failed to delete user:", error);
-  //     alert("Failed to delete user. Please try again.");
+  //     toast.error(
+  //       "❌ " + (error.message || "An error occurred while deleting the user.")
+  //     );
   //   }
-  //   localStorage.removeItem("authToken");
   // };
   const handleDeleteUser = async (userId) => {
     const token = localStorage.getItem("authToken");
     if (!token) {
-      alert("No authorization token found.");
+      toast.error("❌ No authorization token found.");
       return;
     }
 
@@ -439,19 +439,28 @@ export default function AdminDashboard() {
         },
       });
 
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (e) {}
+
       if (!response.ok) {
-        throw new Error("Failed to delete user. Please try again.");
+        toast.error(
+          data.error ||
+            data.message ||
+            "Failed to delete user. Please try again."
+        );
+        return;
       }
 
-      // Cập nhật danh sách người dùng sau khi xóa thành công
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-      alert("User deleted successfully!");
-
-      // Tải lại dữ liệu bảng điều khiển
+      toast.success("✔️ User deleted successfully!");
       loadAdminDashboardData();
     } catch (error) {
       console.error("Failed to delete user:", error);
-      alert(error.message || "An error occurred while deleting the user.");
+      toast.error(
+        "❌ " + (error.message || "An error occurred while deleting the user.")
+      );
     }
   };
   const handleEditStaff = (staffId) => {
@@ -463,33 +472,7 @@ export default function AdminDashboard() {
       setShowEditStaffModal(true);
     }
   };
-  // const handleSaveEditedStaff = async (editedStaff) => {
-  //   try {
-  //     const response = await fetch(`/api/employees/${editedStaff.id}`, {
-  //       method: "PUT",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(editedStaff),
-  //     });
 
-  //     if (!response.ok) {
-  //       throw new Error("Failed to update staff member.");
-  //     }
-
-  //     const updatedStaff = await response.json();
-  //     setStaffs((prevStaffs) =>
-  //       prevStaffs.map((staff) =>
-  //         staff.id === updatedStaff.id ? updatedStaff : staff
-  //       )
-  //     );
-  //     alert("Staff updated successfully!");
-  //     setShowEditStaffModal(false);
-  //     loadAdminDashboardData(); // Refresh the data after updating a staff member
-  //   } catch (error) {
-  //     console.error("Failed to update staff:", error);
-  //   }
-  // };
   const handleSaveEditedStaff = async (editedStaff) => {
     try {
       const token = localStorage.getItem("authToken"); // Lấy token từ localStorage
@@ -515,13 +498,15 @@ export default function AdminDashboard() {
       setStaffs((prevStaffs) =>
         prevStaffs.map((staff) => (staff.id === data.id ? data : staff))
       );
-      alert("Staff updated successfully!");
+      toast.success("✔️ Staff updated successfully!");
       setShowEditStaffModal(false);
       loadAdminDashboardData(); // Refresh the data after updating a staff member
       console.log("Staff updated successfully:", data);
     } catch (error) {
       console.error("Failed to update staff:", error);
-      alert("Failed to update staff. Please try again.");
+      toast.error(
+        "❌ " + (error.message || "An error occurred while updating the staff.")
+      );
     }
   };
 
@@ -546,11 +531,13 @@ export default function AdminDashboard() {
       setStaffs((prevStaffs) =>
         prevStaffs.filter((staff) => staff.id !== staffId)
       );
-      alert("Staff deleted successfully!");
+      toast.success("✔️ Staff deleted successfully!");
       loadAdminDashboardData(); // Refresh the data after deleting a staff member
     } catch (error) {
       console.error("Failed to delete staff:", error);
-      alert("Failed to delete staff. Please try again.");
+      toast.error(
+        "❌ " + (error.message || "An error occurred while deleting the staff.")
+      );
     }
   };
 
@@ -579,57 +566,64 @@ export default function AdminDashboard() {
         <DashboardStats stats={stats} />
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div className="flex bg-[#fff8e1] rounded-md p-1.5 self-start">
+          {/* Tabs */}
+          <div className="flex flex-col sm:flex-row bg-[#fff8e1] rounded-md p-1.5 self-start w-full sm:w-auto">
             <button
               onClick={() => setActiveTab("books")}
-              className={`flex items-center gap-2 px-5 py-3 rounded-md text-base font-medium ${
-                activeTab === "books"
-                  ? "bg-[#FF9800] text-white"
-                  : "text-gray-700"
-              }`}
+              className={`flex items-center gap-2 px-5 py-3 text-base font-medium transition-colors
+        ${activeTab === "books" ? "bg-[#FF9800] text-white" : "text-gray-700"}
+        border-b sm:border-b-0 sm:border-r border-gray-300
+        ${activeTab === "books" ? "z-10" : ""}
+      `}
+              style={{
+                borderTopLeftRadius: "0.5rem",
+                borderTopRightRadius: "0.5rem",
+              }}
             >
               <BookOpen className="h-5 w-5" /> Books
             </button>
-
             <button
               onClick={() => setActiveTab("borrows")}
-              className={`flex items-center gap-2 px-5 py-3 rounded-md text-base font-medium ${
-                activeTab === "borrows"
-                  ? "bg-[#FF9800] text-white"
-                  : "text-gray-700"
-              }`}
+              className={`flex items-center gap-2 px-5 py-3 text-base font-medium transition-colors
+        ${activeTab === "borrows" ? "bg-[#FF9800] text-white" : "text-gray-700"}
+        border-b sm:border-b-0 sm:border-r border-gray-300
+        ${activeTab === "borrows" ? "z-10" : ""}
+      `}
             >
               <BookCopy className="h-5 w-5" /> Borrows
             </button>
-
             <button
               onClick={() => setActiveTab("users")}
-              className={`flex items-center gap-2 px-5 py-3 rounded-md text-base font-medium ${
-                activeTab === "users"
-                  ? "bg-[#FF9800] text-white"
-                  : "text-gray-700"
-              }`}
+              className={`flex items-center gap-2 px-5 py-3 text-base font-medium transition-colors
+        ${activeTab === "users" ? "bg-[#FF9800] text-white" : "text-gray-700"}
+        border-b sm:border-b-0 sm:border-r border-gray-300
+        ${activeTab === "users" ? "z-10" : ""}
+      `}
             >
               <Users className="h-5 w-5" /> Users
             </button>
-
             <button
               onClick={() => setActiveTab("staffs")}
-              className={`flex items-center gap-2 px-5 py-3 rounded-md text-base font-medium ${
-                activeTab === "staffs"
-                  ? "bg-[#FF9800] text-white"
-                  : "text-gray-700"
-              }`}
+              className={`flex items-center gap-2 px-5 py-3 text-base font-medium transition-colors
+        ${activeTab === "staffs" ? "bg-[#FF9800] text-white" : "text-gray-700"}
+        border-b-0 sm:border-b-0 sm:border-r-0
+        ${activeTab === "staffs" ? "z-10" : ""}
+      `}
+              style={{
+                borderBottomLeftRadius: "0.5rem",
+                borderBottomRightRadius: "0.5rem",
+              }}
             >
               <UserCog className="h-5 w-5" /> Staffs
             </button>
           </div>
 
-          <div className="flex items-center gap-3 self-end sm:self-center">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-stretch gap-2 sm:gap-3 self-end sm:self-center w-full sm:w-auto">
             <button
               onClick={handleRefresh}
               disabled={isLoading}
-              className="flex items-center px-4 py-2.5 border border-gray-300 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
+              className="flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto"
               aria-label="Refresh data"
             >
               <RefreshCw
@@ -642,7 +636,7 @@ export default function AdminDashboard() {
             {activeTab === "books" && (
               <button
                 onClick={handleAddBook}
-                className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium transition-colors w-full sm:w-auto"
               >
                 <BookPlus className="h-5 w-5" />
                 <span className="hidden sm:inline">Add Book</span>
@@ -658,7 +652,7 @@ export default function AdminDashboard() {
             {activeTab === "borrows" && (
               <button
                 onClick={handleAddBorrow}
-                className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium transition-colors w-full sm:w-auto"
               >
                 <BookPlus className="h-5 w-5" />
                 <span className="hidden sm:inline">Add Borrow</span>
@@ -667,7 +661,7 @@ export default function AdminDashboard() {
             {activeTab === "users" && (
               <button
                 onClick={handleAddUser}
-                className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium transition-colors w-full sm:w-auto"
               >
                 <UserPlus className="h-5 w-5" />
                 <span className="hidden sm:inline">Add User</span>
@@ -676,7 +670,7 @@ export default function AdminDashboard() {
             {activeTab === "staffs" && (
               <button
                 onClick={handleAddStaff}
-                className="flex items-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FF9800] hover:bg-[#F57C00] text-white rounded-md text-base font-medium transition-colors w-full sm:w-auto"
               >
                 <UserPlus className="h-5 w-5" />
                 <span className="hidden sm:inline">Add Staff</span>
@@ -688,9 +682,20 @@ export default function AdminDashboard() {
         <div className="w-full">
           {activeTab === "books" && (
             <BooksManagementSection
-              books={books || []}
-              onEditBook={handleEditBook}
+              books={books}
               onDeleteBook={handleDeleteBook}
+              onBookUpdated={async (bookId) => {
+                const token = localStorage.getItem("authToken");
+                const res = await fetch(`/api/admin/books/${bookId}`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+                if (res.ok) {
+                  const updatedBook = await res.json();
+                  setBooks((prevBooks) =>
+                    prevBooks.map((b) => (b._id === bookId ? updatedBook : b))
+                  );
+                }
+              }}
             />
           )}
 
@@ -698,7 +703,7 @@ export default function AdminDashboard() {
             <BorrowsManagementSection
               borrows={borrows || []}
               onEditBorrow={handleEditBorrow}
-              onDeleteBorrow={handleDeleteBorrow}
+              // onDeleteBorrow={handleDeleteBorrow}
             />
           )}
 
@@ -720,8 +725,8 @@ export default function AdminDashboard() {
         </div>
       </main>
       {showAddStaffModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-2 min-w-0 overflow-y-auto max-h-screen">
             <h2 className="text-xl font-bold mb-4 text-gray-900">
               Add New Staff
             </h2>
@@ -851,8 +856,8 @@ export default function AdminDashboard() {
         </div>
       )}
       {showEditStaffModal && editingStaff && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-2 min-w-0 overflow-y-auto max-h-screen">
             <h2 className="text-xl font-bold mb-4 text-gray-900">Edit Staff</h2>
             <form
               onSubmit={(e) => {
@@ -965,8 +970,8 @@ export default function AdminDashboard() {
         </div>
       )}
       {showAddUserModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-2 min-w-0 overflow-y-auto max-h-screen">
             <h2 className="text-xl font-bold mb-4 text-gray-900">
               Add New User
             </h2>
@@ -1096,8 +1101,8 @@ export default function AdminDashboard() {
         </div>
       )}
       {showEditUserModal && editingUser && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-2 min-w-0 overflow-y-auto max-h-screen">
             <h2 className="text-xl font-bold mb-4 text-gray-900">Edit User</h2>
             <form
               onSubmit={(e) => {
@@ -1214,8 +1219,8 @@ export default function AdminDashboard() {
         </div>
       )}
       {showEditBorrowModal && editingBorrow && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-2 min-w-0 overflow-y-auto max-h-screen">
             <h2 className="text-xl font-bold mb-4 text-gray-900">
               Edit Borrow
             </h2>
@@ -1272,8 +1277,9 @@ export default function AdminDashboard() {
                       .toISOString()
                       .split("T")[0]
                   }
+                  readOnly
                   required
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border cursor-not-allowed"
                 />
               </div>
               <div className="mb-4">
@@ -1292,66 +1298,20 @@ export default function AdminDashboard() {
                   className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Return Date
-                </label>
-                <input
-                  type="date"
-                  name="returnDate"
-                  defaultValue={
-                    editingBorrow.returnDate
-                      ? new Date(editingBorrow.returnDate)
-                          .toISOString()
-                          .split("T")[0]
-                      : ""
-                  }
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
-                />
-              </div>
+
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-500">
                   Status
                 </label>
                 <select
                   name="status"
-                  defaultValue={editingBorrow.status}
+                  defaultValue={editingBorrow.status || ""}
                   required
                   className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
                 >
-                  <option value="Pending">Pending</option>
                   <option value="Borrowed">Borrowed</option>
                   <option value="Returned">Returned</option>
                   <option value="Overdue">Overdue</option>
-                </select>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Fine Amount
-                </label>
-                <input
-                  type="number"
-                  name="fineAmount"
-                  defaultValue={editingBorrow.fine}
-                  readOnly
-                  required
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border cursor-not-allowed bg-gray-100"
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Fine Paid
-                </label>
-                <select
-                  name="is_fine_paid"
-                  defaultValue={editingBorrow.is_fine_paid}
-                  required
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
-                >
-                  <option value="true">True</option>
-                  <option value="false">False</option>
                 </select>
               </div>
 
@@ -1374,122 +1334,134 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-      {showAddBorrowModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center mt-8">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4 text-gray-900">Add Borrow</h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                const newBorrow = {
-                  borrowCode: formData.get("borrowCode"),
-                  member: formData.get("memberId"),
-                  bookId: formData.get("bookId"),
-                  borrowDate: formData.get("borrowDate"),
-                  expectedReturnDate: formData.get("expectedReturnDate"),
-                  status: "Borrowed",
-                  renewCount: 0,
-                  is_fine_paid: false,
-                  fine: 0,
-                };
-                handleSaveBorrow(newBorrow);
-              }}
-            >
-              {/* Member Dropdown */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Borrow Code
-                </label>
-                <input
-                  type="text"
-                  name="borrowCode"
-                  required
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Member
-                </label>
-                <select
-                  name="memberId"
-                  required
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
-                >
-                  <option value="">Select a member</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.firstName} {user.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              {/* Book Dropdown */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Book
-                </label>
-                <select
-                  name="bookId"
-                  required
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
-                >
-                  <option value="">Select a book</option>
-                  {books.map((book) => (
-                    <option key={book._id} value={book._id}>
-                      {book.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
+      {showAddBorrowModal &&
+        (() => {
+          // Tính ngày hôm nay và ngày trả dự kiến (+60 ngày)
+          const today = new Date();
+          const borrowDate = today.toISOString().split("T")[0];
+          const expectedReturnDate = new Date(
+            Date.now() + 60 * 24 * 60 * 60 * 1000
+          )
+            .toISOString()
+            .split("T")[0];
 
-              {/* Borrow Date */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Borrow Date
-                </label>
-                <input
-                  type="date"
-                  name="borrowDate"
-                  required
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
-                />
-              </div>
-
-              {/* Expected Return Date */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500">
-                  Expected Return Date
-                </label>
-                <input
-                  type="date"
-                  name="expectedReturnDate"
-                  required
-                  className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowAddBorrowModal(false)}
-                  className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+          return (
+            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+              <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-2 min-w-0 overflow-y-auto max-h-screen">
+                <h2 className="text-xl font-bold mb-4 text-gray-900">
+                  Add Borrow
+                </h2>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const newBorrow = {
+                      borrowCode: formData.get("borrowCode"),
+                      member: formData.get("memberId"),
+                      bookId: formData.get("bookId"),
+                      borrowDate, // ngày hôm nay
+                      expectedReturnDate, // +60 ngày
+                      status: "Borrowed",
+                      renewCount: 0,
+                      is_fine_paid: false,
+                      fine: 0,
+                    };
+                    handleSaveBorrow(newBorrow);
+                  }}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#FF9800] text-white rounded-md hover:bg-[#F57C00] cursor-pointer"
-                >
-                  Save
-                </button>
+                  {/* Borrow Code */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-500">
+                      Borrow Code
+                    </label>
+                    <input
+                      type="text"
+                      name="borrowCode"
+                      required
+                      className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-500">
+                      Member
+                    </label>
+                    <select
+                      name="memberId"
+                      required
+                      className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
+                    >
+                      <option value="">Select a member</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-500">
+                      Book
+                    </label>
+                    <select
+                      name="bookId"
+                      required
+                      className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
+                    >
+                      <option value="">Select a book</option>
+                      {books.map((book) => (
+                        <option key={book._id} value={book._id}>
+                          {book.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-500">
+                      Borrow Date
+                    </label>
+                    <input
+                      type="text"
+                      value={borrowDate}
+                      readOnly
+                      className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md bg-gray-100"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-500">
+                      Expected Return Date
+                    </label>
+                    <input
+                      type="text"
+                      value={expectedReturnDate}
+                      readOnly
+                      className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md bg-gray-100"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddBorrowModal(false)}
+                      className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-[#FF9800] text-white rounded-md hover:bg-[#F57C00] cursor-pointer"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+          );
+        })()}
     </div>
   );
 }

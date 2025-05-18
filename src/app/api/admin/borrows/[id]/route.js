@@ -3,23 +3,17 @@ import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/dbConnect.js"; // Đường dẫn đến tệp kết nối cơ sở dữ liệu của bạn
 export async function PUT(req, { params }) {
   try {
-    // Lấy ID từ params
     const { id } = await params;
-    // Lấy dữ liệu cập nhật từ request body
     const updateData = await req.json();
-    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const borrowsCollection = db.collection("borrows");
-    // Tìm bản ghi mượn sách
     const borrowRecord = await borrowsCollection.findOne({
       _id: new ObjectId(id),
     });
 
-    // Loại bỏ trường _id nếu tồn tại trong updateData
     if (updateData._id) {
       delete updateData._id;
     }
-    // Đổi ngày tháng năm về định dạng ISO
     if (updateData.expectedReturnDate) {
       updateData.expectedReturnDate = new Date(updateData.expectedReturnDate);
     }
@@ -30,7 +24,6 @@ export async function PUT(req, { params }) {
       updateData.borrowDate = new Date(updateData.borrowDate);
     }
 
-    // Cập nhật số lượng sách nếu trạng thái là "Returned"
     if (
       updateData.status === "Returned" &&
       borrowRecord.status !== "Returned"
@@ -44,20 +37,32 @@ export async function PUT(req, { params }) {
       if (bookUpdate.modifiedCount === 0) {
         throw new Error("Failed to update book record");
       }
+    } else if (
+      updateData.status === "borrowd" &&
+      borrowRecord.status !== "borrowd"
+    ) {
+      const bookUpdate = await db
+        .collection("books")
+        .updateOne(
+          { title: updateData.bookTitle },
+          { $inc: { availableQuantity: -1 } }
+        );
+      if (bookUpdate.modifiedCount === 0) {
+        throw new Error("Failed to update book record");
+      }
     }
 
-    // Cập nhật thông tin thành viên
     const updateResult = await borrowsCollection.updateOne(
       { _id: new ObjectId(id) },
       { $set: updateData }
     );
 
-    // Kiểm tra xem có cập nhật được không
     if (updateResult.modifiedCount === 0) {
       throw new Error("Failed to update borrow record");
     }
 
-    // Trả về kết quả thành công
+    // Đã bỏ phần xóa bản ghi khi Returned
+
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error updating borrow record:", error);

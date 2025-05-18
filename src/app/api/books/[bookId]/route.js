@@ -194,38 +194,3 @@ export async function PUT(request, { params }) {
     );
   }
 }
-
-// DELETE: Xóa sách
-export async function DELETE(request, { params }) {
-  // Lấy ID sách từ params
-  const { bookId } = await params;
-
-  try {
-    // Kết nối đến cơ sở dữ liệu
-    const { db } = await connectToDatabase();
-    const books = db.collection("books");
-
-    // Xóa sách
-    const result = await books.deleteOne({ _id: new ObjectId(bookId) });
-
-    // Kiểm tra xem có xóa được không
-    if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { success: false, message: "Book not found" },
-        { status: 404 }
-      );
-    }
-
-    // Trả về thông báo thành công
-    return NextResponse.json(
-      { success: true, message: "Book deleted successfully" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error deleting book:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}

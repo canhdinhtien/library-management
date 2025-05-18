@@ -107,33 +107,70 @@ export const fetchGenres = async () => {
   }
 };
 
-export const fetchAuthors = async () => {
+// export const fetchAuthors = async () => {
+//   try {
+//     const res = await fetch("/api/authors"); // Giả sử API này được bảo vệ bởi middleware nếu cần token
+//     if (!res.ok) {
+//       let errorDetail = `HTTP error! status: ${res.status}`;
+//       try {
+//         const errorData = await res.json();
+//         errorDetail = errorData.message || errorData.error || errorDetail;
+//       } catch (e) {
+//         /* Bỏ qua */
+//       }
+//       throw new Error(errorDetail);
+//     }
+//     const responseData = await res.json();
+//     // Giả sử API trả về { success: true, data: [{name: 'Author A'}, ...] }
+//     if (
+//       responseData &&
+//       responseData.success &&
+//       Array.isArray(responseData.data)
+//     ) {
+//       // Nếu bạn muốn authorOptions là mảng các TÊN tác giả:
+//       return responseData.data.map((author) => author.name); // << TRẢ VỀ MẢNG TÊN
+//       // Hoặc nếu bạn muốn authorOptions là mảng các OBJECT tác giả (để có thể dùng ID sau này):
+//       // return responseData.data;
+//     } else if (Array.isArray(responseData)) {
+//       // Nếu API trả về trực tiếp mảng các object tác giả
+//       return responseData.map((author) => author.name); // Hoặc return responseData;
+//     } else {
+//       console.error(
+//         "API response for authors is not in expected format (expected {success: true, data: [...] } or array):",
+//         responseData
+//       );
+//       return [];
+//     }
+//   } catch (error) {
+//     console.error("Error in fetchAuthors (bookService):", error.message);
+//     throw error;
+//   }
+// };
+
+export const fetchAuthors = async (token) => {
   try {
-    const res = await fetch("/api/authors"); // Giả sử API này được bảo vệ bởi middleware nếu cần token
+    const headers = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const res = await fetch("/api/authors", { headers });
     if (!res.ok) {
       let errorDetail = `HTTP error! status: ${res.status}`;
       try {
         const errorData = await res.json();
         errorDetail = errorData.message || errorData.error || errorDetail;
-      } catch (e) {
-        /* Bỏ qua */
-      }
+      } catch (e) {}
       throw new Error(errorDetail);
     }
     const responseData = await res.json();
-    // Giả sử API trả về { success: true, data: [{name: 'Author A'}, ...] }
     if (
       responseData &&
       responseData.success &&
       Array.isArray(responseData.data)
     ) {
-      // Nếu bạn muốn authorOptions là mảng các TÊN tác giả:
-      return responseData.data.map((author) => author.name); // << TRẢ VỀ MẢNG TÊN
-      // Hoặc nếu bạn muốn authorOptions là mảng các OBJECT tác giả (để có thể dùng ID sau này):
-      // return responseData.data;
+      return responseData.data.map((author) => author.name);
     } else if (Array.isArray(responseData)) {
-      // Nếu API trả về trực tiếp mảng các object tác giả
-      return responseData.map((author) => author.name); // Hoặc return responseData;
+      return responseData.map((author) => author.name);
     } else {
       console.error(
         "API response for authors is not in expected format (expected {success: true, data: [...] } or array):",

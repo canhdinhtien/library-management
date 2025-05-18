@@ -73,60 +73,7 @@ async function getUserProfileDataNative(db, userId) {
     }
 
     const borrowsCollection = db.collection("borrows");
-    // const aggregationPipeline = [
-    //   {
-    //     $match: {
-    //       member: member._id,
-    //       returnDate: null,
-    //     },
-    //   },
-    //   {
-    //     $unwind: "$books",
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "books",
-    //       localField: "books.book",
-    //       foreignField: "_id",
-    //       as: "bookDetails",
-    //     },
-    //   },
 
-    //   {
-    //     $unwind: { path: "$bookDetails", preserveNullAndEmptyArrays: true },
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "authors",
-    //       localField: "bookDetails.author",
-    //       foreignField: "_id",
-    //       as: "authorDetails",
-    //     },
-    //   },
-    //   {
-    //     $unwind: { path: "$authorDetails", preserveNullAndEmptyArrays: true },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 0,
-    //       borrowRecordId: "$_id",
-    //       bookId: "$books.book",
-    //       title: "$bookDetails.title",
-    //       authorName: "$authorDetails.name",
-    //       coverImage: "$bookDetails.coverImage",
-    //       borrowDate: "$borrowDate",
-    //       dueDate: "$books.expectedReturnDate",
-    //       renewalsLeft: { $subtract: [2, "$books.renewCount"] },
-    //       isFinePaid: "$books.is_fine_paid",
-    //     },
-    //   },
-    // ];
-
-    // const borrowDetails = await borrowsCollection
-    //   .aggregate(aggregationPipeline)
-    //   .toArray();
-
-    // Tạo aggregation pipeline
     const aggregationPipeline = [
       {
         $match: {

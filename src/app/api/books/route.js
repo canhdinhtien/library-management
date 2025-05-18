@@ -14,6 +14,7 @@ export async function GET(request) {
     const authorName = searchParams.get("author");
     const title = searchParams.get("title");
     const featured = searchParams.get("featured") === "true";
+    const searchTerm = searchParams.get("searchTerm");
 
     // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
@@ -56,30 +57,38 @@ export async function GET(request) {
         query.title = { $regex: title, $options: "i" };
       }
 
-      if (authorName && authorName.trim() !== "") {
-        // Tìm tác giả theo tên
-        const authorMatch = await db.collection("authors").findOne({
-          name: { $regex: authorName, $options: "i" },
-        });
+      if (searchTerm && searchTerm.trim() !== "") {
+        query.$or = [
+          { title: { $regex: searchTerm, $options: "i" } },
+          { authorName: { $regex: searchTerm, $options: "i" } },
+          { genres: { $regex: searchTerm, $options: "i" } },
+        ];
+      } else {
+        if (authorName && authorName.trim() !== "") {
+          // Tìm tác giả theo tên
+          const authorMatch = await db.collection("authors").findOne({
+            name: { $regex: authorName, $options: "i" },
+          });
 
-        // Nếu không tìm thấy tác giả, trả về mảng rỗng
-        if (!authorMatch) {
-          return new Response(JSON.stringify([]), {
-            headers: { "content-type": "application/json" },
-            status: 200,
-          });
-        }
-        if (
-          authorMatch._id &&
-          mongoose.Types.ObjectId.isValid(authorMatch._id)
-        ) {
-          query.author = new mongoose.Types.ObjectId(authorMatch._id);
-        } else {
-          console.warn(`Invalid ObjectId found for author: ${authorName}`);
-          return new Response(JSON.stringify([]), {
-            headers: { "content-type": "application/json" },
-            status: 200,
-          });
+          // Nếu không tìm thấy tác giả, trả về mảng rỗng
+          if (!authorMatch) {
+            return new Response(JSON.stringify([]), {
+              headers: { "content-type": "application/json" },
+              status: 200,
+            });
+          }
+          if (
+            authorMatch._id &&
+            mongoose.Types.ObjectId.isValid(authorMatch._id)
+          ) {
+            query.author = new mongoose.Types.ObjectId(authorMatch._id);
+          } else {
+            console.warn(`Invalid ObjectId found for author: ${authorName}`);
+            return new Response(JSON.stringify([]), {
+              headers: { "content-type": "application/json" },
+              status: 200,
+            });
+          }
         }
       }
 
@@ -103,7 +112,9 @@ export async function GET(request) {
         },
         {
           $addFields: {
-            authorName: { $ifNull: ["$authorInfo.name", "Unknown Author"] },
+            authorName: {
+              $ifNull: ["$authorInfo.name", "Unknown Author"],
+            },
           },
         },
         {
@@ -139,33 +150,6 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    // // Lấy token từ header Authorization
-    // const authHeader = request.headers.get("Authorization");
-    // if (!authHeader) {
-    //   return new Response(
-    //     JSON.stringify({ message: 'Authorization header is required' }),
-    //     { headers: { "Content-Type": "application/json" }, status: 401 }
-    //   );
-    // }
-
-    // const token = authHeader.split(" ")[1]; // Lấy token sau từ "Bearer <token>"
-    // if (!token) {
-    //   return new Response(
-    //     JSON.stringify({ message: 'Token is required' }),
-    //     { headers: { "Content-Type": "application/json" }, status: 401 }
-    //   );
-    // }
-
-    // // Xác thực token
-    // const user = verifyToken(token);
-    // if (!user) {
-    //   return new Response(
-    //     JSON.stringify({ message: 'Invalid or expired token' }),
-    //     { headers: { "Content-Type": "application/json" }, status: 401 }
-    //   );
-    // }
-
-    // Nhận dữ liệu sách từ request body
     const {
       bookCode,
       title,
@@ -201,7 +185,7 @@ export async function POST(request) {
       price,
       quantity,
       borrowedCount,
-      author,
+      author: new mongoose.Types.ObjectId(author),
       publisher,
       coverImage,
       description,
