@@ -1,35 +1,3 @@
-// export const fetchGenres = async () => {
-//   const res = await fetch("/api/genres");
-//   if (!res.ok) throw new Error("Failed to fetch genres");
-//   return res.json();
-// };
-
-// export const fetchAuthors = async () => {
-//   const res = await fetch("/api/authors");
-//   if (!res.ok) throw new Error("Failed to fetch authors");
-//   return res.json();
-// };
-
-// export const fetchBooks = async (query = {}) => {
-//   const params = new URLSearchParams(query);
-//   const res = await fetch(`/api/books?${params.toString()}`);
-//   if (!res.ok) {
-//     let errorData = { message: `HTTP error! status: ${res.status}` };
-//     try {
-//       errorData = await res.json();
-//     } catch {}
-//     throw new Error(errorData.error || errorData.message);
-//   }
-//   return res.json();
-// };
-// export async function getFeaturedBooks(token) {
-//   const headers = token ? { Authorization: `Bearer ${token}` } : {};
-//   const res = await fetch("/api/books?featured=true", { headers });
-
-//   if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-//   return res.json();
-// }
-
 export const fetchFeaturedBooks = async (token) => {
   if (!token) {
     throw new Error("Authentication token is required.");
@@ -107,45 +75,6 @@ export const fetchGenres = async () => {
   }
 };
 
-// export const fetchAuthors = async () => {
-//   try {
-//     const res = await fetch("/api/authors"); // Giả sử API này được bảo vệ bởi middleware nếu cần token
-//     if (!res.ok) {
-//       let errorDetail = `HTTP error! status: ${res.status}`;
-//       try {
-//         const errorData = await res.json();
-//         errorDetail = errorData.message || errorData.error || errorDetail;
-//       } catch (e) {
-//         /* Bỏ qua */
-//       }
-//       throw new Error(errorDetail);
-//     }
-//     const responseData = await res.json();
-//     // Giả sử API trả về { success: true, data: [{name: 'Author A'}, ...] }
-//     if (
-//       responseData &&
-//       responseData.success &&
-//       Array.isArray(responseData.data)
-//     ) {
-//       // Nếu bạn muốn authorOptions là mảng các TÊN tác giả:
-//       return responseData.data.map((author) => author.name); // << TRẢ VỀ MẢNG TÊN
-//       // Hoặc nếu bạn muốn authorOptions là mảng các OBJECT tác giả (để có thể dùng ID sau này):
-//       // return responseData.data;
-//     } else if (Array.isArray(responseData)) {
-//       // Nếu API trả về trực tiếp mảng các object tác giả
-//       return responseData.map((author) => author.name); // Hoặc return responseData;
-//     } else {
-//       console.error(
-//         "API response for authors is not in expected format (expected {success: true, data: [...] } or array):",
-//         responseData
-//       );
-//       return [];
-//     }
-//   } catch (error) {
-//     console.error("Error in fetchAuthors (bookService):", error.message);
-//     throw error;
-//   }
-// };
 
 export const fetchAuthors = async (token) => {
   try {
