@@ -19,10 +19,21 @@ export default function CatalogPage() {
     isLoading,
     error,
     optionsLoadingError,
-    handleSearch,
     handleClearFilters,
     retryFetchBooks,
+    fetchBooks,
   } = useBookCatalog();
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    // const genre = document.getElementById("genre-input").value;
+    // const author = document.getElementById("author-input").value;
+    // const title = document.getElementById("title-input").value;
+    // setSearchGenre(genre);
+    // setSearchAuthor(author);
+    // setSearchTitle(title);
+    fetchBooks();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-200">

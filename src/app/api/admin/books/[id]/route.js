@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "@/lib/dbConnect.js";
-// import { verifyToken } from "@/lib/verifyToken"; // Nếu bạn có xác thực token
 
 export async function PUT(req, { params }) {
   try {
@@ -104,7 +103,17 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Xóa sách
+    // Get the authorId of the book being deleted
+    const book = await books.findOne({ _id: new ObjectId(id) });
+    if (!book) {
+      return NextResponse.json(
+        { success: false, message: "Book not found" },
+        { status: 404 }
+      );
+    }
+    const authorId = book.author;
+
+    // Delete the book
     const result = await books.deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
@@ -112,6 +121,15 @@ export async function DELETE(request, { params }) {
         { success: false, message: "Book not found" },
         { status: 404 }
       );
+    }
+
+    // Count the number of books by the same author
+    const bookCount = await books.countDocuments({ author: authorId });
+
+    // If the count is 0, delete the author
+    if (bookCount === 0) {
+      const authors = db.collection("authors");
+      await authors.deleteOne({ _id: authorId });
     }
 
     return NextResponse.json(
