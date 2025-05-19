@@ -375,42 +375,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // const handleDeleteUser = async (userId) => {
-  //   const token = localStorage.getItem("authToken");
-  //   if (!token) {
-  //     toast.error("❌ No authorization token found.");
-  //     return;
-  //   }
-
-  //   if (!window.confirm("Are you sure you want to delete this user?")) {
-  //     return;
-  //   }
-
-  //   try {
-  //     const response = await fetch(`/api/admin/members/${userId}`, {
-  //       method: "DELETE",
-  //       headers: {
-  //         Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-  //       },
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to delete user. Please try again.");
-  //     }
-
-  //     // Cập nhật danh sách người dùng sau khi xóa thành công
-  //     setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-  //     toast.success("✔️ User deleted successfully!");
-
-  //     // Tải lại dữ liệu bảng điều khiển
-  //     loadAdminDashboardData();
-  //   } catch (error) {
-  //     console.error("Failed to delete user:", error);
-  //     toast.error(
-  //       "❌ " + (error.message || "An error occurred while deleting the user.")
-  //     );
-  //   }
-  // };
   const handleDeleteUser = async (userId) => {
     const token = localStorage.getItem("authToken");
     if (!token) {

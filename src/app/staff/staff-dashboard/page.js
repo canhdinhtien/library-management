@@ -158,7 +158,7 @@ export default function AdminDashboard() {
       const result = await response.json();
       if (!response.ok) {
         toast.error(result.error || "Failed to add borrow.");
-        return; // Dừng lại, không thực hiện các bước bên dưới
+        return;
       }
       setBorrows((prevBorrows) => [
         ...(Array.isArray(prevBorrows) ? prevBorrows : []),
@@ -312,43 +312,6 @@ export default function AdminDashboard() {
       console.error("Failed to update user:", error);
     }
   };
-
-  // const handleDeleteUser = async (userId) => {
-  //   const token = localStorage.getItem("authToken");
-  //   if (!token) {
-  //     toast.error("No authorization token found.");
-  //     return;
-  //   }
-
-  //   if (!window.confirm("Are you sure you want to delete this user?")) {
-  //     return;
-  //   }
-
-  //   try {
-  //     const response = await fetch(`/api/admin/members/${userId}`, {
-  //       method: "DELETE",
-  //       headers: {
-  //         Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-  //       },
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to delete user. Please try again.");
-  //     }
-
-  //     // Cập nhật danh sách người dùng sau khi xóa thành công
-  //     setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-  //     toast.success("User deleted successfully!");
-
-  //     // Tải lại dữ liệu bảng điều khiển
-  //     loadAdminDashboardData();
-  //   } catch (error) {
-  //     console.error("Failed to delete user:", error);
-  //     toast.error(
-  //       error.message || "An error occurred while deleting the user."
-  //     );
-  //   }
-  // };
 
   const handleDeleteUser = async (userId) => {
     const token = localStorage.getItem("authToken");
