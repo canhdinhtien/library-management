@@ -267,17 +267,17 @@ export default function BookDetail({ params }) {
       <section className="px-4 py-6 md:px-6 md:py-8 lg:py-12">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 w-full max-w-7xl mx-auto">
           {/* Book Cover and Actions - Left Column */}
-          <div className="w-full lg:w-1/3 xl:w-1/4 flex flex-col items-center lg:sticky lg:top-24 self-start">
-            <div className="w-full max-w-xs">
+          <div className="w-full lg:w-1/3 xl:w-1/4 flex flex-col items-center  lg:sticky lg:top-24 self-start">
+            <div className="w-full max-w-xs flex flex-col items-center">
               <Image
                 src={book.coverImage || "/placeholder.svg?height=384&width=256"}
                 width={256}
                 height={384}
                 alt={book.title}
-                className="w-full aspect-[2/3] object-cover rounded-lg shadow-md mx-auto"
+                className=" min-w-[256px] min-h-[384px] aspect-[2/3] object-cover rounded-lg shadow-md mx-auto"
               />
               <button
-                className="w-full mt-4 bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition flex items-center justify-center cursor-pointer"
+                className="min-w-[256px] mt-4 bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition flex items-center justify-center cursor-pointer"
                 onClick={handleBorrowClick}
               >
                 <BookOpen className="w-5 h-5 mr-2" />
