@@ -28,6 +28,7 @@ const BorrowSchema = new mongoose.Schema(
     expectedReturnDate: { type: Date, required: true }, // Ngay_tra_du_kien
     is_fine_paid: { type: Boolean, default: false }, // Đã thanh toán phí phạt
     returnDate: { type: Date }, // Ngày trả thực tế
+    userRating: { type: Number, default: 0 },
   },
   {
     collection: "borrows",

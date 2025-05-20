@@ -7,14 +7,15 @@ if (typeof window === "undefined") {
       console.log("Running daily reminder job...");
 
       try {
-        const response = await fetch(
-          "http://localhost:3000/api/notifications",
+        const borrowResponse = await fetch(
+          "http://localhost:3000/api/borrow/auto",
           {
             method: "POST",
           }
         );
-        const borrowResponse = await fetch(
-          "http://localhost:3000/api/borrows/auto",
+
+        const response = await fetch(
+          "http://localhost:3000/api/notifications",
           {
             method: "POST",
           }
@@ -22,6 +23,8 @@ if (typeof window === "undefined") {
 
         const result = await response.json();
         console.log("Reminder job result:", result);
+        const borrowResult = await borrowResponse.json();
+        console.log("Borrow job result:", borrowResult);
       } catch (error) {
         console.error("Error running reminder job:", error);
       }

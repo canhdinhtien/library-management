@@ -13,7 +13,7 @@ export async function POST() {
     const overdueBorrows = await db
       .collection("borrows")
       .find({
-        status: "Borrowed",
+        status: "Borrowed" || "Overdue",
         expectedReturnDate: { $lt: currentDate },
       })
       .toArray();

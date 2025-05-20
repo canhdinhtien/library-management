@@ -39,6 +39,13 @@ export default function AdminDashboard() {
   const [showAddBorrowModal, setShowAddBorrowModal] = useState(false);
   const [showEditBorrowModal, setShowEditBorrowModal] = useState(false);
   const [editingBorrow, setEditingBorrow] = useState(null);
+  const [editBorrowStatus, setEditBorrowStatus] = useState(null);
+
+  useEffect(() => {
+    if (showEditBorrowModal && editingBorrow) {
+      setEditBorrowStatus(editingBorrow.status || "");
+    }
+  }, [showEditBorrowModal, editingBorrow]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -182,12 +189,19 @@ export default function AdminDashboard() {
         },
         body: JSON.stringify(newUser),
       });
-      if (!response.ok) {
-        throw new Error("Failed to add user.");
-      }
+
       const savedUser = await response.json();
+      if (!response.ok) {
+        // alert(savedUser.error || "Failed to add user.");
+        toast.error(
+          (savedUser && ("❌ " + savedUser.error || savedUser.message)) ||
+            "Failed to add user."
+        );
+        return;
+      }
+
       setUsers((prevUsers) => [...prevUsers, savedUser]);
-      toast.success("User added successfully!");
+      toast.success("✔️ User added successfully!");
       setShowAddUserModal(false);
       loadAdminDashboardData(); // Refresh the data after adding a new user
     } catch (error) {
@@ -294,17 +308,23 @@ export default function AdminDashboard() {
         body: JSON.stringify(editedUser),
       });
 
+      const updatedUser = await response.json();
+      console.log("AdminDashboard: handleSaveEditedUser", updatedUser);
+
       if (!response.ok) {
-        throw new Error("Failed to update user.");
+        // alert(updatedUser.message || "Failed to update user.");
+        toast.error(
+          (updatedUser && "❌ " + updatedUser.error) || "Failed to update user."
+        );
+        return;
       }
 
-      const updatedUser = await response.json();
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.id === updatedUser.id ? updatedUser : user
         )
       );
-      toast.success("User updated successfully!");
+      toast.success("✔️ User updated successfully!");
       setShowEditUserModal(false);
       loadAdminDashboardData();
       console.log("User updated successfully:", updatedUser);
@@ -844,6 +864,8 @@ export default function AdminDashboard() {
                 </label>
                 <select
                   name="status"
+                  value={editBorrowStatus}
+                  onChange={(e) => setEditBorrowStatus(e.target.value)}
                   defaultValue={editingBorrow.status || ""}
                   required
                   className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
@@ -854,6 +876,27 @@ export default function AdminDashboard() {
                   <option value="Overdue">Overdue</option>
                 </select>
               </div>
+
+              {editBorrowStatus === "Returned" && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-500">
+                    Return Date
+                  </label>
+                  <input
+                    type="date"
+                    name="returnDate"
+                    defaultValue={
+                      editingBorrow.returnDate
+                        ? new Date(editingBorrow.returnDate)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                    }
+                    required
+                    className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                  />
+                </div>
+              )}
 
               <div className="flex justify-end gap-3">
                 <button
@@ -896,7 +939,6 @@ export default function AdminDashboard() {
                     e.preventDefault();
                     const formData = new FormData(e.target);
                     const newBorrow = {
-                      borrowCode: formData.get("borrowCode"),
                       member: formData.get("memberId"),
                       bookId: formData.get("bookId"),
                       borrowDate, // ngày hôm nay
@@ -909,19 +951,6 @@ export default function AdminDashboard() {
                     handleSaveBorrow(newBorrow);
                   }}
                 >
-                  {/* Borrow Code */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-500">
-                      Borrow Code
-                    </label>
-                    <input
-                      type="text"
-                      name="borrowCode"
-                      required
-                      className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
-                    />
-                  </div>
-
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-500">
                       Member

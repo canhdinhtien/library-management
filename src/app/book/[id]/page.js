@@ -3,6 +3,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import RelatedBooks from "../../../components/RelatedBooks";
 import Navbar from "@/components/Navbar";
 import {
   Star,
@@ -131,182 +132,6 @@ function Review({ reviews, book }) {
   );
 }
 
-// WriteReview component for users to submit reviews
-function WriteReview({ bookId, fetchBookData }) {
-  const [selectedRating, setSelectedRating] = useState(0);
-  const [hoveredRating, setHoveredRating] = useState(0);
-  const [reviewText, setReviewText] = useState("");
-  const [showReviewInput, setShowReviewInput] = useState(false);
-  const [userId, setUserId] = useState(null);
-
-  const saveReview = async () => {
-    try {
-      const response = await fetch("/api/reviews", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-        },
-        body: JSON.stringify({
-          bookID: bookId,
-          selectedRating,
-          reviewText,
-          userId,
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        toast.success("✔️ Review submitted successfully!");
-        setShowReviewInput(false);
-        setSelectedRating(0);
-        setReviewText("");
-        fetchBookData(bookId); // Đủ để cập nhật giao diện
-      } else {
-        toast.error("❌ " + (data.message || "Failed to submit review."));
-        setShowReviewInput(false);
-        setSelectedRating(0);
-        setReviewText("");
-        // Xử lý lỗi nếu cần
-      }
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      toast.error("❌ " + "An error occurred while submitting the review.");
-      setShowReviewInput(false);
-      setSelectedRating(0);
-      setReviewText("");
-    }
-  };
-
-  if (!showReviewInput) {
-    return (
-      <div className="w-full">
-        <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
-          Ratings & Reviews
-        </h2>
-        <div className="mt-6 flex flex-col items-center p-6 bg-gray-50 rounded-lg">
-          <div className="flex flex-col items-center">
-            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-              <Star className="w-6 h-6 text-gray-500" />
-            </div>
-            <h3 className="text-xl md:text-2xl font-semibold mt-4 text-gray-900 text-center">
-              What do <i>you</i> think?
-            </h3>
-          </div>
-
-          <div className="flex flex-col items-center mt-4">
-            <div className="flex justify-center space-x-1">
-              {[...Array(5)].map((_, index) => (
-                <Star
-                  key={index}
-                  className={`w-8 h-8 cursor-pointer transition ${
-                    index < hoveredRating
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "text-gray-300"
-                  }`}
-                  onMouseEnter={() => setHoveredRating(index + 1)}
-                  onMouseLeave={() => setHoveredRating(0)}
-                  onClick={() => {
-                    const token = localStorage.getItem("authToken");
-                    if (!token) {
-                      toast.error(
-                        "❌ " +
-                          "You need to log in to rate and review this book."
-                      );
-                      setTimeout(() => {
-                        window.location.href = "/login";
-                      }, 1500);
-                      return;
-                    }
-                    try {
-                      const decodedToken = jwtDecode(token);
-                      setUserId(decodedToken.userId);
-                    } catch (error) {
-                      console.error("Invalid token:", error);
-                      toast.error(
-                        "❌ " + "Your session has expired. Please log in again."
-                      );
-                      setTimeout(() => {
-                        window.location.href = "/login";
-                      }, 1500);
-                      return;
-                    }
-                    setSelectedRating(index + 1);
-                    setShowReviewInput(true);
-                  }}
-                />
-              ))}
-            </div>
-            <p className="text-gray-500 mt-2 text-center">
-              Rate this book and write a review
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  } else {
-    return (
-      <div className="w-full">
-        <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
-          Ratings & Reviews
-        </h2>
-        <div className="flex flex-row mt-4 items-center">
-          <p className="font-semibold text-gray-700">Your rating: &nbsp; </p>
-          <div className="flex">
-            {[...Array(5)].map((_, index) => (
-              <Star
-                key={index}
-                className={`w-5 h-5 ${
-                  index < selectedRating
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-gray-300"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4 w-full text-gray-700">
-          <textarea
-            value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)}
-            placeholder="Write your review here..."
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            rows="4"
-          ></textarea>
-          <div className="flex flex-wrap gap-3 mt-2">
-            <button
-              onClick={() => {
-                if (!reviewText.trim()) {
-                  toast.error(
-                    "❌ " + "Please write a review before submitting!"
-                  );
-                  return;
-                }
-
-                setShowReviewInput(false);
-                setSelectedRating(0);
-                setReviewText("");
-                saveReview();
-              }}
-              className="mt-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition cursor-pointer"
-            >
-              Submit Review
-            </button>
-            <button
-              onClick={() => setShowReviewInput(false)}
-              className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition cursor-pointer"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-}
-
-// AuthorDetail component to display author information
 function AuthorDetail({ authorName, authorBio, authorImage }) {
   return (
     <div className="w-full">
@@ -414,7 +239,7 @@ export default function BookDetail({ params }) {
 
   if (!book) {
     return (
-      <div className="bg-gradient-to-b from-amber-50 to-white min-h-screen">
+      <div className="bg-white min-h-screen">
         <Navbar />
         <section className="p-5">
           <div className="max-w-7xl mx-auto text-center py-12">
@@ -437,7 +262,7 @@ export default function BookDetail({ params }) {
   }
 
   return (
-    <div className="bg-gradient-to-b from-amber-50 to-white min-h-screen">
+    <div className="bg-white min-h-screen">
       <Navbar />
       <section className="px-4 py-6 md:px-6 md:py-8 lg:py-12">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 w-full max-w-7xl mx-auto">
@@ -488,42 +313,6 @@ export default function BookDetail({ params }) {
               <span className="font-medium">{book.authorName}</span>
             </p>
 
-            <div className="flex items-center mt-4 space-x-2">
-              <div className="flex items-center">
-                {[1, 2, 3, 4, 5].map((starValue) => {
-                  if (starValue <= Math.floor(averageRating)) {
-                    return (
-                      <Star
-                        key={starValue}
-                        className="w-5 h-5 fill-yellow-400 text-yellow-400"
-                      />
-                    );
-                  } else if (
-                    starValue - 0.5 <= averageRating &&
-                    starValue > averageRating
-                  ) {
-                    return (
-                      <StarHalf
-                        key={starValue}
-                        className="w-5 h-5 fill-yellow-400 text-yellow-400"
-                      />
-                    );
-                  } else {
-                    return (
-                      <Star key={starValue} className="w-5 h-5 text-gray-300" />
-                    );
-                  }
-                })}
-              </div>
-
-              <span className="text-yellow-500 text-xl font-bold">
-                {averageRating}
-              </span>
-              <span className="text-gray-500">
-                ({book.reviews?.length || 0} reviews)
-              </span>
-            </div>
-
             <div className="mt-6 prose prose-orange max-w-none">
               <p className="text-gray-700 whitespace-pre-line">
                 {book.description}
@@ -559,13 +348,10 @@ export default function BookDetail({ params }) {
                 authorBio={book.authorBio}
                 authorImage={book.authorImage}
               />
-
-              <hr className="my-8" />
-
-              <WriteReview bookId={book._id} fetchBookData={fetchBookData} />
-
-              <hr className="my-8" />
-
+            </div>
+            <RelatedBooks bookGenres={book.genres} bookId={book._id} />
+            <hr className="my-6" />
+            <div>
               <Review reviews={book.reviews || []} book={book} />
             </div>
           </div>
@@ -600,24 +386,6 @@ export default function BookDetail({ params }) {
                 onSubmit={async (e) => {
                   e.preventDefault();
 
-                  const today = new Date();
-                  const selectedDate = new Date(returnDate);
-
-                  if (selectedDate <= today) {
-                    toast.error("❌ " + "Return date must be in the future.");
-                    return;
-                  }
-
-                  const maxReturnDate = new Date(today);
-                  maxReturnDate.setDate(maxReturnDate.getDate() + 30);
-
-                  if (selectedDate > maxReturnDate) {
-                    toast.error(
-                      "❌ " + "Return date must be within 60 days from today."
-                    );
-                    return;
-                  }
-
                   try {
                     const response = await fetch("/api/borrow", {
                       method: "POST",
@@ -630,7 +398,6 @@ export default function BookDetail({ params }) {
                       body: JSON.stringify({
                         bookId: book._id,
                         userId,
-                        returnDate,
                       }),
                     });
 

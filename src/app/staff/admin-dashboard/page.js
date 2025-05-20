@@ -45,6 +45,13 @@ export default function AdminDashboard() {
   const [showAddBorrowModal, setShowAddBorrowModal] = useState(false);
   const [showEditBorrowModal, setShowEditBorrowModal] = useState(false);
   const [editingBorrow, setEditingBorrow] = useState(null);
+  const [editBorrowStatus, setEditBorrowStatus] = useState(null);
+
+  useEffect(() => {
+    if (showEditBorrowModal && editingBorrow) {
+      setEditBorrowStatus(editingBorrow.status || "");
+    }
+  }, [showEditBorrowModal, editingBorrow]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -201,11 +208,16 @@ export default function AdminDashboard() {
         body: JSON.stringify(newStaff),
       });
 
+      const savedStaff = await response.json();
       if (!response.ok) {
-        throw new Error("Failed to add staff member.");
+        // alert(savedStaff.error || "Failed to add staff member.");
+        toast.error(
+          (savedStaff && "❌ " + savedStaff.error) ||
+            "Failed to add staff member."
+        );
+        return;
       }
 
-      const savedStaff = await response.json();
       setStaffs((prevStaffs) => [...prevStaffs, savedStaff]);
       toast.success("✔️ Staff added successfully!");
       setShowAddStaffModal(false);
@@ -223,10 +235,17 @@ export default function AdminDashboard() {
         },
         body: JSON.stringify(newUser),
       });
-      if (!response.ok) {
-        throw new Error("Failed to add user.");
-      }
+
       const savedUser = await response.json();
+      if (!response.ok) {
+        // alert(savedUser.error || "Failed to add user.");
+        toast.error(
+          (savedUser && ("❌ " + savedUser.error || savedUser.message)) ||
+            "Failed to add user."
+        );
+        return;
+      }
+
       setUsers((prevUsers) => [...prevUsers, savedUser]);
       toast.success("✔️ User added successfully!");
       setShowAddUserModal(false);
@@ -235,8 +254,6 @@ export default function AdminDashboard() {
       console.error("Failed to add user:", error);
     }
   };
-
-  const handleEditBook = (bookId) => console.log("Admin: Edit book:", bookId);
 
   const handleDeleteBook = async (bookId) => {
     if (!window.confirm("Are you sure you want to delete this book?")) return;
@@ -356,11 +373,17 @@ export default function AdminDashboard() {
         body: JSON.stringify(editedUser),
       });
 
+      const updatedUser = await response.json();
+      console.log("AdminDashboard: handleSaveEditedUser", updatedUser);
+
       if (!response.ok) {
-        throw new Error("Failed to update user.");
+        // alert(updatedUser.message || "Failed to update user.");
+        toast.error(
+          (updatedUser && "❌ " + updatedUser.error) || "Failed to update user."
+        );
+        return;
       }
 
-      const updatedUser = await response.json();
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.id === updatedUser.id ? updatedUser : user
@@ -444,26 +467,22 @@ export default function AdminDashboard() {
         body: JSON.stringify(editedStaff),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to update staff member. Error:", errorData);
-        throw new Error(
-          `Failed to update staff member. Reason: ${
-            errorData.message || "Unknown"
-          }`
+        // alert(data.error || "Failed to update staff member.");
+        toast.error(
+          data && "❌ " + (data.error || "Failed to update staff member.")
         );
+        return;
       }
 
-      const updatedStaff = await response.json();
       setStaffs((prevStaffs) =>
-        prevStaffs.map((staff) =>
-          staff.id === updatedStaff.id ? updatedStaff : staff
-        )
+        prevStaffs.map((staff) => (staff.id === data.id ? data : staff))
       );
       toast.success("✔️ Staff updated successfully!");
       setShowEditStaffModal(false);
       loadAdminDashboardData(); // Refresh the data after updating a staff member
-      console.log("Staff updated successfully:", updatedStaff);
+      console.log("Staff updated successfully:", data);
     } catch (error) {
       console.error("Failed to update staff:", error);
       toast.error(
@@ -534,13 +553,9 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab("books")}
               className={`flex items-center gap-2 px-5 py-3 text-base font-medium transition-colors
         ${activeTab === "books" ? "bg-[#FF9800] text-white" : "text-gray-700"}
-        border-b sm:border-b-0 sm:border-r border-gray-300
+        border-b sm:border-b-0 sm:border-r border-gray-300 rounded-t-md sm:rounded-l-md sm:rounded-tr-none  
         ${activeTab === "books" ? "z-10" : ""}
       `}
-              style={{
-                borderTopLeftRadius: "0.5rem",
-                borderTopRightRadius: "0.5rem",
-              }}
             >
               <BookOpen className="h-5 w-5" /> Books
             </button>
@@ -568,13 +583,9 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab("staffs")}
               className={`flex items-center gap-2 px-5 py-3 text-base font-medium transition-colors
         ${activeTab === "staffs" ? "bg-[#FF9800] text-white" : "text-gray-700"}
-        border-b-0 sm:border-b-0 sm:border-r-0
+        border-b-0 sm:border-b-0 sm:border-r-0 border-gray-300 rounded-b-md sm:rounded-r-md sm:rounded-bl-none 
         ${activeTab === "staffs" ? "z-10" : ""}
       `}
-              style={{
-                borderBottomLeftRadius: "0.5rem",
-                borderBottomRightRadius: "0.5rem",
-              }}
             >
               <UserCog className="h-5 w-5" /> Staffs
             </button>
@@ -1194,7 +1205,7 @@ export default function AdminDashboard() {
                   ...editingBorrow,
                   borrowDate: formData.get("borrowDate"),
                   expectedReturnDate: formData.get("expectedReturnDate"),
-                  returnDate: formData.get("returnDate"),
+                  returnDate: formData.get("returnDate") || null,
                   status: formData.get("status"),
                   is_fine_paid: formData.get("is_fine_paid"),
                 };
@@ -1267,6 +1278,8 @@ export default function AdminDashboard() {
                 </label>
                 <select
                   name="status"
+                  value={editBorrowStatus}
+                  onChange={(e) => setEditBorrowStatus(e.target.value)}
                   defaultValue={editingBorrow.status || ""}
                   required
                   className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
@@ -1276,6 +1289,27 @@ export default function AdminDashboard() {
                   <option value="Overdue">Overdue</option>
                 </select>
               </div>
+
+              {editBorrowStatus === "Returned" && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-500">
+                    Return Date
+                  </label>
+                  <input
+                    type="date"
+                    name="returnDate"
+                    defaultValue={
+                      editingBorrow.returnDate
+                        ? new Date(editingBorrow.returnDate)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                    }
+                    required
+                    className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
+                  />
+                </div>
+              )}
 
               <div className="flex justify-end gap-3">
                 <button
@@ -1319,7 +1353,6 @@ export default function AdminDashboard() {
                     e.preventDefault();
                     const formData = new FormData(e.target);
                     const newBorrow = {
-                      borrowCode: formData.get("borrowCode"),
                       member: formData.get("memberId"),
                       bookId: formData.get("bookId"),
                       borrowDate, // ngày hôm nay
@@ -1332,19 +1365,6 @@ export default function AdminDashboard() {
                     handleSaveBorrow(newBorrow);
                   }}
                 >
-                  {/* Borrow Code */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-500">
-                      Borrow Code
-                    </label>
-                    <input
-                      type="text"
-                      name="borrowCode"
-                      required
-                      className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm p-2 border"
-                    />
-                  </div>
-
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-500">
                       Member

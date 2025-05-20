@@ -1,7 +1,6 @@
 import { connectToDatabase } from "@/lib/dbConnect.js";
 import { ObjectId } from "mongodb";
 import bcrypt from "bcryptjs";
-import { NextResponse } from "next/server.js";
 
 export async function GET() {
   try {
@@ -31,7 +30,7 @@ export async function GET() {
       const memberBorrows = borrows.filter(
         (borrow) =>
           borrow.member.toString() === member._id.toString() &&
-          !borrow.returnDate
+          borrow.status === "Borrowed"
       );
       const books = memberBorrows.flatMap((borrow) => {
         const bookDetails = booksCollection.find(
@@ -87,12 +86,32 @@ export async function POST(req) {
     const accountsCollection = db.collection("accounts");
     const membersCollection = db.collection("members");
 
+    // Kiểm tra trùng lặp mã thành viên
+    const existingMember = await membersCollection.findOne({
+      memberCode: userCode,
+    });
+    if (existingMember) {
+      return new Response(
+        JSON.stringify({ error: "Member code already exists" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Kiểm tra trùng lặp tài khoản
     const existingAccount = await accountsCollection.findOne({
       $or: [{ username }, { email }],
     });
     if (existingAccount) {
-      throw new Error("Username or email already exists");
+      return new Response(
+        JSON.stringify({ error: "Username or email already exists" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Tạo tài khoản mới
@@ -128,13 +147,19 @@ export async function POST(req) {
     // Trả về dữ liệu thành viên mới
     const newMemberId = new ObjectId(insertMemberResult.insertedId);
     const member = await membersCollection.findOne({ _id: newMemberId });
-    return NextResponse.json({ success: true, data: member }, { status: 200 });
+    return Response.json(member, {
+      status: 201,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error creating member:", error);
     // Xử lý lỗi nếu có
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 400 }
+    return new Response(
+      JSON.stringify({ error: error.message || "Failed to create member" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }
