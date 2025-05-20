@@ -30,7 +30,7 @@ export async function GET() {
       const memberBorrows = borrows.filter(
         (borrow) =>
           borrow.member.toString() === member._id.toString() &&
-          borrow.status === "Borrowed"
+          (borrow.status === "Borrowed" || borrow.status === "Overdue")
       );
       const books = memberBorrows.flatMap((borrow) => {
         const bookDetails = booksCollection.find(

@@ -1279,7 +1279,6 @@ export default function AdminDashboard() {
                   name="status"
                   value={editBorrowStatus ?? ""}
                   onChange={(e) => setEditBorrowStatus(e.target.value)}
-                  defaultValue={editingBorrow.status || ""}
                   required
                   className="text-gray-900 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm p-2 border"
                 >
