@@ -46,14 +46,44 @@ export async function PUT(req, { params }) {
     }
     const accountId = employeeToEdit.accountId;
 
-    // Kiểm tra xem email đã tồn tại chưa
-    const existingAccount = await accountsCollection.findOne({
-      email: body.email,
+    const accountToEdit = await accountsCollection.findOne({
+      _id: new ObjectId(accountId),
     });
-    if (existingAccount && existingAccount._id.toString() !== accountId) {
-      return new Response(JSON.stringify({ error: "Email already exists" }), {
-        status: 400,
+    if (!accountToEdit) {
+      return new Response(JSON.stringify({ error: "Account not found" }), {
+        status: 404,
       });
+    }
+
+    // Nếu email bị thay đổi
+    if (accountToEdit.email !== body.email) {
+      // Kiểm tra email có bị trùng với các tài khoản khác không
+      const existingAccount = await accountsCollection.findOne({
+        email: body.email,
+      });
+      if (existingAccount) {
+        return new Response(JSON.stringify({ error: "Email already exists" }), {
+          status: 400,
+        });
+      } else {
+        // Nếu email không bị trùng, cập nhật tài khoản
+        const accountUpdateResult = await accountsCollection.updateOne(
+          { _id: new ObjectId(accountId) },
+          {
+            $set: {
+              email: body.email,
+            },
+          }
+        );
+        if (!accountUpdateResult.matchedCount) {
+          return new Response(
+            JSON.stringify({ error: "Failed to update account" }),
+            {
+              status: 400,
+            }
+          );
+        }
+      }
     }
 
     // Cập nhật thông tin nhân viên
@@ -66,16 +96,6 @@ export async function PUT(req, { params }) {
           phone: body.phone,
           birthDate: new Date(body.birthDate),
           address: body.address,
-          email: body.email,
-        },
-      }
-    );
-
-    const updatedAccount = await accountsCollection.updateOne(
-      { _id: new ObjectId(accountId) },
-      {
-        $set: {
-          email: body.email,
         },
       }
     );
@@ -88,14 +108,7 @@ export async function PUT(req, { params }) {
         }
       );
     }
-    if (!updatedAccount.matchedCount) {
-      return new Response(
-        JSON.stringify({ error: "Failed to update account" }),
-        {
-          status: 400,
-        }
-      );
-    }
+
     // Trả về kết quả
     return new Response(JSON.stringify(updatedEmployee), {
       status: 200,

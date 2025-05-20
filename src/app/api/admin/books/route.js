@@ -1,5 +1,4 @@
 import { connectToDatabase } from "@/lib/dbConnect.js";
-// import { auth } from "@/lib/auth";
 import mongoose from "mongoose";
 
 export async function GET(request) {

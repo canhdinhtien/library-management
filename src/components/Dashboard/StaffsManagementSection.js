@@ -107,7 +107,7 @@ export default function StaffsManagementSection({
                     className="hover:bg-gray-50 transition duration-150"
                   >
                     <td className="px-5 sm:px-8 py-5 font-medium text-gray-900 truncate max-w-xs text-base">
-                      {staff.name}
+                      {staff.firstName} {staff.lastName}
                     </td>
                     <td className="px-5 sm:px-8 py-5 text-gray-700">
                       {staff.email}

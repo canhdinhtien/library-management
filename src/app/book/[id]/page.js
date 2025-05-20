@@ -349,7 +349,6 @@ export default function BookDetail({ params }) {
                 authorImage={book.authorImage}
               />
             </div>
-            <hr className="my-6" />
             <RelatedBooks bookGenres={book.genres} bookId={book._id} />
             <hr className="my-6" />
             <div>
@@ -383,44 +382,9 @@ export default function BookDetail({ params }) {
                 </p>
               </div>
 
-              <div className="mb-4">
-                <label
-                  htmlFor="returnDate"
-                  className="block text-gray-700 mb-2"
-                >
-                  Select Return Date:
-                </label>
-                <input
-                  type="date"
-                  id="returnDate"
-                  value={returnDate}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  min={new Date().toISOString().split("T")[0]}
-                />
-              </div>
-
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
-
-                  const today = new Date();
-                  const selectedDate = new Date(returnDate);
-
-                  if (selectedDate <= today) {
-                    toast.error("❌ " + "Return date must be in the future.");
-                    return;
-                  }
-
-                  const maxReturnDate = new Date(today);
-                  maxReturnDate.setDate(maxReturnDate.getDate() + 30);
-
-                  if (selectedDate > maxReturnDate) {
-                    toast.error(
-                      "❌ " + "Return date must be within 60 days from today."
-                    );
-                    return;
-                  }
 
                   try {
                     const response = await fetch("/api/borrow", {
@@ -434,7 +398,6 @@ export default function BookDetail({ params }) {
                       body: JSON.stringify({
                         bookId: book._id,
                         userId,
-                        returnDate,
                       }),
                     });
 

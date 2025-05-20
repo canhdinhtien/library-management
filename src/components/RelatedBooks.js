@@ -21,9 +21,6 @@ function RelatedBooks({ bookGenres, bookId }) {
             },
           }
         );
-        if (!response.ok) {
-          throw new Error("Failed to fetch related books");
-        }
         const data = await response.json();
         setRelatedBooks(data.books || []);
         setCurrentIndex(0); // reset khi đổi genres
@@ -48,7 +45,7 @@ function RelatedBooks({ bookGenres, bookId }) {
   };
 
   if (relatedBooks.length === 0) {
-    return <p className="text-gray-500">No related books found.</p>;
+    return;
   }
 
   const visibleBooks = relatedBooks.slice(
@@ -58,26 +55,27 @@ function RelatedBooks({ bookGenres, bookId }) {
 
   return (
     <div>
+      <hr className="my-6" />
       <h2 className="text-2xl font-semibold text-gray-900 mb-4">
         Related Books
       </h2>
       <div className="relative">
-        {/* Nút mũi tên trái */}
+        {/* Nút mũi tên trái - chỉ hiện trên màn hình md trở lên */}
         {currentIndex > 0 && (
           <button
             onClick={scrollLeft}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md hover:bg-orange-500 hover:text-white z-10 cursor-pointer w-10 h-10"
+            className="hidden md:flex absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md hover:bg-orange-500 hover:text-white z-10 cursor-pointer w-10 h-10"
           >
             &#8592;
           </button>
         )}
 
         {/* Danh sách sách */}
-        <div className="flex space-x-4 ">
+        <div className="flex space-x-4 overflow-x-auto md:overflow-x-visible scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent pb-2 md:pb-0">
           {visibleBooks.map((book) => (
             <div
               key={book._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 cursor-pointer hover:shadow-lg transition w-64"
+              className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 cursor-pointer hover:shadow-lg transition min-w-[70vw] max-w-xs w-64 md:w-64 md:min-w-0"
               onClick={() => router.push(`/book/${book._id}`)}
             >
               <img
@@ -97,11 +95,11 @@ function RelatedBooks({ bookGenres, bookId }) {
           ))}
         </div>
 
-        {/* Nút mũi tên phải */}
+        {/* Nút mũi tên phải - chỉ hiện trên màn hình md trở lên */}
         {currentIndex + BOOKS_PER_PAGE < relatedBooks.length && (
           <button
             onClick={scrollRight}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md hover:bg-orange-500 hover:text-white z-10 cursor-pointer w-10 h-10"
+            className="hidden md:flex absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-200 p-2 rounded-full shadow-md hover:bg-orange-500 hover:text-white z-10 cursor-pointer w-10 h-10"
           >
             &#8594;
           </button>

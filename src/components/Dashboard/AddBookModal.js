@@ -200,7 +200,7 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
       !newAuthorBirthYear.trim()
       // !newAuthorCoopPublisherId.trim()
     ) {
-      toast.toast(
+      toast.info(
         "Vui lòng nhập đủ các trường bắt buộc cho tác giả: Mã tác giả, Tên, Năm sinh, NXB hợp tác."
       );
       return;
@@ -248,16 +248,16 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
           for (const field in responseData.errors) {
             errorMessages += `- ${responseData.errors[field]}\n`;
           }
-          toast(errorMessages.trim());
+          toast.error(errorMessages.trim());
         } else {
-          toast(
+          toast.warning(
             responseData.message ||
               `Không thể lưu tác giả. Status: ${response.status}`
           );
         }
         return;
       }
-      toast(responseData.message || "Tác giả đã được thêm thành công!");
+      toast.success(responseData.message || "Tác giả đã được thêm thành công!");
       setNewAuthorCode("");
       setNewAuthorName("");
       setNewAuthorGender("");
@@ -273,13 +273,15 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
         setAuthor(responseData.data._id);
     } catch (error) {
       console.error("Lỗi khi lưu tác giả:", error);
-      toast(`Đã xảy ra lỗi: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     }
   };
 
   const handleSaveNewPublisher = async () => {
     if (!newPublisherCode.trim() || !newPublisherName.trim()) {
-      toast("Vui lòng nhập đủ các trường bắt buộc cho NXB: Mã NXB và Tên NXB.");
+      toast.info(
+        "Vui lòng nhập đủ các trường bắt buộc cho NXB: Mã NXB và Tên NXB."
+      );
       return;
     }
     let finalPublisherLogoUrl = newPublisherLogoUrl;
@@ -322,16 +324,18 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
           for (const field in responseData.errors) {
             errorMessages += `- ${responseData.errors[field]}\n`;
           }
-          toast(errorMessages.trim());
+          toast.error(errorMessages.trim());
         } else {
-          toast(
+          toast.error(
             responseData.message ||
               `Không thể lưu NXB. Status: ${response.status}`
           );
         }
         return;
       }
-      toast(responseData.message || "Nhà xuất bản đã được thêm thành công!");
+      toast.success(
+        responseData.message || "Nhà xuất bản đã được thêm thành công!"
+      );
       setNewPublisherCode("");
       setNewPublisherName("");
       setNewPublisherAddress("");
@@ -344,7 +348,7 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
         setPublisher(responseData.data._id);
     } catch (error) {
       console.error("Lỗi khi lưu NXB:", error);
-      toast(`Đã xảy ra lỗi: ${error.message}`);
+      toast.error(`Đã xảy ra lỗi: ${error.message}`);
     }
   };
 
@@ -371,13 +375,13 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
     } else if (coverImageURLInput.trim()) {
       finalBookCoverImageUrl = coverImageURLInput.trim();
     } else if (!finalBookCoverImageUrl) {
-      toast("Vui lòng cung cấp ảnh bìa sách.");
+      toast.info("Vui lòng cung cấp ảnh bìa sách.");
       setIsSubmittingBook(false);
       return;
     }
 
     if (!isValidObjectId(author) || !isValidObjectId(publisher)) {
-      toast("Invalid Author or Publisher ID");
+      toast.error("Invalid Author or Publisher ID");
       setIsSubmittingBook(false);
       return;
     }
@@ -423,7 +427,7 @@ const AddBookModal = ({ isOpen, onClose, onBookAdded }) => {
       onClose();
     } catch (error) {
       console.error("Lỗi khi thêm sách:", error);
-      toast(`Lỗi: ${error.message}`);
+      toast.error(`Lỗi: ${error.message}`);
     } finally {
       setIsSubmittingBook(false);
     }

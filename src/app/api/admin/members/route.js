@@ -1,7 +1,6 @@
 import { connectToDatabase } from "@/lib/dbConnect.js";
 import { ObjectId } from "mongodb";
 import bcrypt from "bcryptjs";
-import { NextResponse } from "next/server.js";
 
 export async function GET() {
   try {
@@ -31,7 +30,7 @@ export async function GET() {
       const memberBorrows = borrows.filter(
         (borrow) =>
           borrow.member.toString() === member._id.toString() &&
-          !borrow.returnDate
+          borrow.status === "Borrowed"
       );
       const books = memberBorrows.flatMap((borrow) => {
         const bookDetails = booksCollection.find(

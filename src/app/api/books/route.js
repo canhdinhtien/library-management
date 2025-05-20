@@ -132,7 +132,6 @@ export async function GET(request) {
     return new Response(JSON.stringify(books), {
       headers: {
         "content-type": "application/json",
-        "Cache-Control": "public, max-age=3600",
       },
       status: 200,
     });

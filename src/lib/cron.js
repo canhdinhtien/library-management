@@ -7,14 +7,15 @@ if (typeof window === "undefined") {
       console.log("Running daily reminder job...");
 
       try {
-        const response = await fetch(
-          "http://localhost:3000/api/notifications",
+        const borrowResponse = await fetch(
+          "http://localhost:3000/api/borrow/auto",
           {
             method: "POST",
           }
         );
-        const borrowResponse = await fetch(
-          "http://localhost:3000/api/borrow/auto",
+
+        const response = await fetch(
+          "http://localhost:3000/api/notifications",
           {
             method: "POST",
           }

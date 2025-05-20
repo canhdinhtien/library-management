@@ -1,97 +1,95 @@
-import { useState, useEffect } from "react";
-import { fetchAuthors, fetchBooks, fetchGenres } from "../services/bookService";
+import { useState, useEffect, useCallback } from "react";
 
-export const useBookCatalog = () => {
-  const [searchGenre, setSearchGenre] = useState("");
-  const [searchAuthor, setSearchAuthor] = useState("");
-  const [searchTitle, setSearchTitle] = useState("");
-
-  const [searchQuery, setSearchQuery] = useState({
-    genre: "",
-    author: "",
-    title: "",
-  });
-
+export default function useBookCatalog() {
   const [books, setBooks] = useState([]);
   const [genreOptions, setGenreOptions] = useState([]);
   const [authorOptions, setAuthorOptions] = useState([]);
-
+  const [searchGenre, setSearchGenre] = useState("");
+  const [searchAuthor, setSearchAuthor] = useState("");
+  const [searchTitle, setSearchTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [optionsLoadingError, setOptionsLoadingError] = useState(null);
 
   useEffect(() => {
-    const loadOptions = async () => {
+    const fetchOptions = async () => {
       try {
-        const token = localStorage.getItem("authToken"); // Lấy token từ localStorage
-        const [genres, authors] = await Promise.all([
-          fetchGenres(),
-          fetchAuthors(token), // Truyền token vào đây
+        setOptionsLoadingError(null);
+        const [genresRes, authorsRes] = await Promise.all([
+          fetch("/api/genres"),
+          fetch("/api/authors"),
         ]);
-        setGenreOptions(genres);
-        setAuthorOptions(authors);
+        if (!genresRes.ok || !authorsRes.ok) {
+          throw new Error("Failed to load filter options");
+        }
+        const genres = await genresRes.json();
+        const authorsData = await authorsRes.json();
+        const authors = authorsData.data;
+        setGenreOptions(genres || []);
+        setAuthorOptions(authors || []);
       } catch (err) {
-        setOptionsLoadingError(
-          err.message || "Could not load filtering options."
-        );
+        setOptionsLoadingError(err.message || "Failed to load filter options");
       }
     };
-    loadOptions();
+    fetchOptions();
   }, []);
 
-  const handleFetchBooks = async (queryParams = null) => {
+  // Fetch books (with filters)
+  const fetchBooks = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await fetchBooks(queryParams || searchQuery);
-      setBooks(data);
+      const params = new URLSearchParams();
+      if (searchGenre) params.append("genre", searchGenre);
+      if (searchAuthor) params.append("author", searchAuthor);
+      if (searchTitle) params.append("title", searchTitle);
+
+      const res = await fetch(`/api/books?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch books");
+      const data = await res.json();
+      setBooks(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to fetch books");
       setBooks([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchGenre, searchAuthor, searchTitle]);
 
   useEffect(() => {
-    handleFetchBooks();
+    fetchBooks();
   }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const newQuery = {
-      genre: searchGenre,
-      author: searchAuthor,
-      title: searchTitle,
-    };
-    setSearchQuery(newQuery);
-    handleFetchBooks(newQuery);
-  };
 
   const handleClearFilters = () => {
     setSearchGenre("");
     setSearchAuthor("");
     setSearchTitle("");
-    const emptyQuery = { genre: "", author: "", title: "" };
-    setSearchQuery(emptyQuery);
-    handleFetchBooks(emptyQuery);
+    // setTimeout(() => {
+    //   fetchBooks();
+    // }, 0);
   };
 
+  useEffect(() => {
+    if (searchGenre === "" && searchAuthor === "" && searchTitle === "") {
+      fetchBooks();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchGenre, searchAuthor, searchTitle]);
+
   return {
-    searchGenre,
-    searchAuthor,
-    searchTitle,
-    setSearchGenre,
-    setSearchAuthor,
-    setSearchTitle,
+    books,
     genreOptions,
     authorOptions,
-    books,
+    searchGenre,
+    setSearchGenre,
+    searchAuthor,
+    setSearchAuthor,
+    searchTitle,
+    setSearchTitle,
     isLoading,
     error,
     optionsLoadingError,
-    handleSearch,
+    fetchBooks, // dùng để refetch khi cần
     handleClearFilters,
-    retryFetchBooks: handleFetchBooks,
   };
-};
+}

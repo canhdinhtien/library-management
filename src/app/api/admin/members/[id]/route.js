@@ -5,75 +5,92 @@ export async function PUT(req, { params }) {
     // Lấy ID từ params
     const { id } = await params;
     // Lấy dữ liệu cập nhật từ request body
-    const updateData = await req.json();
+    const body = await req.json();
     // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const membersCollection = db.collection("members");
     const accountsCollection = db.collection("accounts");
 
-    // Kiểm tra xem thành viên có tồn tại không
-    const memberToUpdate = await membersCollection.findOne({
+    // Lấy id account từ request body
+    const memberToEdit = await membersCollection.findOne({
       _id: new ObjectId(id),
     });
-    if (!memberToUpdate) {
-      return Response.json(
-        { success: false, message: "Member not found" },
-        { status: 404 }
-      );
+    if (!memberToEdit) {
+      return new Response(JSON.stringify({ error: "Employee not found" }), {
+        status: 404,
+      });
     }
+    const accountId = memberToEdit.accountId;
 
-    // Kiểm tra xem email có bị trùng không
-    const existingEmail = await accountsCollection.findOne({
-      email: updateData.email,
-      _id: { $ne: new ObjectId(memberToUpdate.accountId) }, // Không kiểm tra chính nó
+    const accountToEdit = await accountsCollection.findOne({
+      _id: new ObjectId(accountId),
     });
-    if (existingEmail) {
-      return Response.json(
-        { success: false, message: "Email already exists" },
-        { status: 400 }
-      );
+    if (!accountToEdit) {
+      return new Response(JSON.stringify({ error: "Account not found" }), {
+        status: 404,
+      });
     }
 
-    // Cập nhật thông tin thành viên
-    const updateResult = await membersCollection.updateOne(
+    // Nếu email bị thay đổi
+    if (accountToEdit.email !== body.email) {
+      // Kiểm tra email có bị trùng với các tài khoản khác không
+      const existingAccount = await accountsCollection.findOne({
+        email: body.email,
+      });
+      if (existingAccount) {
+        return new Response(JSON.stringify({ error: "Email already exists" }), {
+          status: 400,
+        });
+      } else {
+        // Nếu email không bị trùng, cập nhật tài khoản
+        const accountUpdateResult = await accountsCollection.updateOne(
+          { _id: new ObjectId(accountId) },
+          {
+            $set: {
+              email: body.email,
+            },
+          }
+        );
+        if (!accountUpdateResult.matchedCount) {
+          return new Response(
+            JSON.stringify({ error: "Failed to update account" }),
+            {
+              status: 400,
+            }
+          );
+        }
+      }
+    }
+
+    // Cập nhật thông tin nhân viên
+    const updatedMember = await membersCollection.updateOne(
       { _id: new ObjectId(id) },
       {
         $set: {
-          firstName: updateData.firstName,
-          lastName: updateData.lastName,
-          email: updateData.email,
-          phone: updateData.phone,
-          birthDate: updateData.birthDate,
-          address: updateData.address,
+          firstName: body.firstName,
+          lastName: body.lastName,
+          phone: body.phone,
+          birthDate: new Date(body.birthDate),
+          address: body.address,
         },
       }
     );
 
-    // Kiểm tra xem có cập nhật được không
-    if (updateResult.modifiedCount === 0) {
-      throw new Error("Failed to update member");
+    if (!updatedMember.matchedCount) {
+      return new Response(
+        JSON.stringify({ error: "Failed to update employee" }),
+        {
+          status: 400,
+        }
+      );
     }
 
-    // Cập nhật thông tin tài khoản
-    const accountUpdateResult = await accountsCollection.updateOne(
-      { _id: new ObjectId(memberToUpdate.accountId) },
-      {
-        $set: {
-          email: updateData.email,
-        },
-      }
-    );
-    // Kiểm tra xem có cập nhật được không
-    if (accountUpdateResult.modifiedCount === 0) {
-      throw new Error("Failed to update account");
-    }
-
-    // Trả về kết quả thành công
-    return Response.json(
-      { success: true, message: "Member updated successfully" },
-      { status: 200 }
-    );
+    // Trả về kết quả
+    return new Response(JSON.stringify(updatedMember), {
+      status: 200,
+    });
   } catch (error) {
+    console.error("Failed to update member:", error);
     return Response.json(
       { success: false, message: error.message },
       { status: 500 }
