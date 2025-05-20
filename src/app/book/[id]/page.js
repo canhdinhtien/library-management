@@ -283,23 +283,6 @@ export default function BookDetail({ params }) {
                 <BookOpen className="w-5 h-5 mr-2" />
                 Borrow Now
               </button>
-              <div className="mt-6 text-center">
-                <div className="flex justify-center space-x-1">
-                  {[...Array(5)].map((_, index) => (
-                    <Star
-                      key={index}
-                      className={`w-8 h-8 cursor-pointer transition ${
-                        index < hoveredRating
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
-                      }`}
-                      onMouseEnter={() => setHoveredRating(index + 1)}
-                      onMouseLeave={() => setHoveredRating(0)}
-                    />
-                  ))}
-                </div>
-                <p className="text-gray-500 mt-2">Rate this book</p>
-              </div>
             </div>
           </div>
 

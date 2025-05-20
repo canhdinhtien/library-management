@@ -45,7 +45,7 @@ export default function AdminDashboard() {
   const [showAddBorrowModal, setShowAddBorrowModal] = useState(false);
   const [showEditBorrowModal, setShowEditBorrowModal] = useState(false);
   const [editingBorrow, setEditingBorrow] = useState(null);
-  const [editBorrowStatus, setEditBorrowStatus] = useState(null);
+  const [editBorrowStatus, setEditBorrowStatus] = useState("");
 
   useEffect(() => {
     if (showEditBorrowModal && editingBorrow) {
@@ -1207,7 +1207,6 @@ export default function AdminDashboard() {
                   expectedReturnDate: formData.get("expectedReturnDate"),
                   returnDate: formData.get("returnDate") || null,
                   status: formData.get("status"),
-                  is_fine_paid: formData.get("is_fine_paid"),
                 };
                 handleSaveEditedBorrow(updatedBorrow);
               }}
@@ -1278,7 +1277,7 @@ export default function AdminDashboard() {
                 </label>
                 <select
                   name="status"
-                  value={editBorrowStatus}
+                  value={editBorrowStatus ?? ""}
                   onChange={(e) => setEditBorrowStatus(e.target.value)}
                   defaultValue={editingBorrow.status || ""}
                   required

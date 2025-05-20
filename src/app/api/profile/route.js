@@ -163,7 +163,7 @@ async function getUserProfileDataNative(db, userId) {
         userRating: record.userRating || false,
       };
 
-      if (dayOverdue > 0) {
+      if (dayOverdue > 0 && record.returnDate === null) {
         const overdueData = {
           ...bookData,
           daysOverdue: Math.max(
