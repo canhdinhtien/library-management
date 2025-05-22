@@ -3,9 +3,10 @@ import nodemailer from "nodemailer";
 
 export async function POST(request) {
   try {
-    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const borrowsCollection = db.collection("borrows");
+    const membersCollection = db.collection("members");
+    const accountsCollection = db.collection("accounts");
 
     // Lấy danh sách các sách sắp đến hạn trả (trong vòng 1 ngày)
     const now = new Date();
@@ -16,8 +17,7 @@ export async function POST(request) {
       .aggregate([
         {
           $match: {
-            status: "Borrowed", // Trạng thái mượn sách
-            returnDate: null, // Chưa trả sách
+            returnDate: null, // Chỉ lấy các bản ghi chưa trả sách
             expectedReturnDate: {
               $gte: now,
               $lt: tomorrow, // Sách sắp đến hạn trả trong vòng 1 ngày
@@ -70,73 +70,6 @@ export async function POST(request) {
 
     console.log("Books due soon:", booksDueSoon);
 
-    // Sách quá hạn
-    const overdueBorrows = await borrowsCollection
-      .aggregate([
-        {
-          $match: {
-            status: "Overdue", // Trạng thái mượn sách
-          },
-        },
-        {
-          $lookup: {
-            from: "books",
-            localField: "bookId", // Liên kết với bảng books qua bookId
-            foreignField: "_id",
-            as: "bookDetails",
-          },
-        },
-        {
-          $lookup: {
-            from: "members",
-            localField: "member", // Liên kết với bảng members qua member
-            foreignField: "_id",
-            as: "memberDetails",
-          },
-        },
-        {
-          $lookup: {
-            from: "accounts",
-            localField: "memberDetails.accountId", // Liên kết với bảng accounts qua accountId
-            foreignField: "_id",
-            as: "accountDetails",
-          },
-        },
-        {
-          $unwind: "$bookDetails", // Giải nén thông tin sách
-        },
-        {
-          $unwind: "$memberDetails", // Giải nén thông tin thành viên
-        },
-        {
-          $unwind: "$accountDetails", // Giải nén thông tin tài khoản
-        },
-        {
-          $project: {
-            _id: 0,
-            memberEmail: "$accountDetails.email", // Email của thành viên
-            bookTitle: "$bookDetails.title", // Tên sách
-            dueDate: "$expectedReturnDate", // Ngày trả dự kiến
-            fine: "$fine", // Tiền phạt
-            overdueDays: {
-              $round: {
-                $divide: [
-                  { $subtract: [new Date(), "$expectedReturnDate"] },
-                  1000 * 60 * 60 * 24,
-                ],
-              },
-            }, // Số ngày quá hạn
-          },
-        },
-      ])
-      .toArray();
-    if (overdueBorrows.length > 0) {
-      console.log("Overdue borrows:", overdueBorrows);
-    } else {
-      console.log("No overdue borrows found.");
-    }
-    console.log("Overdue borrows:", overdueBorrows);
-
     // Cấu hình Nodemailer
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -187,37 +120,6 @@ export async function POST(request) {
       await transporter.sendMail(mailOptions);
     }
 
-    // Gửi email thông báo quá hạn
-    for (const overdue of overdueBorrows) {
-      const mailOptions = {
-        from: `"Digital Library Hub" <${process.env.EMAIL_USER}>`,
-        to: overdue.memberEmail,
-        subject: "🚨 Overdue Book Notification",
-        text: `Hello,
-      
-      This is a reminder that your book "${overdue.bookTitle}" is overdue by ${overdue.overdueDays} days. Please return it as soon as possible to avoid further fines.
-      
-      Thank you for your attention.
-      
-      Best regards,
-      The Digital Library Hub Team`,
-        html: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2 style="color: #FF5733;">🚨 Overdue Book Notification</h2>
-            <p>Hello,</p>
-            <p>This is a reminder that your book <strong>"${overdue.bookTitle}"</strong> is overdue by <strong>${overdue.overdueDays} days</strong>. Please return it as soon as possible to avoid further fines.</p>
-            <p>Thank you for your attention.</p>
-            <br>
-            <p style="font-size: 0.9em; color: #555;">Best regards,</p>
-            <p style="font-size: 0.9em; color: #555;">The Digital Library Hub Team</p>
-          </div>
-        `,
-      };
-
-      await transporter.sendMail(mailOptions);
-    }
-
-    // Trả về thông báo thành công
     return new Response(
       JSON.stringify({
         success: true,
@@ -233,10 +135,3 @@ export async function POST(request) {
     );
   }
 }
-
-
-
-
-
-
-

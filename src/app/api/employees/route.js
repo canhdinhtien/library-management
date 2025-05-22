@@ -17,7 +17,6 @@ export async function POST(req) {
       phone,
       birthDate,
     } = body;
-
     const accountsCollection = db.collection("accounts");
     const employeesCollection = db.collection("employees");
 
@@ -25,7 +24,6 @@ export async function POST(req) {
     const existingEmployee = await employeesCollection.findOne({
       employeeCode: staffCode,
     });
-
     if (existingEmployee) {
       throw new Error("Employee code already exists");
     }
@@ -47,14 +45,12 @@ export async function POST(req) {
       role: "employee",
       createdAt: new Date(),
     };
-
     const accountResult = await accountsCollection.insertOne(newAccount);
 
     if (!accountResult.acknowledged) {
       throw new Error("Failed to create account");
     }
     const accountId = new ObjectId(accountResult.insertedId);
-
     // Tạo nhân viên mới
     const newEmployee = {
       employeeCode: staffCode,
@@ -96,7 +92,6 @@ export async function GET() {
       const account = accounts.find(
         (acc) => acc._id.toString() === employee.accountId.toString()
       );
-
       if (!account) {
         console.error("Account not found for employee:", employee._id);
         return null; // Hoặc xử lý theo cách khác nếu không tìm thấy tài khoản
@@ -121,7 +116,6 @@ export async function GET() {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-
   } catch (error) {
     console.error("Error fetching members:", error);
     return new Response(JSON.stringify({ error: "Failed to fetch members" }), {
@@ -130,10 +124,3 @@ export async function GET() {
     });
   }
 }
-
-
-
-
-
-
-
