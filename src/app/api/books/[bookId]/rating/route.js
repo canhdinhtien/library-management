@@ -24,6 +24,7 @@ export async function GET(request, { params }) {
       {
         $match: { _id: new ObjectId(bookId) },
       },
+
       {
         $lookup: {
           from: "members",
@@ -32,6 +33,7 @@ export async function GET(request, { params }) {
           as: "memberInfo",
         },
       },
+
       {
         $addFields: {
           reviews: {
@@ -103,6 +105,7 @@ export async function GET(request, { params }) {
           },
         },
       },
+
       {
         $project: {
           _id: 1,
@@ -187,6 +190,7 @@ export async function POST(request, { params }) {
       {
         $match: { _id: new ObjectId(bookId) },
       },
+
       {
         $lookup: {
           from: "members",
@@ -195,6 +199,7 @@ export async function POST(request, { params }) {
           as: "memberInfo",
         },
       },
+
       {
         $addFields: {
           reviews: {
@@ -232,6 +237,7 @@ export async function POST(request, { params }) {
                     0,
                   ],
                 },
+
                 memberImage: {
                   $ifNull: [
                     {
@@ -265,6 +271,7 @@ export async function POST(request, { params }) {
           },
         },
       },
+
       {
         $project: {
           _id: 1,
@@ -285,11 +292,18 @@ export async function POST(request, { params }) {
       },
       { status: 201 }
     );
+
   } catch (error) {
     console.error("Error adding review:", error);
     return NextResponse.json(
       { success: false, message: "Internal Server Error" },
       { status: 500 }
     );
+
   }
 }
+
+
+
+
+
