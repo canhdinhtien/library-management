@@ -1,11 +1,10 @@
 import { connectToDatabase } from "@/lib/dbConnect.js";
 import { ObjectId } from "mongodb";
 import bcrypt from "bcryptjs";
-import { NextResponse } from "next/server.js";
-import { add } from "date-fns";
 
 export async function GET() {
   try {
+    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
 
     // Lấy danh sách members
@@ -31,9 +30,8 @@ export async function GET() {
       const memberBorrows = borrows.filter(
         (borrow) =>
           borrow.member.toString() === member._id.toString() &&
-          !borrow.returnDate
+          (borrow.status === "Borrowed" || borrow.status === "Overdue")
       );
-      console.log("memberBorrows", memberBorrows);
       const books = memberBorrows.flatMap((borrow) => {
         const bookDetails = booksCollection.find(
           (b) => b._id.toString() === borrow.bookId.toString()
@@ -43,6 +41,7 @@ export async function GET() {
 
       return {
         id: member._id,
+        name: `${member.firstName} ${member.lastName}`,
         firstName: member.firstName,
         lastName: member.lastName,
         email,
@@ -60,6 +59,7 @@ export async function GET() {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // Xử lý lỗi nếu có
     console.error("Error fetching members:", error);
     return new Response(JSON.stringify({ error: "Failed to fetch members" }), {
       status: 500,
@@ -70,6 +70,7 @@ export async function GET() {
 
 export async function POST(req) {
   try {
+    // Lấy dữ liệu từ request
     const {
       userCode,
       username,
@@ -85,12 +86,32 @@ export async function POST(req) {
     const accountsCollection = db.collection("accounts");
     const membersCollection = db.collection("members");
 
+    // Kiểm tra trùng lặp mã thành viên
+    const existingMember = await membersCollection.findOne({
+      memberCode: userCode,
+    });
+    if (existingMember) {
+      return new Response(
+        JSON.stringify({ error: "Member code already exists" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Kiểm tra trùng lặp tài khoản
     const existingAccount = await accountsCollection.findOne({
       $or: [{ username }, { email }],
     });
     if (existingAccount) {
-      throw new Error("Username or email already exists");
+      return new Response(
+        JSON.stringify({ error: "Username or email already exists" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Tạo tài khoản mới
@@ -126,11 +147,19 @@ export async function POST(req) {
     // Trả về dữ liệu thành viên mới
     const newMemberId = new ObjectId(insertMemberResult.insertedId);
     const member = await membersCollection.findOne({ _id: newMemberId });
-    return NextResponse.json({ success: true, data: member }, { status: 200 });
+    return Response.json(member, {
+      status: 201,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 400 }
+    console.error("Error creating member:", error);
+    // Xử lý lỗi nếu có
+    return new Response(
+      JSON.stringify({ error: error.message || "Failed to create member" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }

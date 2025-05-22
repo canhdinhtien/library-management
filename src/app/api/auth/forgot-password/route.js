@@ -6,9 +6,11 @@ import { sendPasswordResetEmail } from "@/lib/mailer";
 export async function POST(req) {
   let email;
   try {
+    // Lấy email từ request body
     const body = await req.json();
     email = body.email;
 
+    // Kiểm tra định dạng email
     if (!email || typeof email !== "string" || !/^\S+@\S+\.\S+$/.test(email)) {
       console.warn("[Forgot Password] Invalid email format received:", email);
 
@@ -27,24 +29,30 @@ export async function POST(req) {
   }
 
   try {
+    // Kết nối tới cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const accountsCollection = db.collection("accounts");
 
     console.log(`[Forgot Password] Searching for user with email: ${email}`);
+    // Tìm người dùng theo email
     const user = await accountsCollection.findOne(
       { email: email },
       { projection: { _id: 1, email: 1 } }
     );
 
+    // Nếu tìm thấy người dùng
     if (user) {
       console.log(
         `[Forgot Password] User found: ${user._id}. Generating token...`
       );
 
+      // Tạo token reset mật khẩu
       const resetToken = crypto.randomBytes(32).toString("hex");
 
+      // Thiết lập thời gian hết hạn của token
       const expires = new Date(Date.now() + 3600000);
 
+      // Lưu token vào cơ sở dữ liệu
       await accountsCollection.updateOne(
         { _id: user._id },
         {
@@ -61,6 +69,7 @@ export async function POST(req) {
         console.log(
           `[Forgot Password] Attempting to send reset email to: ${user.email}`
         );
+        // Gửi email reset mật khẩu
         await sendPasswordResetEmail(user.email, resetToken);
         console.log(
           `[Forgot Password] Reset email sent successfully to: ${user.email}`
@@ -77,6 +86,7 @@ export async function POST(req) {
       );
     }
 
+    // Trả về thông báo thành công (dù có tìm thấy người dùng hay không)
     return NextResponse.json(
       {
         message:
