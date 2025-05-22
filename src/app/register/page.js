@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import { useRouter } from "next/navigation";
-// import { toast } from "sonner";
 
 const InputField = ({
   id,
@@ -378,21 +377,20 @@ export default function Register() {
 
                 <InputField
                   id="address"
-                  label="Address"
+                  label="Address (Optional)"
                   icon={
                     <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   }
                   value={formData.address}
                   onChange={handleChange}
                   error={errors.address}
-                  required={true}
                   placeholder="Enter your address"
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
                   <InputField
                     id="phone"
-                    label="Phone"
+                    label="Phone (Optional)"
                     type="tel"
                     icon={
                       <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
@@ -401,19 +399,17 @@ export default function Register() {
                     onChange={handleChange}
                     error={errors.phone}
                     inputMode="tel"
-                    required={true}
                     placeholder="Enter your phone number"
                   />
                   <InputField
                     id="dob"
-                    label="Date of Birth"
+                    label="Date of Birth (Optional)"
                     type="date"
                     icon={
                       <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                     }
                     value={formData.dob}
                     onChange={handleChange}
-                    required={true}
                     error={errors.dob}
                   />
                 </div>

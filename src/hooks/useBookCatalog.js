@@ -1,95 +1,96 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { fetchAuthors, fetchBooks, fetchGenres } from "../services/bookService";
 
-export default function useBookCatalog() {
-  const [books, setBooks] = useState([]);
-  const [genreOptions, setGenreOptions] = useState([]);
-  const [authorOptions, setAuthorOptions] = useState([]);
+export const useBookCatalog = () => {
   const [searchGenre, setSearchGenre] = useState("");
   const [searchAuthor, setSearchAuthor] = useState("");
   const [searchTitle, setSearchTitle] = useState("");
+
+  const [searchQuery, setSearchQuery] = useState({
+    genre: "",
+    author: "",
+    title: "",
+  });
+
+  const [books, setBooks] = useState([]);
+  const [genreOptions, setGenreOptions] = useState([]);
+  const [authorOptions, setAuthorOptions] = useState([]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [optionsLoadingError, setOptionsLoadingError] = useState(null);
 
   useEffect(() => {
-    const fetchOptions = async () => {
+    const loadOptions = async () => {
       try {
-        setOptionsLoadingError(null);
-        const [genresRes, authorsRes] = await Promise.all([
-          fetch("/api/genres"),
-          fetch("/api/authors"),
+        const [genres, authors] = await Promise.all([
+          fetchGenres(),
+          fetchAuthors(),
         ]);
-        if (!genresRes.ok || !authorsRes.ok) {
-          throw new Error("Failed to load filter options");
-        }
-        const genres = await genresRes.json();
-        const authorsData = await authorsRes.json();
-        const authors = authorsData.data;
-        setGenreOptions(genres || []);
-        setAuthorOptions(authors || []);
+        setGenreOptions(genres);
+        setAuthorOptions(authors);
       } catch (err) {
-        setOptionsLoadingError(err.message || "Failed to load filter options");
+        setOptionsLoadingError(
+          err.message || "Could not load filtering options."
+        );
       }
     };
-    fetchOptions();
+    loadOptions();
   }, []);
 
-  // Fetch books (with filters)
-  const fetchBooks = useCallback(async () => {
+  const handleFetchBooks = async (queryParams = null) => {
     setIsLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      if (searchGenre) params.append("genre", searchGenre);
-      if (searchAuthor) params.append("author", searchAuthor);
-      if (searchTitle) params.append("title", searchTitle);
-
-      const res = await fetch(`/api/books?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch books");
-      const data = await res.json();
-      setBooks(Array.isArray(data) ? data : []);
+      const data = await fetchBooks(queryParams || searchQuery);
+      setBooks(data);
     } catch (err) {
-      setError(err.message || "Failed to fetch books");
+      setError(err.message);
       setBooks([]);
     } finally {
       setIsLoading(false);
     }
-  }, [searchGenre, searchAuthor, searchTitle]);
+  };
 
   useEffect(() => {
-    fetchBooks();
+    handleFetchBooks();
   }, []);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const newQuery = {
+      genre: searchGenre,
+      author: searchAuthor,
+      title: searchTitle,
+    };
+    setSearchQuery(newQuery);
+    handleFetchBooks(newQuery);
+  };
 
   const handleClearFilters = () => {
     setSearchGenre("");
     setSearchAuthor("");
     setSearchTitle("");
-    // setTimeout(() => {
-    //   fetchBooks();
-    // }, 0);
+    const emptyQuery = { genre: "", author: "", title: "" };
+    setSearchQuery(emptyQuery);
+    handleFetchBooks(emptyQuery);
   };
 
-  useEffect(() => {
-    if (searchGenre === "" && searchAuthor === "" && searchTitle === "") {
-      fetchBooks();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchGenre, searchAuthor, searchTitle]);
-
   return {
-    books,
+    searchGenre,
+    searchAuthor,
+    searchTitle,
+    setSearchGenre,
+    setSearchAuthor,
+    setSearchTitle,
     genreOptions,
     authorOptions,
-    searchGenre,
-    setSearchGenre,
-    searchAuthor,
-    setSearchAuthor,
-    searchTitle,
-    setSearchTitle,
+    books,
     isLoading,
     error,
     optionsLoadingError,
-    fetchBooks, // dùng để refetch khi cần
+    handleSearch,
     handleClearFilters,
+    retryFetchBooks: handleFetchBooks,
   };
-}
+};

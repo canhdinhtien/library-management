@@ -145,7 +145,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* <section className="py-16 px-4 bg-amber-50"></section> */}
+        <section className="py-16 px-4 bg-amber-50"></section>
       </main>
 
       <Footer />

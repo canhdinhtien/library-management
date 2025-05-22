@@ -3,16 +3,13 @@ import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
-  // Lấy ID sách từ params
   const { bookId } = await params;
   console.log("Book ID:", bookId); // Log the bookId to check if it's being received correctly
 
   try {
-    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const books = db.collection("books");
 
-    // Xây dựng aggregate pipeline
     const aggregatePipeline = [
       {
         $match: { _id: new ObjectId(bookId) }, // Tìm sách theo ID
@@ -127,15 +124,14 @@ export async function GET(request, { params }) {
           authorImage: "$authorInfo.image", // Lấy hình ảnh tác giả từ "authorInfo"
           publisher: "$publisherInfo.name", // Lấy tên nhà xuất bản từ "publisherInfo"
           publishedDate: 1,
-          availableQuantity: 1,
           genres: 1,
         },
       },
     ];
 
-    // Lấy thông tin sách
     const book = await books.aggregate(aggregatePipeline).toArray(); // Thực hiện truy vấn và chuyển đổi kết quả thành mảng
-    // Kiểm tra xem có tìm thấy sách không
+    console.log("Book details:", book[0].reviews);
+
     if (!book || book.length === 0) {
       return NextResponse.json(
         { success: false, message: "Book not found" },
@@ -143,7 +139,6 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Trả về thông tin sách
     return NextResponse.json(
       { success: true, data: book[0], message: "Book fetched successfully" },
       { status: 200 }
@@ -157,23 +152,18 @@ export async function GET(request, { params }) {
   }
 }
 export async function PUT(request, { params }) {
-  // Lấy ID sách từ params
-  const { bookId } = await params;
-  // Lấy dữ liệu cập nhật từ request body
+  const { bookId } = await  params;
   const updateData = await request.json();
 
   try {
-    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const books = db.collection("books");
 
-    // Cập nhật thông tin sách
     const result = await books.updateOne(
       { _id: new ObjectId(bookId) },
       { $set: updateData }
     );
 
-    // Kiểm tra xem có cập nhật được không
     if (result.matchedCount === 0) {
       return NextResponse.json(
         { success: false, message: "Book not found" },
@@ -181,13 +171,42 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Trả về thông báo thành công
     return NextResponse.json(
       { success: true, message: "Book updated successfully" },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error updating book:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE: Xóa sách
+export async function DELETE(request, { params }) {
+  const { bookId } = await params;
+
+  try {
+    const { db } = await connectToDatabase();
+    const books = db.collection("books");
+
+    const result = await books.deleteOne({ _id: new ObjectId(bookId) });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { success: false, message: "Book not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: true, message: "Book deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting book:", error);
     return NextResponse.json(
       { success: false, message: "Internal Server Error" },
       { status: 500 }

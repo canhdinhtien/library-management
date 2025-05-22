@@ -4,18 +4,15 @@ export async function GET(request) {
   console.log("--- GET /api/genres request received (Native Driver) ---");
   try {
     console.log("Attempting native MongoDB connection...");
-    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
     console.log("Native MongoDB connection successful.");
 
-    // Kiểm tra xem kết nối có thành công không
     if (!db) {
       throw new Error("Database connection failed (db object not received).");
     }
 
     console.log("Attempting to get distinct genres using native driver...");
 
-    // Lấy danh sách thể loại
     const genres = await db
       .collection("books")
       .distinct("genres")
@@ -23,7 +20,6 @@ export async function GET(request) {
 
     console.log(`Found ${genres.length} distinct genres:`, genres);
 
-    // Trả về danh sách thể loại
     return new Response(JSON.stringify(genres), {
       headers: { "content-type": "application/json" },
       status: 200,

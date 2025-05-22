@@ -4,16 +4,16 @@ import { NextResponse } from "next/server";
 
 // GET: Lấy chi tiết sách kèm đánh giá và thông tin liên quan
 export async function GET(request, { params }) {
-  // Lấy ID sách từ params
   const { bookId } = params;
 
-  // Kiểm tra xem có ID sách không
   if (!bookId) {
-    return NextResponse.json({ message: "Missing book ID" }, { status: 400 });
+    return NextResponse.json(
+      { message: "Missing book ID" },
+      { status: 400 }
+    );
   }
 
   try {
-    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const books = db.collection("books");
     const ratings = db.collection("ratings");
@@ -113,10 +113,8 @@ export async function GET(request, { params }) {
       },
     ];
 
-    // Lấy thông tin sách
     const book = await books.aggregate(aggregatePipeline).toArray();
 
-    // Kiểm tra xem có tìm thấy sách không
     if (!book || book.length === 0) {
       return NextResponse.json(
         { success: false, message: "Book not found" },
@@ -124,7 +122,6 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Trả về thông tin sách
     return NextResponse.json(
       { success: true, data: book[0], message: "Book fetched successfully" },
       { status: 200 }
@@ -139,24 +136,19 @@ export async function GET(request, { params }) {
 }
 // POST: Đánh giá mới và trả về những đánh giá đã có
 export async function POST(request, { params }) {
-  // Lấy ID sách từ params
   const { bookId } = params;
 
-  // Kiểm tra xem có ID sách không
   if (!bookId) {
     return NextResponse.json({ message: "Missing book ID" }, { status: 400 });
   }
 
   try {
-    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
     const books = db.collection("books");
 
-    // Lấy dữ liệu từ request body
     const body = await request.json();
     const { rating, text, memberId } = body;
 
-    // Kiểm tra dữ liệu đầu vào
     if (
       typeof rating !== "number" ||
       rating < 1 ||
@@ -164,10 +156,12 @@ export async function POST(request, { params }) {
       !text ||
       !memberId
     ) {
-      return NextResponse.json({ message: "Invalid input" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid input" },
+        { status: 400 }
+      );
     }
 
-    // Tạo đánh giá mới
     const newReview = {
       rating,
       text,
@@ -175,15 +169,16 @@ export async function POST(request, { params }) {
       createdAt: new Date(),
     };
 
-    // Cập nhật thông tin sách
     const result = await books.updateOne(
       { _id: new ObjectId(bookId) },
       { $push: { reviews: newReview } }
     );
 
-    // Kiểm tra xem có cập nhật được không
     if (result.matchedCount === 0) {
-      return NextResponse.json({ message: "Book not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Book not found" },
+        { status: 404 }
+      );
     }
 
     // 👉 Gọi lại aggregation pipeline như trong GET
@@ -280,10 +275,8 @@ export async function POST(request, { params }) {
       },
     ];
 
-    // Lấy thông tin sách đã cập nhật
     const updatedBook = await books.aggregate(aggregatePipeline).toArray();
 
-    // Trả về thông tin sách đã cập nhật
     return NextResponse.json(
       {
         success: true,

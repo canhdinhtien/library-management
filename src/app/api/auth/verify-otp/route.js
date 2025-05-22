@@ -2,7 +2,6 @@ import { getOtpData, deleteOtpData } from "@/lib/otpStore";
 import { connectToDatabase } from "@/lib/dbConnect";
 import bcrypt from "bcryptjs";
 
-// Hàm tạo người dùng trong cơ sở dữ liệu
 async function createUserInDatabase(userData) {
   console.log(
     `[DB Create Native] Attempting to create user: ${userData.email}`
@@ -103,7 +102,6 @@ async function createUserInDatabase(userData) {
 export async function POST(req) {
   let body;
   try {
-    // Lấy dữ liệu từ request body
     body = await req.json();
   } catch (error) {
     return new Response(
@@ -120,10 +118,8 @@ export async function POST(req) {
     );
   }
 
-  // Lấy dữ liệu OTP đã lưu
   const storedRecord = await getOtpData(email);
 
-  // Kiểm tra xem có dữ liệu OTP không
   if (!storedRecord || !storedRecord.otpHash) {
     console.warn(
       `OTP Verification Failed: No valid OTP record or hash found in DB for ${email}`
@@ -140,10 +136,8 @@ export async function POST(req) {
   console.log(
     `[Verify Route] Comparing submitted OTP: '${otp}' with stored HASH for ${email}`
   );
-  // So sánh OTP đã nhập với OTP đã lưu
   const isOtpValid = await bcrypt.compare(otp, storedRecord.otpHash);
 
-  // Kiểm tra xem OTP có hợp lệ không
   if (!isOtpValid) {
     console.warn(
       `OTP Verification Failed: Incorrect OTP entered for ${email}.`
@@ -159,10 +153,8 @@ export async function POST(req) {
   );
 
   try {
-    // Tạo người dùng
     const newUser = await createUserInDatabase(storedRecord.userData);
 
-    // Xóa dữ liệu OTP
     const deleted = await deleteOtpData(email);
     if (!deleted) {
       console.warn(

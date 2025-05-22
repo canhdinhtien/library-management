@@ -38,7 +38,6 @@ export async function GET(req) {
     const paymentStatus =
       queryParams.vnp_ResponseCode === "00" ? "success" : "failed";
 
-    // Trả về kết quả thanh toán
     return new Response(
       JSON.stringify({
         success: true,

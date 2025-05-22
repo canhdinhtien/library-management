@@ -98,7 +98,6 @@ export default function Home() {
                         alt="Featured Book"
                         fill
                         className="object-cover"
-                        priority
                       />
                     </div>
                   </div>
@@ -171,6 +170,61 @@ export default function Home() {
                 </p>
               </div>
             )}
+          </div>
+        </section>
+
+        <section className="py-16 px-4 bg-amber-50">
+          <div className="container mx-auto max-w-3xl text-center">
+            <div className="mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
+                <Mail className="h-8 w-8 text-amber-800" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+                Subscribe to Our Newsletter
+              </h2>
+              <p className="text-gray-700 max-w-lg mx-auto">
+                Stay updated with our latest book recommendations, author
+                interviews, and special offers.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubscribe} className="max-w-md mx-auto">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-grow">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Your email address"
+                    className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 focus:outline-none"
+                    aria-label="Email address"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-amber-500 text-white font-medium rounded-lg hover:bg-amber-600 transition-colors"
+                >
+                  Subscribe
+                </button>
+              </div>
+
+              {subscribeStatus.message && (
+                <div
+                  className={`mt-3 text-sm ${
+                    subscribeStatus.type === "error"
+                      ? "text-red-600"
+                      : subscribeStatus.type === "success"
+                      ? "text-green-600"
+                      : "text-gray-600"
+                  }`}
+                >
+                  {subscribeStatus.message}
+                </div>
+              )}
+            </form>
           </div>
         </section>
       </main>

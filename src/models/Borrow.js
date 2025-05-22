@@ -15,8 +15,8 @@ const BorrowSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Pending", "Borrowed", "Returned", "Overdue"],
-      default: "Pending",
+      enum: ["Borrowed", "Returned", "Overdue"],
+      default: "Borrowed",
     }, // Trang_thai
     fine: { type: Number, default: 0 }, // Phi_phat
     bookId: {
@@ -24,11 +24,11 @@ const BorrowSchema = new mongoose.Schema(
       ref: "Book",
       required: true,
     }, // Ma_sach
+    quantity: { type: Number, required: true },
     renewCount: { type: Number, default: 0 }, // Số lần gia hạn
     expectedReturnDate: { type: Date, required: true }, // Ngay_tra_du_kien
     is_fine_paid: { type: Boolean, default: false }, // Đã thanh toán phí phạt
     returnDate: { type: Date }, // Ngày trả thực tế
-    userRating: { type: Number, default: 0 },
   },
   {
     collection: "borrows",

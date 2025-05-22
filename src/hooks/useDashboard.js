@@ -20,9 +20,7 @@ export function useDashboard() {
       return;
     }
 
-    // const token = localStorage.getItem("authToken");
-    const token =
-      localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    const token = localStorage.getItem("authToken");
 
     if (!token) {
       console.error("Auth token missing in localStorage for logged-in user.");

@@ -23,9 +23,9 @@ const BorrowStatus = ({
         "New due date must be later than the current due date.";
       setErrorMessage(errorMessage);
       console.log("Error: ", errorMessage);
-      toast(`Error: ${errorMessage}`);
+      alert(`Error: ${errorMessage}`);
       setEditing(null); // Thoát trạng thái chỉnh sửa
-      setErrorMessage(errorMessage);
+      return;
     }
 
     // Kiểm tra ngày mới không vượt quá 1 tháng kể từ ngày hiện tại
@@ -35,7 +35,7 @@ const BorrowStatus = ({
       const errorMessage =
         "New due date cannot be more than one month from the current due date.";
       setErrorMessage(errorMessage);
-      toast(`Error: ${errorMessage}`);
+      alert(`Error: ${errorMessage}`);
       setEditing(null); // Thoát trạng thái chỉnh sửa
       return;
     }
@@ -47,7 +47,7 @@ const BorrowStatus = ({
       const errorMessage =
         "You have reached the maximum number of renewals for this book.";
       setErrorMessage(errorMessage);
-      toast(`Error: ${errorMessage}`);
+      alert(`Error: ${errorMessage}`);
       setEditing(null); // Thoát trạng thái chỉnh sửa
       return;
     }
@@ -65,7 +65,7 @@ const BorrowStatus = ({
       if (response.ok) {
         const data = await response.json();
         console.log("Book renewed successfully:", data);
-        toast("Book renewed successfully!");
+        alert("Book renewed successfully!");
         setErrorMessage(""); // Xóa thông báo lỗi
         fetchBorrowedBooks(); // Cập nhật lại danh sách sách mượn
         setEditing(null);
