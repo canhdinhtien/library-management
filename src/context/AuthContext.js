@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
+    // Kiểm tra token ban đầu khi component được mount
     console.log("AuthProvider useEffect: Checking initial token...");
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -19,6 +20,7 @@ export const AuthProvider = ({ children }) => {
         const decoded = jwtDecode(token);
         const currentTime = Date.now() / 1000;
 
+        // Kiểm tra xem token đã hết hạn chưa
         if (decoded.exp && decoded.exp > currentTime) {
           console.log(
             "AuthProvider useEffect: Token valid, setting user:",
@@ -40,21 +42,31 @@ export const AuthProvider = ({ children }) => {
     console.log("AuthProvider useEffect: Initial loading finished.");
   }, []);
 
-  const login = (userData, token) => {
-    console.log("AuthContext login: Saving token and setting user:", userData);
-    localStorage.setItem("authToken", token);
+  // Hàm login để lưu token và thiết lập user
+  const login = (userInfo, accessToken) => {
+    console.log("AuthContext login: Saving token and setting user:", userInfo);
+
+    if (typeof accessToken !== "string") {
+      console.error(
+        "AuthContext login: accessToken must be a string. Got:",
+        accessToken
+      );
+      return;
+    }
+
+    localStorage.setItem("authToken", accessToken);
 
     try {
-      const decodedLogin = jwtDecode(token);
-      setUser(decodedLogin);
+      const decoded = jwtDecode(accessToken);
+      setUser(decoded);
     } catch (error) {
       console.error("AuthContext login: Error decoding token:", error);
-
       localStorage.removeItem("authToken");
       setUser(null);
     }
   };
 
+  // Hàm logout để xóa token và thiết lập user thành null
   const logout = () => {
     console.log("AuthContext logout: Removing token and clearing user state.");
     localStorage.removeItem("authToken");
@@ -63,10 +75,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const authValue = {
-    user,
-    loading,
-    login,
-    logout,
+    user, // Thông tin người dùng
+    loading, // Trạng thái loading
+    login, // Hàm login
+    logout, // Hàm logout
   };
 
   return (

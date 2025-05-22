@@ -1,6 +1,6 @@
 "use client";
 
-import { useBookCatalog } from "../../hooks/useBookCatalog";
+import useBookCatalog from "../../hooks/useBookCatalog";
 import Navbar from "../../components/Navbar";
 import BookCard from "../../components/BookCard";
 import { Search, X, BookOpen, RefreshCw } from "lucide-react";
@@ -19,10 +19,21 @@ export default function CatalogPage() {
     isLoading,
     error,
     optionsLoadingError,
-    handleSearch,
     handleClearFilters,
     retryFetchBooks,
+    fetchBooks,
   } = useBookCatalog();
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    // const genre = document.getElementById("genre-input").value;
+    // const author = document.getElementById("author-input").value;
+    // const title = document.getElementById("title-input").value;
+    // setSearchGenre(genre);
+    // setSearchAuthor(author);
+    // setSearchTitle(title);
+    fetchBooks();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-200">
@@ -95,8 +106,8 @@ export default function CatalogPage() {
                 >
                   <option value="">All Authors</option>
                   {authorOptions.map((author, index) => (
-                    <option key={index} value={author}>
-                      {author}
+                    <option key={index} value={author.name}>
+                      {author.name}
                     </option>
                   ))}
                 </select>

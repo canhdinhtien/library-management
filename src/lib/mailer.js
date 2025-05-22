@@ -35,10 +35,10 @@ export const sendOtpEmail = async (to, otp) => {
   const mailOptions = {
     from: `"Digital Library Hub" <${process.env.EMAIL_USER}>`,
     to: to,
-    subject: "Your One-Time Password (OTP) for Your App Name",
+    subject: "Your One-Time Password (OTP) for Digital Library Hub",
     text: `Your OTP for registering an account is: ${otp}\n\nThis code is valid for 1 minutes. If you didn't request this, please ignore this email.`,
     html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px; max-width: 400px; margin: auto;">
-                 <h2 style="color: #333;">Your App Name - Email Verification</h2>
+                 <h2 style="color: #333;">Digital Library Hub - Email Verification</h2>
                  <p>Thank you for registering. Please use the following One-Time Password (OTP) to complete your registration:</p>
                  <p style="font-size: 28px; font-weight: bold; letter-spacing: 3px; color: #111; background-color: #f0f0f0; padding: 12px 20px; border-radius: 5px; display: inline-block; margin: 15px 0;">
                    ${otp}
@@ -70,9 +70,9 @@ export const sendPasswordResetEmail = async (to, token) => {
   console.log(`[Mailer] Preparing password reset email for ${to}`);
 
   const mailOptions = {
-    from: `"Your App Name" <${process.env.EMAIL_USER}>`,
+    from: `"Digital Library Hub" <${process.env.EMAIL_USER}>`,
     to: to,
-    subject: "Password Reset Request for Your App Name",
+    subject: "Password Reset Request for Digital Library Hub",
     text:
       `You are receiving this email because you (or someone else) requested a password reset for your account.\n\n` +
       `Please click the following link, or paste it into your browser, to complete the process:\n\n` +
@@ -80,7 +80,7 @@ export const sendPasswordResetEmail = async (to, token) => {
       `This link will expire in 1 hour.\n\n` +
       `If you did not request this, please ignore this email and your password will remain unchanged.\n`,
     html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-            <h2>Password Reset Request - Your App Name</h2>
+            <h2>Password Reset Request - Digital Library Hub</h2>
             <p>You received this email because you (or someone else) requested a password reset for your account.</p>
             <p>Please click the button below to reset your password:</p>
             <a href="${resetLink}" style="background-color: #FFA500; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 15px 0;">Reset Password</a>

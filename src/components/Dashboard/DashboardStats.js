@@ -30,7 +30,7 @@ export default function DashboardStats({ stats = {} }) {
           {stats.totalBorrowings ?? "-"}
         </div>
         <p className="text-sm sm:text-base text-gray-500 mt-2">
-          Total Borrowings
+          Total Borrowings Records
         </p>
       </div>
       <div className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col items-center justify-center col-span-2 sm:col-span-1 shadow-sm">

@@ -1,5 +1,11 @@
-import { connectToDatabase } from "@/lib/dbConnect.js";
+import { connectToDatabase } from "../../../lib/dbConnect";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
+
+// Hàm tạo ID sách mới (Dùng ObjectId của mongoose)
+const generateBookId = () => {
+  return new mongoose.Types.ObjectId();
+};
 
 export async function GET(request) {
   try {
@@ -10,11 +16,13 @@ export async function GET(request) {
     const featured = searchParams.get("featured") === "true";
     const searchTerm = searchParams.get("searchTerm");
 
+    // Kết nối đến cơ sở dữ liệu
     const { db } = await connectToDatabase();
     if (!db) throw new Error("Database connection failed");
 
     let pipeline = [];
 
+    // Xây dựng pipeline cho các sách nổi bật
     if (featured) {
       pipeline = [
         { $sort: { rating: -1 } },
@@ -27,7 +35,9 @@ export async function GET(request) {
             as: "authorInfo",
           },
         },
-        { $unwind: "$authorInfo" },
+        {
+          $unwind: "$authorInfo",
+        },
         {
           $addFields: {
             authorName: "$authorInfo.name",
@@ -35,23 +45,12 @@ export async function GET(request) {
         },
         {
           $project: {
-            _id: 1,
-            bookCode: 1,
-            title: 1,
-            genres: 1,
-            description: 1,
-            price: 1,
-            quantity: 1,
-            availableQuantity: 1,
-            borrowedCount: 1,
-            coverImage: 1,
-            author: "$authorInfo.name",
-            authorName: 1,
-            publisher: 1,
+            authorInfo: 0,
           },
         },
       ];
     } else {
+      // Xây dựng query cho các sách khác
       const query = {};
 
       if (title && title.trim() !== "") {
@@ -61,30 +60,35 @@ export async function GET(request) {
       if (searchTerm && searchTerm.trim() !== "") {
         query.$or = [
           { title: { $regex: searchTerm, $options: "i" } },
+          { authorName: { $regex: searchTerm, $options: "i" } },
           { genres: { $regex: searchTerm, $options: "i" } },
         ];
-      }
+      } else {
+        if (authorName && authorName.trim() !== "") {
+          // Tìm tác giả theo tên
+          const authorMatch = await db.collection("authors").findOne({
+            name: { $regex: authorName, $options: "i" },
+          });
 
-      if (authorName && authorName.trim() !== "") {
-        const authorMatch = await db.collection("authors").findOne({
-          name: { $regex: authorName, $options: "i" },
-        });
-        if (!authorMatch) {
-          return new Response(JSON.stringify([]), {
-            headers: { "content-type": "application/json" },
-            status: 200,
-          });
-        }
-        if (
-          authorMatch._id &&
-          mongoose.Types.ObjectId.isValid(authorMatch._id)
-        ) {
-          query.author = new mongoose.Types.ObjectId(authorMatch._id);
-        } else {
-          return new Response(JSON.stringify([]), {
-            headers: { "content-type": "application/json" },
-            status: 200,
-          });
+          // Nếu không tìm thấy tác giả, trả về mảng rỗng
+          if (!authorMatch) {
+            return new Response(JSON.stringify([]), {
+              headers: { "content-type": "application/json" },
+              status: 200,
+            });
+          }
+          if (
+            authorMatch._id &&
+            mongoose.Types.ObjectId.isValid(authorMatch._id)
+          ) {
+            query.author = new mongoose.Types.ObjectId(authorMatch._id);
+          } else {
+            console.warn(`Invalid ObjectId found for author: ${authorName}`);
+            return new Response(JSON.stringify([]), {
+              headers: { "content-type": "application/json" },
+              status: 200,
+            });
+          }
         }
       }
 
@@ -115,30 +119,19 @@ export async function GET(request) {
         },
         {
           $project: {
-            _id: 1,
-            bookCode: 1,
-            title: 1,
-            genres: 1,
-            description: 1,
-            price: 1,
-            quantity: 1,
-            availableQuantity: 1,
-            borrowedCount: 1,
-            coverImage: 1,
-            author: "$authorInfo.name",
-            authorName: 1,
-            publisher: 1,
+            authorInfo: 0,
           },
         },
       ];
     }
 
+    // Lấy danh sách sách từ cơ sở dữ liệu
     const books = await db.collection("books").aggregate(pipeline).toArray();
 
+    // Trả về danh sách sách
     return new Response(JSON.stringify(books), {
       headers: {
         "content-type": "application/json",
-        "Cache-Control": "no-store",
       },
       status: 200,
     });
@@ -154,172 +147,67 @@ export async function GET(request) {
   }
 }
 
-// Add PUT request handler to update book quantity and genres
-export async function PUT(request) {
-  const session = await auth();
-
-  if (!session || session.user.role !== "admin") {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  try {
-    const { db } = await connectToDatabase();
-    if (!db) throw new Error("Database connection failed");
-
-    const body = await request.json();
-    const { id, quantity, genres } = body;
-
-    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-      return new Response(JSON.stringify({ error: "Invalid book ID" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (
-      quantity === undefined ||
-      typeof quantity !== "number" ||
-      quantity < 0
-    ) {
-      return new Response(JSON.stringify({ error: "Invalid quantity" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (!genres || !Array.isArray(genres) || genres.length === 0) {
-      return new Response(JSON.stringify({ error: "Invalid genres" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Update the book
-    const result = await db.collection("books").updateOne(
-      { _id: new mongoose.Types.ObjectId(id) },
-      {
-        $set: {
-          quantity: quantity,
-          availableQuantity: quantity,
-          genres: genres,
-        },
-      } // Update quantity, availableQuantity, and genres
-    );
-
-    if (result.modifiedCount === 0) {
-      return new Response(
-        JSON.stringify({ error: "Book not found or no changes applied" }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    return new Response(
-      JSON.stringify({ message: "Book updated successfully" }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  } catch (error) {
-    console.error("Error updating book:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Failed to update book" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
-}
-
 export async function POST(request) {
   try {
+    const {
+      bookCode,
+      title,
+      price,
+      quantity,
+      borrowedCount,
+      author,
+      publisher,
+      coverImage,
+      description,
+      genres,
+      availableQuantity,
+      authorName,
+    } = await request.json();
+
+    // Kiểm tra các trường bắt buộc
+    if (!bookCode || !title || !price || !quantity || !author || !publisher) {
+      return new Response(
+        JSON.stringify({ message: "All required fields must be provided" }),
+        { status: 400 }
+      );
+    }
+
+    // Kết nối đến cơ sở dữ liệu MongoDB
     const { db } = await connectToDatabase();
     if (!db) throw new Error("Database connection failed");
 
-    const body = await request.json();
-
-    const requiredFields = [
-      "bookCode",
-      "title",
-      "genres",
-      "price",
-      "quantity",
-      "coverImage",
-      "author",
-      "publisher",
-    ];
-    
-    for (const field of requiredFields) {
-      if (!body[field]) {
-        return new Response(
-          JSON.stringify({ error: `Missing field: ${field}` }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-    }
-
-    if (
-      !mongoose.Types.ObjectId.isValid(body.author) ||
-      !mongoose.Types.ObjectId.isValid(body.publisher)
-    ) {
-      return new Response(
-        JSON.stringify({ error: "Invalid author or publisher ID" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
+    // Tạo sách mới
     const newBook = {
-      coverImage: body.coverImage,
-      bookCode: body.bookCode,
-      title: body.title,
-      genres: body.genres,
-      description: body.description,
-      price: parseFloat(body.price),
-      quantity: parseInt(body.quantity),
-      availableQuantity: parseInt(body.quantity),
-      author: new mongoose.Types.ObjectId(body.author),
-      publisher: new mongoose.Types.ObjectId(body.publisher),
-      borrowedCount: 0,
+      _id: new mongoose.Types.ObjectId(),
+      bookCode,
+      title,
+      price,
+      quantity,
+      borrowedCount,
+      author: new mongoose.Types.ObjectId(author),
+      publisher,
+      coverImage,
+      description,
+      genres,
+      availableQuantity,
+      authorName,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    const result = await db.collection("books").insertOne(newBook);
+    // Chèn sách vào collection "books"
+    await db.collection("books").insertOne(newBook);
 
+    // Trả về thông báo thành công
     return new Response(
-      JSON.stringify({ message: "Book added successfully" }),
-      {
-        status: 201,
-        headers: { "Content-Type": "application/json" },
-      }
+      JSON.stringify({ message: "Book created successfully", book: newBook }),
+      { status: 201 }
     );
   } catch (error) {
-    if (error.code === 11000) {
-      return new Response(
-        JSON.stringify({ error: "Book code already exists" }),
-        {
-          status: 409,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    console.error("Error adding book:", error);
-
+    console.error("Error creating book:", error.stack || error.message);
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to add book" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+      JSON.stringify({ error: error.message || "Failed to create book" }),
+      { status: 500 }
     );
   }
 }

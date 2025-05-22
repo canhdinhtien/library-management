@@ -26,7 +26,7 @@ const BookCard = ({ title, author, image, id }) => {
 
       <div className="flex flex-col items-center flex-grow p-4">
         <h3
-          className="font-semibold text-lg text-gray-800 line-clamp-2 mb-1"
+          className="font-semibold text-lg text-gray-800 line-clamp-2 mb-1 text-center"
           title={title}
         >
           {title}

@@ -7,10 +7,12 @@ const BookList = ({ books, title }) => {
       <h2 className="text-2xl font-bold text-center mb-6">{title}</h2>
 
       {/* Lưới hiển thị sách */}
-      <div className="grid grid-cols-4 gap-6 justify-center">
-        {books.map((book) => (
-          <BookCard key={book.id} book={book} />
-        ))}
+      <div className="w-full max-w-7xl mx-auto">
+        <div className="grid grid-cols-4 gap-6 justify-center">
+          {books.map((book) => (
+            <BookCard key={book.id} book={book} />
+          ))}
+        </div>
       </div>
     </section>
   );

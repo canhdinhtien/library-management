@@ -21,7 +21,7 @@ export const useLogin = () => {
 
       if (response.ok && data.success) {
         console.log("Login page: API success, calling context login...");
-        login(data.user, data.token);
+        login(data.user, data.accessToken);
         console.log("Login page: Context updated, redirecting...");
 
         const userRole = data.user?.role;
