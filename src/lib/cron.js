@@ -3,7 +3,7 @@ import cron from "node-cron";
 
 if (typeof window === "undefined") {
   if (!global.cronJobScheduled) {
-    cron.schedule("0 23 * * *", async () => {
+    cron.schedule("3 23 * * *", async () => {
       console.log("Running daily reminder job...");
 
       try {
