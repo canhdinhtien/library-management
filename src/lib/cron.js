@@ -7,13 +7,19 @@ if (typeof window === "undefined") {
       console.log("Running daily reminder job...");
 
       try {
-        const borrowResponse = await fetch("/api/borrow/auto", {
-          method: "POST",
-        });
+        const borrowResponse = await fetch(
+          "https://library-management-2bws.vercel.app/api/borrow/auto",
+          {
+            method: "POST",
+          }
+        );
 
-        const response = await fetch("/api/notifications", {
-          method: "POST",
-        });
+        const response = await fetch(
+          "https://library-management-2bws.vercel.app/api/notifications",
+          {
+            method: "POST",
+          }
+        );
 
         const result = await response.json();
         console.log("Reminder job result:", result);
