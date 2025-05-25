@@ -3,23 +3,17 @@ import cron from "node-cron";
 
 if (typeof window === "undefined") {
   if (!global.cronJobScheduled) {
-    cron.schedule("0 8 * * *", async () => {
+    cron.schedule("35 22 * * *", async () => {
       console.log("Running daily reminder job...");
 
       try {
-        const borrowResponse = await fetch(
-          "http://localhost:3000/api/borrow/auto",
-          {
-            method: "POST",
-          }
-        );
+        const borrowResponse = await fetch("/api/borrow/auto", {
+          method: "POST",
+        });
 
-        const response = await fetch(
-          "http://localhost:3000/api/notifications",
-          {
-            method: "POST",
-          }
-        );
+        const response = await fetch("/api/notifications", {
+          method: "POST",
+        });
 
         const result = await response.json();
         console.log("Reminder job result:", result);
